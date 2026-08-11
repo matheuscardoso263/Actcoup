@@ -5,6 +5,10 @@ import { GameState, ActionType, Character } from '../types/game';
 // In development (Vite on port 3000), connect directly to Express server on port 3001.
 // In production (Express serving frontend on port 3001), connect to current window origin.
 const getBackendUrl = () => {
+  // Support explicit deployment environment variable (e.g. Render/Railway URL when deploying frontend on Vercel)
+  if (import.meta.env.VITE_BACKEND_URL) {
+    return import.meta.env.VITE_BACKEND_URL;
+  }
   if (typeof window !== 'undefined') {
     if (window.location.port === '3000') {
       return `http://${window.location.hostname}:3001`;
