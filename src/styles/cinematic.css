@@ -206,106 +206,209 @@
 }
 
 /* ============================================================
-   2. EJECT — perdeu a última influência (eliminado)
-   Homenagem ao Among Us: corpo girando pelo espaço.
+   2. EJECT — perdeu a última influência (deposto)
+   Sentença da corte: a carta é lacrada com o selo de cera do
+   império e cai, enquanto brasas sobem pelo salão às escuras.
+   Paleta tirada da própria arte das cartas: carmim, ouro e pedra.
    ============================================================ */
 
 .cine-eject {
-  background: radial-gradient(ellipse at 50% 50%, #0b1120 0%, #000 75%);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 108%, rgba(180, 83, 9, 0.35) 0%, transparent 70%),
+    radial-gradient(ellipse at 50% 40%, #2a1206 0%, #14080a 45%, #05020a 100%);
+  animation: cineIn 0.18s ease-out both, cineShake 0.5s 0.92s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 .cine-eject.is-me {
-  background: radial-gradient(ellipse at 50% 50%, #1c0505 0%, #000 75%);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 108%, rgba(190, 18, 60, 0.4) 0%, transparent 70%),
+    radial-gradient(ellipse at 50% 40%, #3b0a0a 0%, #1a0406 45%, #05020a 100%);
 }
 
-/* Três camadas de estrelas em velocidades diferentes = parallax */
-.cine-stars {
+/* Brasas subindo do chão do salão. Três camadas em velocidades
+   diferentes = parallax (mesma técnica de sempre, sentido invertido). */
+.cine-embers {
   position: absolute;
-  inset: -50%;
+  inset: -60% 0;
   pointer-events: none;
   background-repeat: repeat;
 }
 
-.cine-stars-1 {
+.cine-embers-1 {
   background-image:
-    radial-gradient(1px 1px at 24px 38px, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(1px 1px at 132px 84px, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1px 1px at 71px 158px, rgba(255, 255, 255, 0.85), transparent),
-    radial-gradient(1px 1px at 186px 22px, rgba(255, 255, 255, 0.6), transparent);
-  background-size: 220px 220px;
-  animation: cineStarDrift 24s linear infinite;
-  opacity: 0.55;
+    radial-gradient(1.5px 1.5px at 30px 44px, rgba(251, 191, 36, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 148px 96px, rgba(253, 186, 116, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 82px 172px, rgba(251, 191, 36, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 196px 28px, rgba(254, 215, 170, 0.5), transparent);
+  background-size: 240px 240px;
+  animation: cineEmberRise 19s linear infinite;
+  opacity: 0.5;
 }
 
-.cine-stars-2 {
+.cine-embers-2 {
   background-image:
-    radial-gradient(1.6px 1.6px at 58px 96px, #fff, transparent),
-    radial-gradient(1.6px 1.6px at 164px 42px, rgba(191, 219, 254, 0.9), transparent),
-    radial-gradient(1.6px 1.6px at 108px 176px, #fff, transparent);
-  background-size: 300px 300px;
-  animation: cineStarDrift 15s linear infinite;
-  opacity: 0.75;
+    radial-gradient(2px 2px at 64px 108px, #fbbf24, transparent),
+    radial-gradient(2px 2px at 178px 48px, rgba(249, 115, 22, 0.85), transparent),
+    radial-gradient(2px 2px at 116px 188px, #fcd34d, transparent);
+  background-size: 320px 320px;
+  animation: cineEmberRise 12s linear infinite;
+  opacity: 0.7;
 }
 
-.cine-stars-3 {
+.cine-embers-3 {
   background-image:
-    radial-gradient(2.4px 2.4px at 90px 60px, #fff, transparent),
-    radial-gradient(2.4px 2.4px at 240px 190px, rgba(253, 230, 138, 0.9), transparent);
-  background-size: 420px 420px;
-  animation: cineStarDrift 8s linear infinite;
-  opacity: 0.9;
+    radial-gradient(3px 3px at 96px 66px, #fde68a, transparent),
+    radial-gradient(3px 3px at 258px 202px, rgba(251, 146, 60, 0.9), transparent);
+  background-size: 440px 440px;
+  animation: cineEmberRise 7s linear infinite;
+  opacity: 0.85;
 }
 
-@keyframes cineStarDrift {
+@keyframes cineEmberRise {
   from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(-220px, 60px, 0); }
+  to   { transform: translate3d(38px, -240px, 0); }
 }
 
-/* Trilha horizontal que atravessa a tela levando o corpo */
-/* Fica na faixa de cima: o corpo cruza a tela ACIMA do texto, senão passa
-   por cima do nome do eliminado bem no clímax da cena. */
-.cine-body-track {
+/* Fumaça baixa, para o chão não terminar em corte seco */
+.cine-smoke {
   position: absolute;
-  top: 14%;
-  left: 0;
-  animation: cineDrift 5.2s linear both;
+  inset: auto 0 0 0;
+  height: 45%;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(120, 53, 15, 0.28) 0%, transparent 100%);
 }
 
-@keyframes cineDrift {
-  from { transform: translateX(-32vw); }
-  to   { transform: translateX(128vw); }
+/* --- A carta sentenciada ------------------------------------ */
+
+/* Dois wrappers: o de fora cuida da queda, o de dentro da entrada.
+   Duas animações de transform no mesmo elemento não se somam — a
+   última simplesmente vence. */
+.cine-verdict-fall {
+  position: absolute;
+  top: 7%;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: cineVerdictFall 2.3s 3s cubic-bezier(0.55, 0, 0.85, 0.3) both;
 }
 
-/* O corpo gira e se afasta (encolhe) enquanto atravessa */
-.cine-body {
-  height: clamp(8rem, 26vh, 17rem);
+@keyframes cineVerdictFall {
+  0%   { transform: translateX(-50%) translateY(0) rotate(0deg); opacity: 1; }
+  30%  { opacity: 1; }
+  100% { transform: translateX(-50%) translateY(34vh) rotate(11deg); opacity: 0; }
+}
+
+.cine-verdict {
+  position: relative;
+  animation: cineVerdictEnter 0.45s cubic-bezier(0.22, 1.1, 0.36, 1) both;
+}
+
+@keyframes cineVerdictEnter {
+  from { transform: scale(1.5) rotate(-5deg); opacity: 0; filter: blur(7px); }
+  to   { transform: scale(1) rotate(-1.5deg); opacity: 1; filter: blur(0); }
+}
+
+.cine-verdict-card {
+  height: clamp(9rem, 30vh, 19rem);
   aspect-ratio: 2 / 3;
   border-radius: 0.9rem;
   overflow: hidden;
-  border: 2px solid rgba(251, 191, 36, 0.35);
-  box-shadow: 0 0 60px 10px rgba(56, 189, 248, 0.25), 0 20px 40px rgba(0, 0, 0, 0.8);
-  animation: cineTumble 5.2s linear both;
+  border: 2px solid rgba(251, 191, 36, 0.45);
+  box-shadow:
+    0 0 70px 12px rgba(180, 83, 9, 0.3),
+    0 24px 48px rgba(0, 0, 0, 0.85);
 }
 
-.is-me .cine-body {
+.is-me .cine-verdict-card {
   border-color: rgba(248, 113, 113, 0.6);
-  box-shadow: 0 0 60px 12px rgba(239, 68, 68, 0.35), 0 20px 40px rgba(0, 0, 0, 0.8);
+  box-shadow:
+    0 0 70px 14px rgba(190, 18, 60, 0.4),
+    0 24px 48px rgba(0, 0, 0, 0.85);
 }
 
-.cine-body img {
+/* Some a cor junto com o poder: a carta vira retrato de arquivo. */
+.cine-verdict-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(0.35) brightness(0.85);
+  animation: cineFade2Sepia 1.6s 0.9s ease-out both;
 }
 
-/* Encolhe pouco: o corpo precisa continuar legível (dá pra ver qual carta
-   era) durante quase toda a travessia. */
-@keyframes cineTumble {
-  0%   { transform: rotate(0deg) scale(1); opacity: 0; }
-  10%  { opacity: 1; }
-  80%  { opacity: 1; }
-  100% { transform: rotate(680deg) scale(0.45); opacity: 0; }
+@keyframes cineFade2Sepia {
+  from { filter: none; }
+  to   { filter: sepia(0.65) saturate(0.5) brightness(0.55); }
+}
+
+/* --- O selo de cera ----------------------------------------- */
+
+.cine-seal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Um selo real ocupa um canto do documento, não o documento inteiro:
+     ~40% da largura da carta. */
+  width: clamp(3.25rem, 8.5vh, 6rem);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  /* Cera escorrida: borda orgânica, não círculo perfeito */
+  border-radius: 46% 54% 51% 49% / 53% 47% 54% 46%;
+  /* Gradiente contido de propósito: muito contraste aqui e a cera vira
+     bola de borracha lustrosa. As três manchas por cima quebram a
+     superfície: cera derretida nunca assenta lisa. */
+  background:
+    radial-gradient(circle at 22% 62%, rgba(255, 255, 255, 0.055) 0 18%, transparent 19%),
+    radial-gradient(circle at 70% 24%, rgba(0, 0, 0, 0.16) 0 14%, transparent 15%),
+    radial-gradient(circle at 63% 77%, rgba(0, 0, 0, 0.13) 0 20%, transparent 21%),
+    radial-gradient(circle at 40% 34%, #c62828 0%, #a01a20 48%, #7a1116 78%, #580c11 100%);
+  box-shadow:
+    inset 0 -5px 10px rgba(0, 0, 0, 0.5),
+    inset 0 4px 8px rgba(254, 202, 202, 0.08),
+    inset 0 0 0 3px rgba(0, 0, 0, 0.12),
+    0 8px 20px rgba(0, 0, 0, 0.8),
+    0 0 26px 5px rgba(190, 24, 24, 0.35);
+  color: #e8b44a;
+  animation: cineSealStamp 0.6s 0.42s cubic-bezier(0.5, 0, 0.4, 1) both;
+}
+
+/* O carimbo desce de longe, esmaga e assenta — torto, como carimbo de mão. */
+@keyframes cineSealStamp {
+  0%   { transform: translate(-50%, -50%) scale(3.6) rotate(-26deg); opacity: 0; filter: blur(8px); }
+  45%  { opacity: 0.9; }
+  72%  { transform: translate(-50%, -50%) scale(0.88) rotate(2deg); opacity: 1; filter: blur(0); }
+  86%  { transform: translate(-50%, -50%) scale(1.08) rotate(-6deg); filter: blur(0); }
+  100% { transform: translate(-50%, -50%) scale(1) rotate(-4deg); filter: blur(0); }
+}
+
+/* Brasão em relevo: luz por baixo e sombra por cima = gravado na cera. */
+.cine-seal svg {
+  width: 52%;
+  height: 52%;
+  opacity: 0.9;
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 226, 165, 0.5))
+    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.75));
+}
+
+/* Rachaduras douradas irradiando do impacto */
+.cine-crack {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #fde68a;
+  box-shadow: 0 0 24px 5px rgba(251, 191, 36, 0.8);
+  clip-path: polygon(
+    50% 46%, 22% 8%, 27% 12%, 49% 44%,
+    50% 46%, 88% 17%, 84% 23%, 51% 45%,
+    50% 46%, 14% 74%, 19% 71%, 49% 47%,
+    50% 46%, 79% 92%, 76% 86%, 51% 47%
+  );
+  animation: cineCrackFlash 0.85s 0.86s ease-out both;
+}
+
+@keyframes cineCrackFlash {
+  0%   { opacity: 0; transform: scale(0.35); }
+  18%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.05); }
 }
 
 .cine-eject-caption {
@@ -313,7 +416,21 @@
   z-index: 2;
   text-align: center;
   padding: 0 1.5rem;
-  margin-top: clamp(6rem, 22vh, 14rem);
+  margin-top: clamp(7rem, 26vh, 16rem);
+}
+
+/* Filete dourado sob o veredito, como numa cédula de decreto */
+.cine-eject-rule {
+  height: 1px;
+  width: min(28rem, 70vw);
+  margin: 1.1rem auto 0;
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.75), transparent);
+  animation: cineRuleOpen 0.8s 1.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cineRuleOpen {
+  from { opacity: 0; transform: scaleX(0.1); }
+  to   { opacity: 1; transform: scaleX(1); }
 }
 
 .cine-eject-name {
@@ -343,12 +460,15 @@
 
   .cine-slash,
   .cine-flash,
-  .cine-cut {
+  .cine-cut,
+  .cine-crack,
+  .cine-embers {
     display: none;
   }
 
-  .cine-body-track {
+  .cine-verdict-fall {
     position: static;
+    transform: none;
     margin-bottom: 1.5rem;
   }
 

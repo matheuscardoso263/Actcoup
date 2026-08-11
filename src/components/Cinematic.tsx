@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CHARACTER_INFO } from '../types/game';
 import { CinematicEvent } from '../hooks/useGameEvents';
 import { sound } from '../audio/sound';
-import { Skull } from 'lucide-react';
+import { Skull, Crown } from 'lucide-react';
 
 interface CinematicProps {
   event: CinematicEvent;
@@ -33,12 +33,15 @@ export const Cinematic: React.FC<CinematicProps> = ({ event, onDone }) => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const hold = reduced ? 1400 : DURATION[kind];
 
-    sound.playSlash();
-    timers.current.push(
-      kind === 'kill'
-        ? window.setTimeout(() => sound.playThud(), 320)
-        : window.setTimeout(() => sound.playEject(), 260)
-    );
+    if (kind === 'kill') {
+      sound.playSlash();
+      timers.current.push(window.setTimeout(() => sound.playThud(), 320));
+    } else {
+      // A carta batendo no tampo, e o selo só quando ele encosta de fato
+      // (0.42s de atraso + 72% dos 0.6s da animação do carimbo).
+      sound.playThud();
+      timers.current.push(window.setTimeout(() => sound.playSeal(), 850));
+    }
 
     timers.current.push(window.setTimeout(() => setClosing(true), hold));
     timers.current.push(window.setTimeout(() => onDoneRef.current(), hold + FADE_OUT));
@@ -101,13 +104,20 @@ export const Cinematic: React.FC<CinematicProps> = ({ event, onDone }) => {
         </>
       ) : (
         <>
-          <div className="cine-stars cine-stars-1" />
-          <div className="cine-stars cine-stars-2" />
-          <div className="cine-stars cine-stars-3" />
+          <div className="cine-embers cine-embers-1" />
+          <div className="cine-embers cine-embers-2" />
+          <div className="cine-embers cine-embers-3" />
+          <div className="cine-smoke" />
 
-          <div className="cine-body-track">
-            <div className="cine-body">
-              <img src={info.image} alt="" />
+          <div className="cine-verdict-fall">
+            <div className="cine-verdict">
+              <div className="cine-verdict-card">
+                <img src={info.image} alt="" />
+              </div>
+              <div className="cine-crack" />
+              <div className="cine-seal">
+                <Crown />
+              </div>
             </div>
           </div>
 
@@ -115,22 +125,24 @@ export const Cinematic: React.FC<CinematicProps> = ({ event, onDone }) => {
             <h2
               className={`cine-eject-name font-serif font-extrabold uppercase tracking-[0.2em] text-[clamp(1.5rem,6vw,3.75rem)] leading-tight ${
                 event.isMe
-                  ? 'text-red-400 drop-shadow-[0_0_35px_rgba(239,68,68,0.65)]'
-                  : 'text-slate-100 drop-shadow-[0_0_35px_rgba(148,163,184,0.45)]'
+                  ? 'text-red-400 drop-shadow-[0_0_35px_rgba(220,38,38,0.7)]'
+                  : 'text-amber-100 drop-shadow-[0_0_35px_rgba(180,83,9,0.6)]'
               }`}
             >
-              {event.isMe ? 'Você foi eliminado' : `${event.victimName} foi eliminado`}
+              {event.isMe ? 'Você foi deposto' : `${event.victimName} foi deposto`}
             </h2>
+
+            <div className="cine-eject-rule" />
 
             <p className="cine-eject-role mt-4 flex items-center justify-center gap-2 text-[clamp(0.85rem,2.2vw,1.25rem)] font-semibold tracking-widest uppercase text-amber-300/90">
               <Skull className="w-[1.1em] h-[1.1em]" />
               Última influência: {info.name}
             </p>
 
-            <p className="cine-eject-remain mt-6 text-[clamp(0.75rem,1.8vw,1rem)] tracking-[0.25em] uppercase text-slate-400">
+            <p className="cine-eject-remain mt-6 text-[clamp(0.75rem,1.8vw,1rem)] tracking-[0.25em] uppercase text-amber-200/45">
               {event.playersLeft === 1
-                ? 'Resta 1 jogador na mesa'
-                : `Restam ${event.playersLeft} jogadores na mesa`}
+                ? 'Resta 1 nobre na corte'
+                : `Restam ${event.playersLeft} nobres na corte`}
             </p>
           </div>
         </>
