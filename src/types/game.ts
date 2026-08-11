@@ -87,34 +87,34 @@ export const CHARACTER_INFO: Record<Character, { name: string; description: stri
     description: 'Pega 3 moedas da tesouraria. Bloqueia Ajuda Externa.',
     action: 'Taxa (+3 moedas)',
     block: 'Bloqueia Ajuda Externa',
-    image: '/cards/duke.png'
+    image: '/cards/duke.webp'
   },
   assassin: {
     name: 'Assassino',
     description: 'Paga 3 moedas para tentar eliminar uma influência de um jogador.',
     action: 'Assassinar (Custa 3 moedas)',
     block: undefined,
-    image: '/cards/assassin.png'
+    image: '/cards/assassin.webp'
   },
   captain: {
     name: 'Capitão',
     description: 'Rouba até 2 moedas de outro jogador. Bloqueia Roubo.',
     action: 'Roubar (Até 2 moedas)',
     block: 'Bloqueia Roubo',
-    image: '/cards/captain.png'
+    image: '/cards/captain.webp'
   },
   ambassador: {
     name: 'Embaixador',
     description: 'Troca cartas com o baralho. Bloqueia Roubo.',
     action: 'Trocar (Comprar 2 do baralho)',
     block: 'Bloqueia Roubo',
-    image: '/cards/ambassador.png'
+    image: '/cards/ambassador.webp'
   },
   countess: {
     name: 'Condessa',
     description: 'Não possui ação ativa. Bloqueia Assassinato.',
     action: undefined,
     block: 'Bloqueia Assassinato',
-    image: '/cards/countess.png'
+    image: '/cards/countess.webp'
   }
 };
