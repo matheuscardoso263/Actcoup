@@ -1,5 +1,18 @@
 import { v4 as uuidv4 } from 'uuid';
 
+/** Nome em português de cada personagem, para o histórico da partida. O
+ *  identificador em inglês continua sendo o do protocolo — só o texto traduz.
+ *  Precisa acompanhar CHARACTER_INFO em src/types/game.ts. */
+const CHARACTER_NAMES = {
+  duke: 'Duque',
+  assassin: 'Assassino',
+  captain: 'Capitão',
+  ambassador: 'Embaixador',
+  countess: 'Condessa'
+};
+
+const characterName = character => CHARACTER_NAMES[character] || character;
+
 export class GameEngine {
   constructor() {
     this.rooms = new Map();
@@ -22,7 +35,7 @@ export class GameEngine {
 
     const host = {
       id: hostId,
-      name: hostName || 'Host',
+      name: hostName || 'Anfitrião',
       isHost: true,
       isBot: false,
       coins: 2,
@@ -94,7 +107,7 @@ export class GameEngine {
     const room = this.getRoom(code);
     if (!room) throw new Error('Sala não encontrada.');
     if (room.status !== 'lobby') throw new Error('Partida já em andamento.');
-    if (!room.players.find(p => p.id === hostId && p.isHost)) throw new Error('Apenas o host pode adicionar bots.');
+    if (!room.players.find(p => p.id === hostId && p.isHost)) throw new Error('Apenas o anfitrião pode adicionar bots.');
     if (room.players.length >= room.maxPlayers) throw new Error('Sala cheia.');
 
     const botNames = ['Bot Arthur', 'Bot Beatriz', 'Bot Carlos', 'Bot Diana', 'Bot Eduardo', 'Bot Fernanda'];
@@ -135,7 +148,7 @@ export class GameEngine {
     if (currentHost && currentHost.id === newHost.id) return null;
 
     room.players.forEach(p => { p.isHost = p.id === newHost.id; });
-    this.addLog(room, `👑 ${newHost.name} agora é o host da sala.`, 'system');
+    this.addLog(room, `👑 ${newHost.name} agora é o anfitrião da sala.`, 'system');
     return newHost;
   }
 
@@ -149,12 +162,12 @@ export class GameEngine {
 
     const player = room.players.find(p => p.id === playerId);
     if (!player) throw new Error('Você não está nesta sala.');
-    if (player.isBot) throw new Error('Bots não podem ser host.');
+    if (player.isBot) throw new Error('Bots não podem ser anfitriões.');
     if (player.isHost) return room;
 
     const currentHost = room.players.find(p => p.isHost);
     if (currentHost && !currentHost.isBot && currentHost.isConnected) {
-      throw new Error('A sala já possui um host ativo.');
+      throw new Error('A sala já possui um anfitrião ativo.');
     }
 
     room.players.forEach(p => { p.isHost = p.id === playerId; });
@@ -180,7 +193,7 @@ export class GameEngine {
     if (!targetPlayer) return room;
 
     if (playerId !== requesterId && (!requester || !requester.isHost)) {
-      throw new Error('Apenas o próprio jogador ou o host pode remover um jogador.');
+      throw new Error('Apenas o próprio jogador ou o anfitrião pode remover um jogador.');
     }
 
     if (room.status === 'lobby') {
@@ -241,7 +254,7 @@ export class GameEngine {
   startGame(code, hostId) {
     const room = this.getRoom(code);
     if (!room) throw new Error('Sala não encontrada.');
-    if (!room.players.find(p => p.id === hostId && p.isHost)) throw new Error('Apenas o host pode iniciar o jogo.');
+    if (!room.players.find(p => p.id === hostId && p.isHost)) throw new Error('Apenas o anfitrião pode iniciar o jogo.');
     if (room.players.length < room.minPlayers) throw new Error(`Mínimo de ${room.minPlayers} jogadores para iniciar.`);
 
     const characters = ['duke', 'assassin', 'captain', 'ambassador', 'countess'];
@@ -489,7 +502,7 @@ export class GameEngine {
     if (pending.stage === 'ACTION_CHALLENGE') {
       if (playerId === pending.actorId) throw new Error('O autor da ação não pode responder.');
       if (responseType === 'challenge') {
-        this.addLog(room, `⚡ ${player.name} DESAFIOU a alegação de ${pending.claimedCharacter?.toUpperCase()} de ${room.players.find(p => p.id === pending.actorId).name}!`, 'challenge');
+        this.addLog(room, `⚡ ${player.name} DESAFIOU a alegação de ${characterName(pending.claimedCharacter).toUpperCase()} de ${room.players.find(p => p.id === pending.actorId).name}!`, 'challenge');
         this.resolveChallenge(room, pending.actorId, playerId, pending.claimedCharacter, () => {
           this.executeAction(room, pending);
         });
@@ -540,7 +553,7 @@ export class GameEngine {
       if (playerId === pending.blockerId) throw new Error('O bloqueador não pode desafiar o próprio bloqueio.');
       if (responseType === 'challenge') {
         const blocker = room.players.find(p => p.id === pending.blockerId);
-        this.addLog(room, `⚡ ${player.name} DESAFIOU o bloqueio de ${pending.blockedCharacter?.toUpperCase()} feito por ${blocker.name}!`, 'challenge');
+        this.addLog(room, `⚡ ${player.name} DESAFIOU o bloqueio de ${characterName(pending.blockedCharacter).toUpperCase()} feito por ${blocker.name}!`, 'challenge');
         this.resolveChallenge(room, pending.blockerId, playerId, pending.blockedCharacter, () => {
           this.addLog(room, `🛡️ O bloqueio de ${blocker.name} foi bem sucedido! A ação foi cancelada.`, 'block');
           this.advanceTurn(room);
@@ -589,7 +602,7 @@ export class GameEngine {
     pending.responses = {};
     this.addLog(
       room,
-      `🛡️ ${blocker.name} declarou possuir ${character.toUpperCase()} para BLOQUEAR a ação!`,
+      `🛡️ ${blocker.name} declarou possuir ${characterName(character).toUpperCase()} para BLOQUEAR a ação!`,
       'block',
       {
         kind: 'block',
@@ -628,7 +641,7 @@ export class GameEngine {
       const matchingCard = claimer.cards[matchingCardIndex];
       this.addLog(
         room,
-        `✨ ${claimer.name} REVELOU ${claimedCharacter.toUpperCase()}! O desafio de ${challenger.name} falhou.`,
+        `✨ ${claimer.name} REVELOU ${characterName(claimedCharacter).toUpperCase()}! O desafio de ${challenger.name} falhou.`,
         'challenge',
         challengeEvent('truth')
       );
@@ -651,7 +664,7 @@ export class GameEngine {
     } else {
       this.addLog(
         room,
-        `❌ ${claimer.name} NÃO possuía ${claimedCharacter.toUpperCase()}! O desafio de ${challenger.name} foi vitorioso.`,
+        `❌ ${claimer.name} NÃO possuía ${characterName(claimedCharacter).toUpperCase()}! O desafio de ${challenger.name} foi vitorioso.`,
         'challenge',
         challengeEvent('bluff')
       );
@@ -659,7 +672,7 @@ export class GameEngine {
 
       room.pendingLoss = {
         playerId: claimerId,
-        reason: `Seu blefe (${claimedCharacter.toUpperCase()}) foi desmascarado por ${challenger.name}! Escolha uma carta para revelar.`,
+        reason: `Seu blefe (${characterName(claimedCharacter).toUpperCase()}) foi desmascarado por ${challenger.name}! Escolha uma carta para revelar.`,
         callbackAction: () => {
           if (onFailure) {
             onFailure();
@@ -752,7 +765,7 @@ export class GameEngine {
     if (!card) throw new Error('Carta inválida ou já revelada.');
 
     card.revealed = true;
-    this.addLog(room, `💀 ${player.name} revelou a carta ${card.character.toUpperCase()}!`, 'elimination');
+    this.addLog(room, `💀 ${player.name} revelou a carta ${characterName(card.character).toUpperCase()}!`, 'elimination');
 
     if (player.cards.every(c => c.revealed)) {
       this.addLog(room, `☠️ ${player.name} perdeu todas as influências e foi ELIMINADO!`, 'elimination');

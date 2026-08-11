@@ -111,6 +111,18 @@ export interface GameState {
   minPlayers: number;
 }
 
+/** Nome em português de cada ação, para o texto que aparece ao jogador.
+ *  Os identificadores do protocolo continuam em inglês — só a exibição traduz. */
+export const ACTION_LABELS: Record<ActionType, string> = {
+  income: 'Renda',
+  foreign_aid: 'Ajuda Externa',
+  coup: 'Golpe de Estado',
+  tax: 'Taxa',
+  assassinate: 'Assassinato',
+  steal: 'Roubo',
+  exchange: 'Troca'
+};
+
 export const CHARACTER_INFO: Record<Character, { name: string; description: string; action?: string; block?: string; image: string }> = {
   duke: {
     name: 'Duque',

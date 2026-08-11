@@ -113,7 +113,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
           <div className="text-center mb-6">
             <img
               src="/logosemfundo.png"
-              alt="Coup Logo"
+              alt="Logo do Coup"
               className="w-48 mx-auto mb-2 drop-shadow-[0_0_25px_rgba(245,158,11,0.4)] hover:scale-105 transition-transform"
             />
             <p className="text-xs text-slate-400">
@@ -186,7 +186,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
       <div className="w-full max-w-xl xl:max-w-2xl max-h-[92dvh] overflow-y-auto bg-slate-900/90 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 sm:p-8 shadow-2xl">
         <div className="flex justify-between items-center pb-6 border-b border-slate-800">
           <div>
-            <img src="/logosemfundo.png" alt="Coup Logo" className="h-10 mb-2 drop-shadow-md" />
+            <img src="/logosemfundo.png" alt="Logo do Coup" className="h-10 mb-2 drop-shadow-md" />
             <span className="text-xs uppercase tracking-widest text-slate-400 font-semibold">Sala de Espera</span>
             <div className="flex items-center gap-3 mt-1">
               <h2 className="text-3xl font-extrabold tracking-wider font-mono text-amber-400">
@@ -251,7 +251,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
                 <div className="flex items-center gap-2">
                   {player.isHost && (
                     <span className="px-2.5 py-1 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold flex items-center gap-1">
-                      <Crown className="w-3.5 h-3.5" /> Host
+                      <Crown className="w-3.5 h-3.5" /> Anfitrião
                     </span>
                   )}
                   {player.isBot && (
@@ -292,7 +292,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
         {!isHost && !canClaimHost && (
           <div className="pt-4 border-t border-slate-800 text-center">
             <p className="text-xs text-slate-400 animate-pulse">
-              Aguardando o host iniciar a partida...
+              Aguardando o anfitrião iniciar a partida...
             </p>
           </div>
         )}
@@ -300,7 +300,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
         {canClaimHost && (
           <div className="pt-4 border-t border-slate-800 flex flex-col gap-2">
             <p className="text-xs text-slate-400 text-center">
-              O host da sala está ausente. Assuma o controle para iniciar a partida.
+              O anfitrião da sala está ausente. Assuma o controle para iniciar a partida.
             </p>
             <button
               onClick={handleClaimHost}

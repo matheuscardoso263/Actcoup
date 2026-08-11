@@ -137,7 +137,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
       {/* Top Header Bar */}
       <header className="relative z-20 flex-shrink-0 flex justify-between items-center px-6 2xl:px-10 py-2.5 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
         <div className="flex items-center gap-4">
-          <img src="/logosemfundo.png" alt="Coup Logo" className="h-8 2xl:h-10 drop-shadow-md" />
+          <img src="/logosemfundo.png" alt="Logo do Coup" className="h-8 2xl:h-10 drop-shadow-md" />
           <span className="text-xs 2xl:text-sm px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-300 font-mono">
             Sala: {gameState.code}
           </span>
@@ -274,7 +274,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
             data-coin-anchor={TREASURY}
             className="py-1 text-center text-slate-600 flex flex-col items-center gap-1 pointer-events-none flex-shrink-0 opacity-70"
           >
-            <img src="/logosemfundo.png" alt="Coup Logo" className="h-[clamp(1.75rem,5vh,4rem)] opacity-80 filter brightness-110 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]" />
+            <img src="/logosemfundo.png" alt="Logo do Coup" className="h-[clamp(1.75rem,5vh,4rem)] opacity-80 filter brightness-110 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]" />
             <span className="font-serif tracking-widest text-[10px] uppercase text-amber-500/60 font-bold">Mesa de Jogo</span>
           </div>
 
@@ -366,7 +366,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                     className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
                   >
                     <span className="font-bold text-cyan-400">Trocar</span>
-                    <span className="text-[10px] xl:text-xs text-slate-400">Comprar 2 do deck</span>
+                    <span className="text-[10px] xl:text-xs text-slate-400">Comprar 2 do baralho</span>
                   </button>
                 </div>
 

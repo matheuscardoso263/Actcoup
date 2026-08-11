@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GameState, Character } from '../types/game';
+import { GameState, Character, CHARACTER_INFO, ACTION_LABELS } from '../types/game';
 import { CardView } from './CardView';
 import { socketService } from '../services/socket';
 import { sound } from '../audio/sound';
@@ -117,7 +117,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
             Selecione o Alvo
           </h3>
           <p className="text-xs text-slate-400 mb-4">
-            Escolha um jogador para ser afetado pela ação: <span className="uppercase font-bold text-white">{targetActionReq}</span>
+            Escolha um jogador para ser afetado pela ação: <span className="uppercase font-bold text-white">{ACTION_LABELS[targetActionReq]}</span>
           </p>
 
           {error && (
@@ -392,7 +392,10 @@ export const ActionModal: React.FC<ActionModalProps> = ({
             <h3 className="text-xl font-extrabold text-amber-400 mb-1">Ação em Análise!</h3>
             <p className="text-sm text-slate-200 mb-4">
               <span className="font-bold text-white">{actor?.name}</span> declarou ser{' '}
-              <span className="font-bold text-amber-400 uppercase">{pendingAction.claimedCharacter}</span> para realizar a ação.
+              <span className="font-bold text-amber-400 uppercase">
+                {pendingAction.claimedCharacter ? CHARACTER_INFO[pendingAction.claimedCharacter].name : ''}
+              </span>{' '}
+              para realizar a ação.
             </p>
 
             {error && (
@@ -439,7 +442,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
               <h3 className="text-xl font-extrabold text-blue-400 mb-1">Deseja Bloquear?</h3>
               <p className="text-sm text-slate-200 mb-4">
                 <span className="font-bold text-white">{actor?.name}</span> está realizando{' '}
-                <span className="font-bold text-blue-300 uppercase">{pendingAction.action}</span>.
+                <span className="font-bold text-blue-300 uppercase">{ACTION_LABELS[pendingAction.action]}</span>.
               </p>
 
               {error && (
@@ -512,7 +515,10 @@ export const ActionModal: React.FC<ActionModalProps> = ({
             <h3 className="text-xl font-extrabold text-purple-400 mb-1">Bloqueio em Análise!</h3>
             <p className="text-sm text-slate-200 mb-4">
               <span className="font-bold text-white">{blocker?.name}</span> declarou possuir{' '}
-              <span className="font-bold text-purple-300 uppercase">{pendingAction.blockedCharacter}</span> para BLOQUEAR a ação.
+              <span className="font-bold text-purple-300 uppercase">
+                {pendingAction.blockedCharacter ? CHARACTER_INFO[pendingAction.blockedCharacter].name : ''}
+              </span>{' '}
+              para BLOQUEAR a ação.
             </p>
 
             {error && (
