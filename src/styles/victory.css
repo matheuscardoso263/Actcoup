@@ -1,0 +1,385 @@
+/* ============================================================
+   COROAÇÃO — a tela de fim de partida.
+   Contraparte da cutscene de deposição: lá a corte lacra um
+   decreto com selo de cera e a carta cai; aqui a coroa desce
+   sobre quem sobrou de pé. Mesma paleta (carmim, ouro e pedra),
+   mesma tipografia de decreto, mesmas brasas subindo — as duas
+   cenas têm que parecer o mesmo salão em dias diferentes.
+   ============================================================ */
+
+.vic-root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vh, 2.5rem) 1.25rem;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 65% 45% at 50% 18%, rgba(180, 83, 9, 0.4) 0%, transparent 68%),
+    radial-gradient(ellipse 70% 50% at 50% 108%, rgba(120, 53, 15, 0.35) 0%, transparent 70%),
+    radial-gradient(ellipse at 50% 45%, #1c1006 0%, #0e0805 45%, #03020a 100%);
+  animation: vicIn 0.5s ease-out both;
+}
+
+@keyframes vicIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* --- Luz do salão -------------------------------------------- */
+
+/* Raios caindo do alto, como num salão do trono. A conic desenha as
+   lâminas e a máscara radial apaga o centro e as pontas; sem ela o
+   efeito vira um disco listrado em vez de luz. */
+.vic-rays {
+  position: absolute;
+  top: -55%;
+  left: 50%;
+  width: 145vmax;
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(251, 191, 36, 0.13) 0deg 3.5deg,
+    transparent 3.5deg 13deg
+  );
+  -webkit-mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.35) 34%, transparent 62%);
+  mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.35) 34%, transparent 62%);
+  /* Duas animações porque uma mexe em opacity e a outra em transform: numa
+     só, a rotação apagaria o translateX que centraliza o disco. */
+  animation:
+    vicRaysIn 1.4s 0.15s ease-out both,
+    vicRaysSpin 80s linear infinite;
+}
+
+@keyframes vicRaysIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes vicRaysSpin {
+  from { transform: translateX(-50%) rotate(0deg); }
+  to   { transform: translateX(-50%) rotate(360deg); }
+}
+
+/* Facho vertical descendo sobre a coroa */
+.vic-beam {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: clamp(9rem, 26vw, 20rem);
+  height: 62%;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(253, 230, 138, 0.28) 0%,
+    rgba(251, 191, 36, 0.12) 45%,
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+  filter: blur(14px);
+  /* O facho desce do teto: escalando pelo centro ele se abriria pelas duas
+     pontas ao mesmo tempo, como uma persiana, em vez de descer. */
+  transform-origin: top center;
+  animation: vicBeam 1.6s 0.3s ease-out both;
+}
+
+@keyframes vicBeam {
+  0%   { opacity: 0; transform: translateX(-50%) scaleY(0.4); }
+  100% { opacity: 1; transform: translateX(-50%) scaleY(1); }
+}
+
+/* --- A coroa ------------------------------------------------- */
+
+/* Invólucro parado: o estilhaço e a onda de choque são pseudo-elementos
+   dele e não podem herdar a escala nem a opacidade da coroa descendo. */
+.vic-crown {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: clamp(3.5rem, 11vh, 6.5rem);
+  aspect-ratio: 1;
+}
+
+.vic-crown-icon {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #fcd34d;
+  filter:
+    drop-shadow(0 0 22px rgba(251, 191, 36, 0.85))
+    drop-shadow(0 6px 10px rgba(0, 0, 0, 0.8));
+  animation: vicCrownDrop 0.7s 0.35s cubic-bezier(0.5, 0, 0.35, 1) both;
+}
+
+.vic-crown-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Desce de cima, assenta com um quique curto. Nada de flutuar: coroa
+   pesa, e é o peso que faz o momento valer. */
+@keyframes vicCrownDrop {
+  0%   { opacity: 0; transform: translateY(-52vh) scale(1.5) rotate(-9deg); filter: blur(6px); }
+  55%  { opacity: 1; }
+  78%  { transform: translateY(0) scale(0.9) rotate(2deg); filter: blur(0); }
+  90%  { transform: translateY(-8%) scale(1.04) rotate(-1deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); filter: blur(0); }
+}
+
+/* Estilhaço de luz no instante em que a coroa assenta */
+.vic-crown::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(16rem, 44vw, 34rem);
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(254, 243, 199, 0.9) 0deg 2deg,
+    transparent 2deg 19deg
+  );
+  -webkit-mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.5) 28%, transparent 64%);
+  mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.5) 28%, transparent 64%);
+  animation: vicBurst 0.8s 0.86s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes vicBurst {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.15) rotate(-12deg); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2) rotate(14deg); }
+}
+
+/* Onda de choque dourada */
+.vic-crown::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(6rem, 16vw, 11rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid rgba(253, 230, 138, 0.9);
+  pointer-events: none;
+  animation: vicRing 0.9s 0.88s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes vicRing {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.1); border-width: 7px; }
+  14%  { opacity: 0.95; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(3); border-width: 1px; }
+}
+
+/* --- O decreto ----------------------------------------------- */
+
+.vic-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: min(46rem, 92vw);
+}
+
+.vic-eyebrow {
+  margin-top: clamp(0.75rem, 2.5vh, 1.5rem);
+  font-size: clamp(0.6rem, 1.5vw, 0.8rem);
+  font-weight: 800;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(251, 191, 36, 0.6);
+  animation: vicRise 0.7s 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes vicRise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.vic-name {
+  margin-top: 0.4rem;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(2rem, 8vw, 4.75rem);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  /* Ouro batido: o degradê no texto é o que separa o nome do resto da
+     tela sem precisar de mais um contorno ou caixa em volta.
+     O nome do vencedor é a única informação que esta tela existe pra dar,
+     então a cor sólida vem primeiro e o recorte só entra onde é suportado —
+     um background-clip que falhe deixaria a tela inteira sem o seu recado. */
+  color: #fcd34d;
+  filter: drop-shadow(0 0 40px rgba(251, 191, 36, 0.45)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.7));
+  /* Nome longo não pode empurrar o layout pra fora da tela. */
+  max-width: 100%;
+  overflow-wrap: break-word;
+  animation: vicName 0.9s 1.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .vic-name {
+    background: linear-gradient(175deg, #fffbeb 0%, #fcd34d 42%, #d97706 78%, #92400e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@keyframes vicName {
+  0%   { opacity: 0; transform: translateY(26px) scale(0.94); filter: blur(10px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+/* Filete dourado do decreto — o mesmo da cena de deposição. */
+.vic-rule {
+  height: 1px;
+  width: min(26rem, 72vw);
+  margin: clamp(0.9rem, 2.5vh, 1.4rem) 0 0;
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.8), transparent);
+  animation: vicRuleOpen 0.9s 1.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes vicRuleOpen {
+  from { opacity: 0; transform: scaleX(0.08); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+
+.vic-claim {
+  margin-top: clamp(0.75rem, 2vh, 1.1rem);
+  font-size: clamp(0.85rem, 2.2vw, 1.2rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(254, 243, 199, 0.82);
+  animation: vicRise 0.7s 1.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.vic-claim strong {
+  color: #fde68a;
+  font-weight: 800;
+}
+
+/* --- A corte deposta ----------------------------------------- */
+
+.vic-fallen {
+  margin-top: clamp(1.25rem, 4vh, 2.25rem);
+  animation: vicRise 0.7s 2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.vic-fallen-label {
+  display: block;
+  font-size: clamp(0.55rem, 1.3vw, 0.7rem);
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.45);
+}
+
+.vic-fallen-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 0.75rem;
+  margin-top: 0.6rem;
+}
+
+.vic-fallen-name {
+  font-size: clamp(0.7rem, 1.7vw, 0.9rem);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: rgba(203, 213, 225, 0.45);
+  text-decoration: line-through;
+  text-decoration-color: rgba(190, 18, 60, 0.75);
+  text-decoration-thickness: 2px;
+}
+
+/* --- Saída ---------------------------------------------------- */
+
+.vic-action {
+  margin-top: clamp(1.5rem, 5vh, 2.75rem);
+  padding: 0.85rem 2.5rem;
+  border-radius: 999px;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #fde68a;
+  background: linear-gradient(180deg, rgba(69, 26, 3, 0.9), rgba(20, 8, 3, 0.95));
+  border: 1px solid rgba(251, 191, 36, 0.55);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.65), 0 0 30px rgba(180, 83, 9, 0.25);
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  animation: vicRise 0.6s 2.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.vic-action:hover:not(:disabled) {
+  color: #fffbeb;
+  border-color: rgba(251, 191, 36, 0.95);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 46px rgba(217, 119, 6, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Só existe até a cena terminar de se montar: o botão nasce invisível e
+   sem isto daria pra clicar nele às cegas antes de aparecer. */
+.vic-action:disabled {
+  cursor: default;
+}
+
+/* Marca do jogo, discreta, no rodapé do decreto. */
+.vic-mark {
+  position: absolute;
+  bottom: clamp(0.75rem, 3vh, 1.75rem);
+  left: 50%;
+  transform: translateX(-50%);
+  height: clamp(1.25rem, 3.5vh, 2rem);
+  opacity: 0;
+  pointer-events: none;
+  filter: brightness(1.1) drop-shadow(0 0 12px rgba(245, 158, 11, 0.35));
+  animation: vicMark 1s 2.6s ease-out both;
+}
+
+@keyframes vicMark {
+  to { opacity: 0.35; }
+}
+
+/* ============================================================
+   Acessibilidade
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .vic-root,
+  .vic-root * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Pseudo-elementos não são alcançados pelo seletor acima, e os dois
+     terminam invisíveis — some com eles em vez de deixá-los piscar. */
+  .vic-crown::before,
+  .vic-crown::after,
+  .vic-rays,
+  .vic-beam {
+    display: none;
+  }
+
+  .vic-mark {
+    opacity: 0.35;
+  }
+}

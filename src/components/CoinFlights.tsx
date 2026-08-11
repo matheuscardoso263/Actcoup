@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { CoinFlow } from '../hooks/useCoinFlow';
+import { coinAnchor } from '../utils/anchors';
 import { sound } from '../audio/sound';
 
 /** Mais que isso vira confusão visual — o número no contador já diz o total. */
@@ -14,15 +15,6 @@ interface Geometry {
   y1: number;
 }
 
-/** Centro do elemento marcado com data-coin-anchor, em coordenadas de viewport. */
-function anchorCenter(id: string): { x: number; y: number } | null {
-  const el = document.querySelector<HTMLElement>(`[data-coin-anchor="${id}"]`);
-  if (!el) return null;
-  const rect = el.getBoundingClientRect();
-  if (rect.width === 0 && rect.height === 0) return null;
-  return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-}
-
 const Flight: React.FC<{ flow: CoinFlow; onDone: () => void }> = ({ flow, onDone }) => {
   const [geometry, setGeometry] = useState<Geometry | null>(null);
   const count = Math.min(flow.amount, MAX_COINS);
@@ -33,8 +25,8 @@ const Flight: React.FC<{ flow: CoinFlow; onDone: () => void }> = ({ flow, onDone
   onDoneRef.current = onDone;
 
   useLayoutEffect(() => {
-    const from = anchorCenter(flow.fromId);
-    const to = anchorCenter(flow.toId);
+    const from = coinAnchor(flow.fromId);
+    const to = coinAnchor(flow.toId);
 
     // Âncora ausente (jogador que saiu, layout ainda montando): descarta o
     // voo em silêncio em vez de deixar moedas presas na tela.

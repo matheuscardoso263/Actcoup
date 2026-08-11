@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FX harness</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/styles/cinematic.css">
+    <link rel="stylesheet" href="/src/styles/game-fx.css">
+    <link rel="stylesheet" href="/src/styles/victory.css">
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; }
+      .stage { position: fixed; inset: 0;
+        background: radial-gradient(ellipse at center, #1e293b, #020617 70%); }
+    </style>
+  </head>
+  <body>
+    <div class="stage"></div>
+    <div id="fx"></div>
+
+    <script>
+      const params = new URLSearchParams(location.search);
+      const scene = params.get('scene') || 'truth';
+      const at = Number(params.get('t') ?? 2600);
+
+      const zap = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+      const swords = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.1em;height:1.1em"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/></svg>';
+      const shield = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>';
+
+      function duel(outcome) {
+        const bluff = outcome === 'bluff';
+        return `
+        <div class="cine-root cine-duel ${bluff ? 'is-bluff' : 'is-truth'} is-mine">
+          <div class="cine-duel-flash"></div>
+          <div class="cine-duel-head">
+            <span class="cine-duel-label">${swords}Desafio</span>
+            <div class="cine-duel-row">
+              <div class="cine-duel-side cine-duel-left">
+                <span class="cine-duel-role">Desafiante</span>
+                <span class="cine-duel-name">Você</span>
+              </div>
+              <span class="cine-duel-bolt">${zap}</span>
+              <div class="cine-duel-side cine-duel-right">
+                <span class="cine-duel-role">Acusado</span>
+                <span class="cine-duel-name">Guilherme</span>
+              </div>
+            </div>
+            <p class="cine-duel-claim">Alegou ser <strong>Duque</strong></p>
+          </div>
+          <div class="cine-duel-card">
+            <img src="/cards/duke.webp" alt="">
+            <div class="cine-duel-veil"></div>
+            <div class="cine-duel-cross cine-duel-cross-1"></div>
+            <div class="cine-duel-cross cine-duel-cross-2"></div>
+            <span class="cine-duel-stamp">${bluff ? 'Blefe' : 'Verdade'}</span>
+          </div>
+          <div class="cine-duel-verdict">
+            <h2 class="cine-duel-title">${bluff ? 'Blefe desmascarado!' : 'Você duvidou — e ele tinha'}</h2>
+            <div class="cine-duel-rule"></div>
+            <p class="cine-duel-detail">${bluff
+              ? 'Guilherme não tinha Duque e perde uma influência.'
+              : 'Guilherme revelou Duque. Você perde uma influência.'}</p>
+          </div>
+          <span class="cine-skip">clique para pular</span>
+        </div>`;
+      }
+
+      function block() {
+        return `
+        <div class="block-flash is-mine">
+          <div class="block-flash-band"></div>
+          <div class="block-flash-body">
+            <span class="block-flash-crest">${shield}</span>
+            <span class="block-flash-text">
+              <span class="block-flash-name">Guilherme bloqueia</span>
+              <span class="block-flash-role">Condessa</span>
+            </span>
+          </div>
+        </div>`;
+      }
+
+      const crown = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg>';
+      const refresh = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.15em;height:1.15em"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>';
+
+      function victory(mine) {
+        const fallen = ['Bot Arthur', 'Bot Beatriz', 'Matheus', 'Bot Diana'];
+        return `
+        <div class="vic-root">
+          <div class="vic-rays"></div>
+          <div class="vic-beam"></div>
+          <div class="cine-embers cine-embers-1"></div>
+          <div class="cine-embers cine-embers-2"></div>
+          <div class="cine-embers cine-embers-3"></div>
+          <div class="vic-crown"><span class="vic-crown-icon">${crown}</span></div>
+          <div class="vic-body">
+            <span class="vic-eyebrow">${mine ? 'O trono é seu' : 'A corte tem um novo soberano'}</span>
+            <h2 class="vic-name">Guilherme</h2>
+            <div class="vic-rule"></div>
+            <p class="vic-claim">${mine
+              ? 'Você foi o <strong>último nobre de pé</strong>. A cidade-estado é sua.'
+              : 'Último nobre de pé depois de <strong>4</strong> deposições.'}</p>
+            <div class="vic-fallen">
+              <span class="vic-fallen-label">A corte deposta</span>
+              <div class="vic-fallen-list">
+                ${fallen.map(n => `<span class="vic-fallen-name">${n}</span>`).join('')}
+              </div>
+            </div>
+            <button class="vic-action">${refresh}Voltar para a sala</button>
+          </div>
+          <img src="/logosemfundo.png" alt="Coup" class="vic-mark">
+        </div>`;
+      }
+
+      const html =
+        scene === 'block' ? block()
+        : scene === 'victory' ? victory(true)
+        : scene === 'victory-other' ? victory(false)
+        : duel(scene);
+      document.getElementById('fx').innerHTML = html;
+
+      // Congela todas as animações no instante pedido, para poder fotografar
+      // um frame específico da linha do tempo.
+      function freeze() {
+        const anims = document.getAnimations();
+        anims.forEach(a => { a.pause(); a.currentTime = at; });
+        document.title = 'ready:' + anims.length;
+      }
+      requestAnimationFrame(() => requestAnimationFrame(freeze));
+    </script>
+  </body>
+</html>

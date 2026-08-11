@@ -9,10 +9,14 @@ import {
 } from './services/socket';
 import { Lobby } from './components/Lobby';
 import { GameTable } from './components/GameTable';
+import { useDealTrigger } from './hooks/useDeal';
 
 export function App() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const playerId = getPersistentPlayerId();
+  // Precisa morar aqui: o GameTable só nasce com a partida já em curso e não
+  // teria como saber se ela acabou de começar ou se é uma reconexão.
+  const dealKey = useDealTrigger(gameState);
   // Depois de sair, broadcasts atrasados não podem recolocar o jogador na sala.
   const leftRoomRef = useRef(false);
 
@@ -74,6 +78,7 @@ export function App() {
         <GameTable
           gameState={gameState}
           playerId={playerId}
+          dealKey={dealKey}
           onLeaveRoom={handleLeaveRoom}
           onReturnToLobby={handleReturnToLobby}
         />

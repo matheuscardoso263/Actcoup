@@ -26,11 +26,41 @@ export type ActionType =
   | 'steal'
   | 'exchange';
 
+/** Desafio resolvido: quem duvidou, de quem, e no que deu. */
+export interface ChallengeLogEvent {
+  kind: 'challenge';
+  /** Desafio à ação declarada ou ao bloqueio alegado. */
+  scope: 'action' | 'block';
+  /** `truth` = o acusado tinha a carta; `bluff` = estava blefando. */
+  outcome: 'truth' | 'bluff';
+  claimerId: string;
+  claimerName: string;
+  challengerId: string;
+  challengerName: string;
+  character: Character;
+  /** Quem perde influência por causa deste desafio. */
+  loserId: string;
+  loserName: string;
+}
+
+/** Bloqueio declarado — ainda pode ser desafiado. */
+export interface BlockLogEvent {
+  kind: 'block';
+  blockerId: string;
+  blockerName: string;
+  character: Character;
+  action: ActionType;
+}
+
+export type LogEvent = ChallengeLogEvent | BlockLogEvent;
+
 export interface ActionLog {
   id: string;
   timestamp: number;
   text: string;
   type: 'action' | 'challenge' | 'block' | 'system' | 'elimination';
+  /** Presente só nos lances que merecem animação. Ver addLog no servidor. */
+  event?: LogEvent;
 }
 
 export type PendingStage =

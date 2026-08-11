@@ -446,6 +446,458 @@
 }
 
 /* ============================================================
+   3. DUEL — desafio resolvido (blefe ou verdade)
+   O lance mais tenso do Coup, então a cena é construída em duas
+   batidas: primeiro o choque (quem duvidou de quem), depois o
+   veredito. A cor do resultado só entra na segunda batida — se o
+   fundo já nascesse dourado ou carmim, a cena entregaria o final
+   antes de contar a história.
+   ============================================================ */
+
+.cine-duel {
+  /* Abaixo do z-100 das cutscenes de morte: se um desafio derrubar a última
+     influência de alguém, a deposição é que tem a palavra final. */
+  z-index: 95;
+  padding: 1.5rem;
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 42%, rgba(51, 65, 85, 0.55) 0%, transparent 70%),
+    radial-gradient(ellipse at 50% 50%, #131a2c 0%, #0a0d18 55%, #03040a 100%);
+  animation: cineIn 0.18s ease-out both, cineShake 0.5s 0.36s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* A cor do veredito inundando o salão, já depois do carimbo. */
+.cine-duel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: duelFlood 1.3s 1.12s ease-out both;
+}
+
+.cine-duel.is-truth::before {
+  background: radial-gradient(ellipse 75% 60% at 50% 55%, rgba(180, 83, 9, 0.5) 0%, transparent 68%);
+}
+
+.cine-duel.is-bluff::before {
+  background: radial-gradient(ellipse 75% 60% at 50% 55%, rgba(159, 18, 57, 0.55) 0%, transparent 68%);
+}
+
+@keyframes duelFlood {
+  0%   { opacity: 0; }
+  22%  { opacity: 1; }
+  100% { opacity: 0.72; }
+}
+
+/* Clarão do choque das faixas */
+.cine-duel-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  animation: duelFlash 0.4s 0.34s ease-out both;
+}
+
+@keyframes duelFlash {
+  0%   { opacity: 0; }
+  10%  { opacity: 0.7; }
+  100% { opacity: 0; }
+}
+
+/* --- Cabeçalho: as duas faixas se chocando ------------------- */
+
+.cine-duel-head {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.cine-duel-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: clamp(0.65rem, 1.5vw, 0.85rem);
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(203, 213, 225, 0.55);
+  animation: cineRise 0.4s 0.55s ease-out both;
+}
+
+.cine-duel-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.5rem, 2vw, 1.5rem);
+  margin-top: 0.65rem;
+}
+
+.cine-duel-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.45rem clamp(0.75rem, 2.5vw, 1.75rem);
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.9), rgba(8, 11, 20, 0.95));
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+}
+
+.cine-duel-role {
+  font-size: clamp(0.55rem, 1.2vw, 0.7rem);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.65);
+}
+
+.cine-duel-name {
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(1rem, 3.2vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  color: #f1f5f9;
+  max-width: 11ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* As faixas entram em disparada, se esmagam no encontro e ficam
+   congeladas por ~70ms antes de recuar. Essa pausa curtíssima no
+   impacto (hit-stop) é o que dá peso ao choque — sem ela o encontro
+   parece dois blocos passando um pelo outro. */
+.cine-duel-left {
+  animation: duelChargeL 1.2s both;
+}
+
+.cine-duel-right {
+  animation: duelChargeR 1.2s both;
+}
+
+@keyframes duelChargeL {
+  0%   { opacity: 0; transform: translateX(-58vw) scale(0.86); animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.2); }
+  8%   { opacity: 1; animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.2); }
+  30%  { opacity: 1; transform: translateX(4%) scale(1.12, 0.88); animation-timing-function: linear; }
+  36%  { opacity: 1; transform: translateX(4%) scale(1.12, 0.88); animation-timing-function: cubic-bezier(0.34, 1.4, 0.5, 1); }
+  56%  { transform: translateX(0) scale(1); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes duelChargeR {
+  0%   { opacity: 0; transform: translateX(58vw) scale(0.86); animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.2); }
+  8%   { opacity: 1; animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.2); }
+  30%  { opacity: 1; transform: translateX(-4%) scale(1.12, 0.88); animation-timing-function: linear; }
+  36%  { opacity: 1; transform: translateX(-4%) scale(1.12, 0.88); animation-timing-function: cubic-bezier(0.34, 1.4, 0.5, 1); }
+  56%  { transform: translateX(0) scale(1); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* Ponto de encontro. Este invólucro fica parado de propósito: é dele que
+   saem o estilhaço e a onda de choque, e se ele animasse escala ou opacidade
+   os dois herdariam o movimento e chegariam encolhidos e apagados. */
+.cine-duel-bolt {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(2rem, 5vw, 3.25rem);
+  aspect-ratio: 1;
+}
+
+.cine-duel-bolt-icon {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #fde68a;
+  filter: drop-shadow(0 0 14px rgba(251, 191, 36, 0.9));
+  animation: duelBolt 0.7s 0.3s cubic-bezier(0.34, 1.6, 0.5, 1) both;
+}
+
+.cine-duel-bolt-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes duelBolt {
+  0%   { opacity: 0; transform: scale(0.2) rotate(-40deg); }
+  30%  { opacity: 1; transform: scale(1.5) rotate(6deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* Estilhaço: raias saindo do impacto. A repeating-conic desenha as raias e a
+   máscara radial apaga o centro e as pontas, senão vira um disco listrado. */
+.cine-duel-bolt::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(14rem, 38vw, 30rem);
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.95) 0deg 2.5deg,
+    transparent 2.5deg 21deg
+  );
+  -webkit-mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 30%, transparent 66%);
+  mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.55) 30%, transparent 66%);
+  animation: duelBurst 0.6s 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes duelBurst {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.12) rotate(-16deg); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.15) rotate(12deg); }
+}
+
+/* Onda de choque */
+.cine-duel-bolt::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(7rem, 18vw, 13rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid rgba(253, 230, 138, 0.85);
+  pointer-events: none;
+  animation: duelRing 0.75s 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes duelRing {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.1); border-width: 6px; }
+  15%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.6); border-width: 1px; }
+}
+
+.cine-duel-claim {
+  margin-top: 0.85rem;
+  font-size: clamp(0.75rem, 1.9vw, 1rem);
+  letter-spacing: 0.05em;
+  color: rgba(203, 213, 225, 0.75);
+  animation: cineRise 0.5s 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cine-duel-claim strong {
+  color: #fde68a;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* --- A prova: a carta alegada ------------------------------- */
+
+.cine-duel-card {
+  position: relative;
+  z-index: 2;
+  /* Item de flex-column: sem isso a carta seria a primeira a ser espremida
+     numa janela baixa, e ela é justamente a prova que a cena está mostrando. */
+  flex-shrink: 0;
+  margin-top: clamp(1rem, 3vh, 2rem);
+  height: clamp(8rem, 25vh, 15rem);
+  aspect-ratio: 2 / 3;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  border: 2px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 22px 44px rgba(0, 0, 0, 0.85);
+  animation: duelCardRise 0.55s 0.62s cubic-bezier(0.22, 1.1, 0.36, 1) both;
+}
+
+@keyframes duelCardRise {
+  from { opacity: 0; transform: translateY(26px) scale(0.9); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.cine-duel-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Verdade: a carta ganha moldura de ouro e brilha. */
+.cine-duel.is-truth .cine-duel-card {
+  animation:
+    duelCardRise 0.55s 0.62s cubic-bezier(0.22, 1.1, 0.36, 1) both,
+    duelProve 0.5s 1.12s cubic-bezier(0.34, 1.5, 0.5, 1) both;
+}
+
+@keyframes duelProve {
+  0%   { border-color: rgba(148, 163, 184, 0.4); box-shadow: 0 22px 44px rgba(0, 0, 0, 0.85); }
+  45%  { border-color: #fde68a; box-shadow: 0 0 70px 16px rgba(251, 191, 36, 0.75), 0 22px 44px rgba(0, 0, 0, 0.85); }
+  100% { border-color: rgba(251, 191, 36, 0.85); box-shadow: 0 0 40px 8px rgba(251, 191, 36, 0.4), 0 22px 44px rgba(0, 0, 0, 0.85); }
+}
+
+/* Blefe: a carta some sob um véu carmim — ela nunca esteve lá. */
+.cine-duel-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(76, 5, 25, 0.82), rgba(30, 2, 10, 0.9));
+  opacity: 0;
+}
+
+.cine-duel.is-bluff .cine-duel-veil {
+  animation: duelVeil 0.6s 1.12s ease-out both;
+}
+
+@keyframes duelVeil {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.cine-duel.is-bluff .cine-duel-card img {
+  animation: duelDrain 0.8s 1.12s ease-out both;
+}
+
+@keyframes duelDrain {
+  from { filter: none; }
+  to   { filter: grayscale(0.9) brightness(0.5); }
+}
+
+/* O X riscando a carta. Duas barras giradas, cada uma se desenhando de uma
+   ponta à outra — na ordem certa lê-se como alguém riscando o documento.
+   O traçado sai do clip-path, não de um scaleX: a barra precisa girar em
+   torno do próprio centro pro X ficar centrado na carta, e escalar a partir
+   da ponta exigiria a origem na ponta. Com clip-path o transform fica fixo
+   e o corte acompanha o eixo já girado — que é a direção do risco. */
+.cine-duel-cross {
+  position: absolute;
+  top: 50%;
+  left: -5%;
+  width: 110%;
+  height: clamp(4px, 0.9vh, 8px);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0) 0%, #ef4444 12%, #fecaca 50%, #ef4444 88%, rgba(239, 68, 68, 0) 100%);
+  box-shadow: 0 0 18px 4px rgba(239, 68, 68, 0.8);
+  transform: translateY(-50%) rotate(var(--cross-rot));
+  clip-path: inset(0 100% 0 0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cine-duel.is-bluff .cine-duel-cross-1 {
+  animation: duelCross 0.32s 1.14s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --cross-rot: 48deg;
+}
+
+.cine-duel.is-bluff .cine-duel-cross-2 {
+  animation: duelCross 0.32s 1.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --cross-rot: -48deg;
+}
+
+@keyframes duelCross {
+  0%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+  18%  { opacity: 1; }
+  100% { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+/* Carimbo do veredito: desce torto e esmaga, igual carimbo de mão. */
+.cine-duel-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  padding: 0.3em 0.7em;
+  border-radius: 0.3rem;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  /* Contido de propósito: o carimbo mora dentro da carta, que tem overflow
+     hidden. Maior que isto e "VERDADE" (8 caracteres com entreletra larga)
+     passa da largura da carta e sai cortado nas pontas. */
+  font-size: clamp(0.65rem, 2vh, 1rem);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  animation: duelStamp 0.55s 1.12s cubic-bezier(0.5, 0, 0.4, 1) both;
+}
+
+.cine-duel.is-truth .cine-duel-stamp {
+  color: #fef3c7;
+  border: 3px solid rgba(253, 230, 138, 0.9);
+  background: rgba(69, 26, 3, 0.7);
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.6);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.cine-duel.is-bluff .cine-duel-stamp {
+  color: #fecaca;
+  border: 3px solid rgba(248, 113, 113, 0.9);
+  background: rgba(69, 3, 12, 0.75);
+  box-shadow: 0 0 24px rgba(239, 68, 68, 0.6);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes duelStamp {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(3.2) rotate(18deg); filter: blur(7px); }
+  40%  { opacity: 0.9; }
+  70%  { opacity: 1; transform: translate(-50%, -50%) scale(0.9) rotate(-11deg); filter: blur(0); }
+  85%  { transform: translate(-50%, -50%) scale(1.06) rotate(-6deg); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-8deg); filter: blur(0); }
+}
+
+/* --- A sentença --------------------------------------------- */
+
+.cine-duel-verdict {
+  position: relative;
+  z-index: 2;
+  margin-top: clamp(1rem, 3.5vh, 2rem);
+  text-align: center;
+  max-width: min(38rem, 88vw);
+}
+
+.cine-duel-title {
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(1.15rem, 4vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  animation: cineRise 0.6s 1.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cine-duel.is-truth .cine-duel-title {
+  color: #fde68a;
+  text-shadow: 0 0 32px rgba(251, 191, 36, 0.6);
+}
+
+.cine-duel.is-bluff .cine-duel-title {
+  color: #fca5a5;
+  text-shadow: 0 0 32px rgba(239, 68, 68, 0.6);
+}
+
+.cine-duel-rule {
+  height: 1px;
+  width: min(22rem, 62vw);
+  margin: 0.9rem auto 0;
+  animation: cineRuleOpen 0.7s 1.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cine-duel.is-truth .cine-duel-rule {
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.8), transparent);
+}
+
+.cine-duel.is-bluff .cine-duel-rule {
+  background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.8), transparent);
+}
+
+.cine-duel-detail {
+  margin-top: 0.85rem;
+  font-size: clamp(0.8rem, 2vw, 1.1rem);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: rgba(226, 232, 240, 0.8);
+  animation: cineRise 0.6s 1.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Quando é você no banco dos réus (ou você quem acusou), a cena aperta um
+   pouco mais: o vinheta escurece as bordas e fecha o foco no centro. */
+.cine-duel.is-mine {
+  box-shadow: inset 0 0 clamp(6rem, 18vw, 14rem) clamp(1rem, 4vw, 4rem) rgba(0, 0, 0, 0.85);
+}
+
+/* ============================================================
    Acessibilidade: quem pediu menos movimento recebe só o texto.
    ============================================================ */
 
@@ -462,7 +914,11 @@
   .cine-flash,
   .cine-cut,
   .cine-crack,
-  .cine-embers {
+  .cine-embers,
+  .cine-duel-flash,
+  /* Pseudo-elementos não são alcançados pelo `.cine-root *` acima. */
+  .cine-duel-bolt::before,
+  .cine-duel-bolt::after {
     display: none;
   }
 

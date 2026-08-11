@@ -4,10 +4,15 @@ import { CardView } from './CardView';
 import { ActionModal, getWaitingPlayerNames } from './ActionModal';
 import { GameOverModal } from './GameOverModal';
 import { Cinematic } from './Cinematic';
+import { ChallengeSceneView } from './ChallengeScene';
+import { BlockFlashes } from './BlockFlash';
 import { CoinFlights } from './CoinFlights';
+import { DealFlights } from './DealFlights';
 import { CoinCounter } from './CoinCounter';
 import { useGameEvents } from '../hooks/useGameEvents';
+import { useTableEvents } from '../hooks/useTableEvents';
 import { useCoinFlow, TREASURY } from '../hooks/useCoinFlow';
+import { useDealing, dealArrival, DEAL_STAGGER } from '../hooks/useDeal';
 import { useTurnAnnounce } from '../hooks/useTurnAnnounce';
 import { socketService } from '../services/socket';
 import { sound } from '../audio/sound';
@@ -16,27 +21,48 @@ import { Shield, Crown, HelpCircle, History, Sparkles, AlertCircle, LogOut, Eye 
 interface GameTableProps {
   gameState: GameState;
   playerId: string;
+  /** Muda quando uma partida começa — dispara a distribuição das cartas. */
+  dealKey: number;
   onLeaveRoom: () => void;
   onReturnToLobby: () => void;
 }
 
-export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLeaveRoom, onReturnToLobby }) => {
+export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealKey, onLeaveRoom, onReturnToLobby }) => {
   const [targetActionReq, setTargetActionReq] = useState<'assassinate' | 'steal' | 'coup' | null>(null);
   const [showCheatSheet, setShowCheatSheet] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const logEndRef = useRef<HTMLDivElement>(null);
+  const logTopRef = useRef<HTMLDivElement>(null);
   const { current: cinematic, dismiss: dismissCinematic } = useGameEvents(gameState, playerId);
+  const {
+    challenge,
+    dismissChallenge,
+    blocks,
+    dismissBlock
+  } = useTableEvents(gameState, playerId);
   const { flows: coinFlows, consume: consumeCoinFlow } = useCoinFlow(gameState);
   const turnAnnounce = useTurnAnnounce(gameState, playerId);
+  const dealing = useDealing(dealKey, gameState.players.length);
+
+  /* Enquanto as cartas voam, a mão de cada jogador espera a sua chegar. Os
+     dois atrasos vão como custom property porque quem anima é o CSS, mas o
+     relógio é o mesmo do voo — daí virem do useDeal, e não de números soltos. */
+  const dealStyle = (playerIndex: number): React.CSSProperties | undefined =>
+    dealing
+      ? ({
+          '--deal-delay': `${dealArrival(playerIndex, 0, gameState.players.length)}ms`,
+          '--deal-round': `${DEAL_STAGGER * gameState.players.length}ms`
+        } as React.CSSProperties)
+      : undefined;
 
   const me = gameState.players.find(p => p.id === playerId);
   const isEliminated = !me || me.cards.every(c => c.revealed);
   const isMyTurn = !isEliminated && gameState.currentTurnPlayerId === playerId;
   const activePlayer = gameState.players.find(p => p.id === gameState.currentTurnPlayerId);
 
-  // Auto-scroll action log
+  // O servidor faz unshift nos logs, então o lance mais recente é o primeiro
+  // da lista e aparece no topo do painel — é para lá que a rolagem vai.
   useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    logTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [gameState.logs]);
 
   const handleActionClick = async (action: ActionType) => {
@@ -221,7 +247,12 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
                     </span>
                   </div>
 
-                  <div className="flex justify-center gap-2 xl:gap-3 my-2">
+                  {/* Destino das cartas na distribuição inicial. */}
+                  <div
+                    data-hand-anchor={player.id}
+                    style={dealStyle(gameState.players.indexOf(player))}
+                    className={`flex justify-center gap-2 xl:gap-3 my-2 ${dealing ? 'deal-hand' : ''}`}
+                  >
                     {player.cards.map(card => (
                       <CardView key={card.id} card={card} size="sm" />
                     ))}
@@ -266,7 +297,11 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
                   />
                 </div>
 
-                <div className="flex gap-2 xl:gap-4">
+                <div
+                  data-hand-anchor={me.id}
+                  style={dealStyle(gameState.players.indexOf(me))}
+                  className={`flex gap-2 xl:gap-4 ${dealing ? 'deal-hand' : ''}`}
+                >
                   {me.cards.map(card => (
                     <CardView key={card.id} card={card} size="md" />
                   ))}
@@ -359,6 +394,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 text-xs xl:text-sm">
+            <div ref={logTopRef} />
             {gameState.logs.map(log => (
               <div
                 key={log.id}
@@ -377,7 +413,6 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
                 <span>{log.text}</span>
               </div>
             ))}
-            <div ref={logEndRef} />
           </div>
         </div>
       </div>
@@ -390,8 +425,17 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
         onCloseTargetReq={() => setTargetActionReq(null)}
       />
 
+      {/* Cartas saindo do baralho para as mãos no começo da partida (z-55). */}
+      {dealing && (
+        <DealFlights key={dealKey} playerIds={gameState.players.map(p => p.id)} />
+      )}
+
       {/* Moedas em voo entre a tesouraria e os jogadores (z-60). */}
       <CoinFlights flows={coinFlows} onDone={consumeCoinFlow} />
+
+      {/* Anúncio de bloqueio (z-80). Não intercepta clique: o modal de desafio
+          ao bloqueio sobe no mesmo broadcast e precisa continuar utilizável. */}
+      <BlockFlashes events={blocks} onDone={dismissBlock} />
 
       {/* Anúncio da vez. `key` remonta o elemento a cada troca, que é o que
           faz a animação rodar de novo. */}
@@ -404,14 +448,21 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
         </div>
       )}
 
+      {/* Desfecho de um desafio: blefe desmascarado ou palavra confirmada.
+          Vem antes da cutscene de perda no DOM porque também é anterior no
+          tempo — a carta só vira depois que o perdedor escolhe qual entregar. */}
+      {challenge && (
+        <ChallengeSceneView key={challenge.id} event={challenge} onDone={dismissChallenge} />
+      )}
+
       {/* Cutscene de assassinato / eliminação. Fica acima dos modais (z-100). */}
       {cinematic && (
         <Cinematic key={cinematic.id} event={cinematic} onDone={dismissCinematic} />
       )}
 
       {/* Game Over Modal — só depois da última cutscene, senão o confete e o
-          som de vitória atropelam a cena de eliminação que encerrou a partida. */}
-      {gameState.status === 'ended' && !cinematic && (
+          som de vitória atropelam a cena que encerrou a partida. */}
+      {gameState.status === 'ended' && !cinematic && !challenge && (
         <GameOverModal
           gameState={gameState}
           playerId={playerId}

@@ -72,20 +72,219 @@ class SoundEffects {
     noise.start();
   }
 
+  /** Duas lâminas se encontrando: o choque que abre a cena de desafio. */
   playChallenge() {
     this.init();
     if (!this.ctx) return;
-    const osc = this.ctx.createOscillator();
+    const now = this.ctx.currentTime;
+
+    // Transiente metálico. Bandpass alto e Q apertado transforma ruído branco
+    // em "aço"; sem isso o choque soa como um tapa em papelão.
+    const noise = this.createNoise(0.35);
+    if (noise) {
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.Q.setValueAtTime(2.2, now);
+      filter.frequency.setValueAtTime(3600, now);
+      filter.frequency.exponentialRampToValueAtTime(900, now + 0.3);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.3, now + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      noise.start(now);
+    }
+
+    // Parciais inarmônicas curtas = ressonância do metal depois da batida.
+    for (const [freq, level, decay] of [
+      [1840, 0.1, 0.42],
+      [2610, 0.07, 0.3],
+      [3970, 0.045, 0.2]
+    ] as Array<[number, number, number]>) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(level, now + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + decay);
+    }
+
+    // O peso embaixo. Sem esta camada o choque fica fino e não "acerta".
+    const boom = this.ctx.createOscillator();
+    const boomGain = this.ctx.createGain();
+    boom.type = 'sine';
+    boom.frequency.setValueAtTime(180, now);
+    boom.frequency.exponentialRampToValueAtTime(45, now + 0.4);
+    boomGain.gain.setValueAtTime(0.4, now);
+    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    boom.connect(boomGain);
+    boomGain.connect(this.ctx.destination);
+    boom.start(now);
+    boom.stop(now + 0.5);
+  }
+
+  /** Veredito a favor do acusado: a carta existia mesmo. Fanfarra curta. */
+  playTruth() {
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    // Tríade maior subindo — a leitura cultural de "deu certo".
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+    notes.forEach((freq, index) => {
+      const at = now + index * 0.075;
+      // Fundamental + oitava suave: dá brilho sem virar apito.
+      for (const [ratio, level] of [
+        [1, 0.2],
+        [2, 0.06]
+      ] as Array<[number, number]>) {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq * ratio, at);
+        gain.gain.setValueAtTime(0.0001, at);
+        gain.gain.exponentialRampToValueAtTime(level, at + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.7);
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        osc.start(at);
+        osc.stop(at + 0.7);
+      }
+    });
+  }
+
+  /** Veredito contra o acusado: era blefe. Trítono descendo, desconfortável. */
+  playBluff() {
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    // Trítono (a "quarta aumentada" que a música antiga chamava de diabolus)
+    // com as duas vozes desafinadas entre si: soa errado de propósito.
+    for (const [freq, detune] of [
+      [415.3, 0],
+      [293.66, 14],
+      [207.65, -11]
+    ] as Array<[number, number]>) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.detune.setValueAtTime(detune, now);
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + 0.75);
+
+      // Filtro fechando junto com a queda: o som "afunda" em vez de só sumir.
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(2600, now);
+      filter.frequency.exponentialRampToValueAtTime(320, now + 0.7);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.14, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.8);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.8);
+    }
+
+    const thud = this.ctx.createOscillator();
+    const thudGain = this.ctx.createGain();
+    thud.type = 'sine';
+    thud.frequency.setValueAtTime(120, now);
+    thud.frequency.exponentialRampToValueAtTime(36, now + 0.45);
+    thudGain.gain.setValueAtTime(0.35, now);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+    thud.connect(thudGain);
+    thudGain.connect(this.ctx.destination);
+    thud.start(now);
+    thud.stop(now + 0.55);
+  }
+
+  /** Escudo aparando o golpe: badalada metálica curta e grave. */
+  playBlock() {
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    const noise = this.createNoise(0.2);
+    if (noise) {
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.Q.setValueAtTime(1.1, now);
+      filter.frequency.setValueAtTime(2200, now);
+      filter.frequency.exponentialRampToValueAtTime(600, now + 0.18);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.26, now + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      noise.start(now);
+    }
+
+    // Mesma receita do sino do selo, uma oitava acima e com decaimento curto:
+    // aqui é chapa de metal, não sino de igreja.
+    const root = 233.08; // Bb3
+    for (const [ratio, level, decay] of [
+      [1, 0.24, 1.1],
+      [2.4, 0.13, 0.75],
+      [3.9, 0.07, 0.5],
+      [5.4, 0.04, 0.32]
+    ] as Array<[number, number, number]>) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(root * ratio, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(level, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + decay);
+    }
+  }
+
+  /** Carta deslizando do baralho para a mesa. */
+  playDeal() {
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    const noise = this.createNoise(0.16);
+    if (!noise) return;
+
+    // Highpass em vez do bandpass da virada: a carta escorregando pelo feltro
+    // é só sopro, sem o "tec" do papel batendo.
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.setValueAtTime(1800, now);
+    filter.frequency.exponentialRampToValueAtTime(4200, now + 0.13);
+
     const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(300, this.ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(600, this.ctx.currentTime + 0.2);
-    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
-    osc.connect(gain);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+
+    noise.connect(filter);
+    filter.connect(gain);
     gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.3);
+    noise.start(now);
   }
 
   playVictory() {
@@ -104,6 +303,94 @@ class SoundEffects {
       osc.start(this.ctx!.currentTime + idx * 0.12);
       osc.stop(this.ctx!.currentTime + idx * 0.12 + 0.4);
     });
+  }
+
+  /**
+   * Coroação. O playVictory acima é um arpejo de quatro notas — serve pra um
+   * acerto pequeno, não pra encerrar a partida. Aqui são três camadas: o sino
+   * grave da corte anunciando, a fanfarra resolvendo da dominante na tônica, e
+   * um sustentado grave por baixo segurando tudo.
+   */
+  playCoronation() {
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    // 1. O sino. Mesmas parciais inarmônicas do selo de cera — é o mesmo
+    //    instrumento da corte, agora tocando a favor de alguém.
+    const root = 130.81; // C3
+    for (const [ratio, level, decay] of [
+      [1, 0.2, 3.4],
+      [2, 0.11, 2.4],
+      [2.76, 0.075, 1.6],
+      [4.07, 0.04, 1.0]
+    ] as Array<[number, number, number]>) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(root * ratio, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(level, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + decay);
+    }
+
+    // 2. A fanfarra. Sol maior puxando para dó maior: é a cadência que o
+    //    ouvido ocidental lê como "acabou, e acabou bem".
+    const chords: Array<[at: number, hold: number, freqs: number[]]> = [
+      [0.0, 0.42, [392.0, 493.88, 587.33]], // G4 B4 D5
+      [0.36, 2.2, [523.25, 659.25, 783.99, 1046.5]] // C5 E5 G5 C6
+    ];
+
+    for (const [offset, hold, freqs] of chords) {
+      const at = now + offset;
+      for (const freq of freqs) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        // Metal de sopro: dente de serra é cru demais sozinho, então um
+        // lowpass abre no ataque e fecha no sustentado — é o que dá o "sopro".
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(700, at);
+        filter.frequency.exponentialRampToValueAtTime(4200, at + 0.06);
+        filter.frequency.exponentialRampToValueAtTime(1500, at + hold);
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, at);
+        // Vozes ligeiramente desafinadas entre si engrossam o naipe.
+        osc.detune.setValueAtTime((Math.random() - 0.5) * 9, at);
+
+        // Dividido pelo número de vozes: um acorde de 4 notas com o mesmo
+        // ganho de uma nota só satura a saída.
+        const level = 0.13 / Math.sqrt(freqs.length);
+        gain.gain.setValueAtTime(0.0001, at);
+        gain.gain.exponentialRampToValueAtTime(level, at + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + hold);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(at);
+        osc.stop(at + hold);
+      }
+    }
+
+    // 3. O chão. Não se ouve isoladamente, mas sem ele a cena fica sem peso.
+    const bass = this.ctx.createOscillator();
+    const bassGain = this.ctx.createGain();
+    bass.type = 'sine';
+    bass.frequency.setValueAtTime(65.41, now); // C2
+    bassGain.gain.setValueAtTime(0.0001, now);
+    bassGain.gain.exponentialRampToValueAtTime(0.3, now + 0.12);
+    bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.6);
+    bass.connect(bassGain);
+    bassGain.connect(this.ctx.destination);
+    bass.start(now);
+    bass.stop(now + 2.6);
   }
 
   /** Ruído branco cru — base dos efeitos de sopro/corte. */

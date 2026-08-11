@@ -222,12 +222,222 @@
 }
 
 /* ============================================================
+   4. ANÚNCIO DE BLOQUEIO
+   Não é cutscene: o bloqueio ainda pode ser desafiado e o modal
+   com esse botão sobe no mesmo instante. Por isso a faixa mora no
+   terço superior, sem pointer-events — passa por cima da tela sem
+   roubar o clique nem cobrir os botões, que ficam no centro.
+   ============================================================ */
+
+/* A altura vive aqui, e não na faixa: assim a faixa é só `inset: 0` e o
+   conteúdo se centraliza nela. Posicionar a faixa por conta própria dentro
+   de um flex dependeria da posição estática de um absoluto — que em
+   container flex não é garantida. */
+.block-flash {
+  position: fixed;
+  top: 26%;
+  left: 0;
+  right: 0;
+  height: clamp(4.5rem, 12vh, 7rem);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Lâmina de luz varrendo a largura da tela, por trás do brasão. */
+.block-flash-band {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(30, 58, 138, 0.75) 18%,
+    rgba(59, 130, 246, 0.5) 50%,
+    rgba(30, 58, 138, 0.75) 82%,
+    transparent 100%
+  );
+  border-top: 1px solid rgba(147, 197, 253, 0.5);
+  border-bottom: 1px solid rgba(147, 197, 253, 0.5);
+  box-shadow: 0 0 60px rgba(37, 99, 235, 0.5);
+  animation: blockBand 2.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.block-flash.is-mine .block-flash-band {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(30, 64, 175, 0.85) 18%,
+    rgba(96, 165, 250, 0.6) 50%,
+    rgba(30, 64, 175, 0.85) 82%,
+    transparent 100%
+  );
+}
+
+@keyframes blockBand {
+  0%   { opacity: 0; transform: scaleX(0.2) scaleY(0.4); }
+  12%  { opacity: 1; transform: scaleX(1) scaleY(1); }
+  78%  { opacity: 1; transform: scaleX(1) scaleY(1); }
+  100% { opacity: 0; transform: scaleX(1.15) scaleY(0.7); }
+}
+
+.block-flash-body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2.5vw, 1.5rem);
+  padding: 0 1.5rem;
+}
+
+/* O escudo desce de longe e crava — mesma ideia do selo de cera, mas
+   sem o quique: escudo aparando golpe não balança, trava. */
+.block-flash-crest {
+  display: grid;
+  place-items: center;
+  width: clamp(2.75rem, 7vh, 4.25rem);
+  aspect-ratio: 1;
+  color: #dbeafe;
+  filter: drop-shadow(0 0 18px rgba(96, 165, 250, 0.9)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.8));
+  animation: blockCrest 2.1s cubic-bezier(0.5, 0, 0.35, 1) both;
+}
+
+.block-flash-crest svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes blockCrest {
+  0%   { opacity: 0; transform: scale(3) rotate(-18deg); filter: blur(9px); }
+  9%   { opacity: 1; transform: scale(0.86) rotate(2deg); filter: blur(0); }
+  16%  { transform: scale(1) rotate(0deg); }
+  80%  { opacity: 1; transform: scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: scale(1.1) rotate(0deg); }
+}
+
+.block-flash-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.9);
+  animation: blockText 2.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes blockText {
+  0%   { opacity: 0; transform: translateX(-22px); }
+  14%  { opacity: 1; transform: translateX(0); }
+  80%  { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(10px); }
+}
+
+.block-flash-name {
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(0.95rem, 2.8vw, 1.6rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #eff6ff;
+}
+
+.block-flash-role {
+  font-size: clamp(0.65rem, 1.6vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+
+/* ============================================================
+   5. DISTRIBUIÇÃO INICIAL
+   As cartas saem do centro da mesa e caem nas mãos em duas
+   voltas. Mesmas três camadas das moedas (X, arco em Y, giro),
+   porque o trajeto também depende do layout real.
+   ============================================================ */
+
+.deal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+}
+
+.deal-fly {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  animation: dealFlyX var(--flight) cubic-bezier(0.32, 0, 0.2, 1) var(--delay) both;
+}
+
+@keyframes dealFlyX {
+  from { transform: translateX(var(--x0)); }
+  to   { transform: translateX(var(--x1)); }
+}
+
+.deal-fly-arc {
+  display: block;
+  animation: dealFlyY var(--flight) cubic-bezier(0.4, 0, 0.5, 1) var(--delay) both;
+}
+
+/* Arco baixo: a carta desliza pela mesa, não é atirada como a moeda. */
+@keyframes dealFlyY {
+  0%   { transform: translateY(var(--y0)); }
+  50%  { transform: translateY(calc(min(var(--y0), var(--y1)) - 34px)); }
+  100% { transform: translateY(var(--y1)); }
+}
+
+.deal-fly-card {
+  display: block;
+  width: clamp(2rem, 4vh, 3rem);
+  aspect-ratio: 2 / 3;
+  border-radius: 0.3rem;
+  /* Mesmo verso das cartas ocultas do CardView, simplificado: a esta
+     velocidade só a silhueta e a borda dourada são percebidas. */
+  background:
+    radial-gradient(circle at 50% 42%, rgba(251, 191, 36, 0.35) 0 18%, transparent 19%),
+    linear-gradient(135deg, #3b0764 0%, #1e293b 55%, #1e1b4b 100%);
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.75);
+  animation: dealSpin var(--flight) cubic-bezier(0.3, 0, 0.35, 1) var(--delay) both;
+}
+
+@keyframes dealSpin {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(0deg); }
+  12%  { opacity: 1; }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(var(--tilt)); }
+}
+
+/* A mão de verdade só aparece quando a carta em voo pousa. Sem isso a
+   animação seria uma carta voando na direção de outra já visível. */
+.deal-hand > * {
+  animation: dealLand 400ms var(--deal-delay, 0ms) cubic-bezier(0.34, 1.5, 0.5, 1) both;
+}
+
+.deal-hand > *:nth-child(2) {
+  animation-delay: calc(var(--deal-delay, 0ms) + var(--deal-round, 0ms));
+}
+
+@keyframes dealLand {
+  0%   { opacity: 0; transform: scale(0.62) translateY(-12px); }
+  55%  { opacity: 1; transform: scale(1.07) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ============================================================
    Acessibilidade
    ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .coin-layer {
+  .coin-layer,
+  .deal-layer {
     display: none;
+  }
+
+  /* A distribuição é puro enfeite: sem movimento, as cartas já começam
+     na mesa e nada precisa ser segurado. */
+  .deal-hand > * {
+    animation: none;
   }
 
   .turn-aura::after,
@@ -236,6 +446,17 @@
   .coin-delta {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+
+  /* Aqui não dá pra só encurtar a animação: o último keyframe do anúncio de
+     bloqueio é o desaparecimento, e cortar a duração o apagaria na hora.
+     A faixa fica parada na tela e sai pelo timer do componente. */
+  .block-flash-band,
+  .block-flash-crest,
+  .block-flash-text {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   .turn-announce {

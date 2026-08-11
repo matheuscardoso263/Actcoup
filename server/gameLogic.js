@@ -283,13 +283,23 @@ export class GameEngine {
     }
   }
 
-  addLog(room, text, type = 'action') {
+  /**
+   * `event` é o gancho das animações do cliente: além do texto para humanos,
+   * o log carrega o que aconteceu em forma estruturada. O cliente diferencia
+   * os logs por id e dispara a cena correspondente — sem precisar interpretar
+   * a frase em português nem depender de emoji.
+   *
+   * Só entra aqui informação que a frase do log já torna pública; o `event`
+   * nunca revela carta oculta de ninguém.
+   */
+  addLog(room, text, type = 'action', event = null) {
     room.lastStateChange = Date.now();
     room.logs.unshift({
       id: uuidv4(),
       timestamp: Date.now(),
       text,
-      type
+      type,
+      ...(event ? { event } : {})
     });
     if (room.logs.length > 80) room.logs.pop();
   }
@@ -324,6 +334,13 @@ export class GameEngine {
     if (alive.length === 1 && room.status === 'playing') {
       room.status = 'ended';
       room.winner = alive[0];
+      // O advanceTurn limpa as pendências depois desta checagem, mas volta
+      // antes quando alguém vence — sem limpar aqui, a partida termina com um
+      // pendingAction preso, e o cliente monta um modal de resposta por baixo
+      // da tela de vitória, para uma ação que nunca vai ser resolvida.
+      room.pendingAction = null;
+      room.pendingLoss = null;
+      room.pendingExchange = null;
       this.addLog(room, `🏆 ${alive[0].name} venceu o jogo Coup!`, 'system');
       return true;
     }
@@ -530,7 +547,7 @@ export class GameEngine {
         }, () => {
           this.addLog(room, `💥 O bloqueio de ${blocker.name} FALHOU!`, 'block');
           this.executeAction(room, pending);
-        });
+        }, 'block');
         return room;
       } else if (responseType === 'pass') {
         pending.responses[playerId] = 'pass';
@@ -570,18 +587,51 @@ export class GameEngine {
     pending.blockedCharacter = character;
     pending.stage = 'BLOCK_CHALLENGE';
     pending.responses = {};
-    this.addLog(room, `🛡️ ${blocker.name} declarou possuir ${character.toUpperCase()} para BLOQUEAR a ação!`, 'block');
+    this.addLog(
+      room,
+      `🛡️ ${blocker.name} declarou possuir ${character.toUpperCase()} para BLOQUEAR a ação!`,
+      'block',
+      {
+        kind: 'block',
+        blockerId,
+        blockerName: blocker.name,
+        character,
+        action: pending.action
+      }
+    );
   }
 
-  resolveChallenge(room, claimerId, challengerId, claimedCharacter, onSuccess, onFailure) {
+  /** `scope` distingue desafio à ação do desafio ao bloqueio — só a cena do
+   *  cliente usa isso, a resolução é idêntica nos dois casos. */
+  resolveChallenge(room, claimerId, challengerId, claimedCharacter, onSuccess, onFailure, scope = 'action') {
     const claimer = room.players.find(p => p.id === claimerId);
     const challenger = room.players.find(p => p.id === challengerId);
 
     const matchingCardIndex = claimer.cards.findIndex(c => !c.revealed && c.character === claimedCharacter);
 
+    const challengeEvent = outcome => ({
+      kind: 'challenge',
+      scope,
+      outcome,
+      claimerId,
+      claimerName: claimer.name,
+      challengerId,
+      challengerName: challenger.name,
+      character: claimedCharacter,
+      // Quem vai à guilhotina. A cutscene de perda de influência vem depois,
+      // quando a carta escolhida virar de fato.
+      loserId: outcome === 'truth' ? challengerId : claimerId,
+      loserName: outcome === 'truth' ? challenger.name : claimer.name
+    });
+
     if (matchingCardIndex !== -1) {
       const matchingCard = claimer.cards[matchingCardIndex];
-      this.addLog(room, `✨ ${claimer.name} REVELOU ${claimedCharacter.toUpperCase()}! O desafio de ${challenger.name} falhou.`, 'challenge');
+      this.addLog(
+        room,
+        `✨ ${claimer.name} REVELOU ${claimedCharacter.toUpperCase()}! O desafio de ${challenger.name} falhou.`,
+        'challenge',
+        challengeEvent('truth')
+      );
 
       room.deck.push(matchingCard.character);
       this.shuffle(room.deck);
@@ -599,8 +649,14 @@ export class GameEngine {
         }
       };
     } else {
-      this.addLog(room, `❌ ${claimer.name} NÃO possuía ${claimedCharacter.toUpperCase()}! O desafio de ${challenger.name} foi vitorioso.`, 'challenge');
-      
+      this.addLog(
+        room,
+        `❌ ${claimer.name} NÃO possuía ${claimedCharacter.toUpperCase()}! O desafio de ${challenger.name} foi vitorioso.`,
+        'challenge',
+        challengeEvent('bluff')
+      );
+
+
       room.pendingLoss = {
         playerId: claimerId,
         reason: `Seu blefe (${claimedCharacter.toUpperCase()}) foi desmascarado por ${challenger.name}! Escolha uma carta para revelar.`,

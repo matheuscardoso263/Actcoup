@@ -1,15 +1,25 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GameState } from '../types/game';
 import confetti from 'canvas-confetti';
 import { sound } from '../audio/sound';
 import { socketService } from '../services/socket';
-import { Trophy, RefreshCw, LogOut } from 'lucide-react';
+import { Crown, RefreshCw } from 'lucide-react';
 
 interface GameOverModalProps {
   gameState: GameState;
   playerId: string;
   onReturnToLobby: () => void;
 }
+
+/** Instante em que a coroa assenta — casa com vicCrownDrop em victory.css. */
+const CROWN_LANDS = 880;
+/** Quando o botão de saída passa a valer. Casa com o delay de vicRise
+ *  em .vic-action: habilitar antes deixaria um botão invisível clicável. */
+const READY_AT = 2300;
+
+/* Ouro batido, nas mesmas cores da arte das cartas. O confete padrão da
+   biblioteca é multicolorido de festa de aniversário e destoa de tudo. */
+const GOLD = ['#fffbeb', '#fde68a', '#fbbf24', '#d97706', '#92400e'];
 
 export const GameOverModal: React.FC<GameOverModalProps> = ({
   gameState,
@@ -18,14 +28,67 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 }) => {
   const winner = gameState.winner;
   const isWinner = winner?.id === playerId;
+  const [ready, setReady] = useState(false);
+  const timers = useRef<number[]>([]);
+
+  // A corte que ficou pelo caminho. Pela condição de vitória, é todo mundo
+  // menos o vencedor — não precisa reconstruir a ordem das quedas.
+  const fallen = gameState.players.filter(p => p.id !== winner?.id);
 
   useEffect(() => {
-    sound.playVictory();
-    confetti({
-      particleCount: 120,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduced) {
+      sound.playCoronation();
+      setReady(true);
+      return;
+    }
+
+    // Som e confete no impacto da coroa, não na abertura: disparar tudo no
+    // frame zero desperdiça o único momento de clímax que a cena tem.
+    timers.current.push(
+      window.setTimeout(() => {
+        sound.playCoronation();
+
+        // Duas fontes nas laterais em vez de um estouro central: o ouro
+        // atravessa a tela na diagonal e cai por cima do nome.
+        for (const [x, angle] of [[0, 62], [1, 118]] as Array<[number, number]>) {
+          confetti({
+            particleCount: 70,
+            angle,
+            spread: 62,
+            startVelocity: 58,
+            origin: { x, y: 0.42 },
+            colors: GOLD,
+            scalar: 1.05,
+            ticks: 280
+          });
+        }
+      }, CROWN_LANDS)
+    );
+
+    // Segunda leva, mais lenta, caindo do alto: mantém a tela viva enquanto
+    // o texto do decreto ainda está subindo.
+    timers.current.push(
+      window.setTimeout(() => {
+        confetti({
+          particleCount: 55,
+          spread: 130,
+          startVelocity: 26,
+          decay: 0.93,
+          gravity: 0.7,
+          origin: { x: 0.5, y: -0.1 },
+          colors: GOLD,
+          scalar: 0.95,
+          ticks: 340
+        });
+      }, CROWN_LANDS + 620)
+    );
+
+    timers.current.push(window.setTimeout(() => setReady(true), READY_AT));
+
+    const all = timers.current;
+    return () => all.forEach(clearTimeout);
   }, []);
 
   const handleReturnToLobby = async () => {
@@ -35,42 +98,63 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-lg animate-fade-in">
-      <div className="w-full max-w-md bg-slate-900 border border-amber-500/50 rounded-2xl p-8 shadow-2xl text-center relative overflow-hidden">
-        {/* Glow backdrop */}
-        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl" />
+    <div className="vic-root" role="dialog" aria-label="Fim de partida">
+      <div className="vic-rays" />
+      <div className="vic-beam" />
 
-        <div className="relative z-10">
-          <img src="/logosemfundo.png" alt="Coup Logo" className="w-36 mx-auto mb-3 drop-shadow-lg" />
-          <div className="inline-flex p-4 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 text-slate-950 mb-4 shadow-lg shadow-amber-500/40 animate-bounce">
-            <Trophy className="w-12 h-12" />
-          </div>
+      {/* As mesmas brasas do salão da cena de deposição. */}
+      <div className="cine-embers cine-embers-1" />
+      <div className="cine-embers cine-embers-2" />
+      <div className="cine-embers cine-embers-3" />
 
-          <h2 className="text-3xl font-extrabold tracking-wider text-amber-400 font-serif mb-1">
-            FIM DE JOGO!
-          </h2>
-
-          <div className="my-6 py-4 px-6 rounded-xl bg-slate-950/80 border border-amber-500/30">
-            <span className="text-xs uppercase tracking-widest text-slate-400 block mb-1">Vencedor Supremo</span>
-            <span className="text-2xl font-bold text-white tracking-wide">{winner?.name}</span>
-            {isWinner && (
-              <span className="block mt-1 text-xs text-amber-400 font-extrabold uppercase tracking-widest">
-                🎉 Você foi o campeão! 🎉
-              </span>
-            )}
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={handleReturnToLobby}
-              className="w-full py-3.5 px-6 rounded-xl font-bold bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Voltar para a Sala
-            </button>
-          </div>
-        </div>
+      <div className="vic-crown">
+        <span className="vic-crown-icon">
+          <Crown />
+        </span>
       </div>
+
+      <div className="vic-body">
+        <span className="vic-eyebrow">
+          {isWinner ? 'O trono é seu' : 'A corte tem um novo soberano'}
+        </span>
+
+        <h2 className="vic-name">{winner?.name ?? 'Ninguém'}</h2>
+
+        <div className="vic-rule" />
+
+        <p className="vic-claim">
+          {isWinner ? (
+            <>
+              Você foi o <strong>último nobre de pé</strong>. A cidade-estado é sua.
+            </>
+          ) : (
+            <>
+              Último nobre de pé depois de <strong>{fallen.length}</strong>{' '}
+              {fallen.length === 1 ? 'deposição' : 'deposições'}.
+            </>
+          )}
+        </p>
+
+        {fallen.length > 0 && (
+          <div className="vic-fallen">
+            <span className="vic-fallen-label">A corte deposta</span>
+            <div className="vic-fallen-list">
+              {fallen.map(player => (
+                <span key={player.id} className="vic-fallen-name">
+                  {player.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button className="vic-action" onClick={handleReturnToLobby} disabled={!ready}>
+          <RefreshCw className="w-[1.15em] h-[1.15em]" />
+          Voltar para a sala
+        </button>
+      </div>
+
+      <img src="/logosemfundo.png" alt="Coup" className="vic-mark" />
     </div>
   );
 };
