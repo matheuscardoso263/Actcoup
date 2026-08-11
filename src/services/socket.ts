@@ -2,10 +2,7 @@ import { io, Socket } from 'socket.io-client';
 import { GameState, ActionType, Character } from '../types/game';
 
 // Determine backend URL:
-// In development (Vite on port 3000), connect directly to Express server on port 3001.
-// In production (Express serving frontend on port 3001), connect to current window origin.
 const getBackendUrl = () => {
-  // Support explicit deployment environment variable (e.g. Render/Railway URL when deploying frontend on Vercel)
   if (import.meta.env.VITE_BACKEND_URL) {
     return import.meta.env.VITE_BACKEND_URL;
   }
@@ -25,7 +22,9 @@ class SocketService {
     this.socket = io(getBackendUrl(), {
       autoConnect: true,
       reconnection: true,
-      transports: ['websocket', 'polling']
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+      transports: ['polling', 'websocket'] // Polling first for cloud stability (Render/Railway), then upgrade to WS
     });
 
     this.socket.on('connect', () => {
@@ -37,11 +36,12 @@ class SocketService {
     });
   }
 
-  private withTimeout<T>(emitPromise: Promise<T>, timeoutMs = 5000): Promise<T> {
+  // Increased timeout to 15s to support Render cold starts / cloud latency
+  private withTimeout<T>(emitPromise: Promise<T>, timeoutMs = 15000): Promise<T> {
     return Promise.race([
       emitPromise,
       new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error('Tempo limite atingido. Servidor não respondeu.')), timeoutMs)
+        setTimeout(() => reject(new Error('Tempo limite atingido. Servidor ainda está inicializando ou não respondeu.')), timeoutMs)
       )
     ]);
   }
