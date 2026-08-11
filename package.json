@@ -1,0 +1,53 @@
+{
+  "name": "coup-online",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "server/index.js",
+  "bin": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "node server/index.js",
+    "client": "vite",
+    "build": "tsc && vite build",
+    "build:exe": "npm run build && pkg . --output CoupOnline.exe --targets node18-win-x64",
+    "preview": "vite preview"
+  },
+  "pkg": {
+    "scripts": "server/**/*.js",
+    "assets": [
+      "dist/**/*",
+      "public/**/*"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ]
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.3",
+    "express": "^4.19.2",
+    "lucide-react": "^0.380.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.12",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/uuid": "^9.0.8",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@vitejs/plugin-react": "^4.3.0",
+    "@yao-pkg/pkg": "^5.12.1",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.11"
+  }
+}
