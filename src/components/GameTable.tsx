@@ -4,10 +4,14 @@ import { CardView } from './CardView';
 import { ActionModal, getWaitingPlayerNames } from './ActionModal';
 import { GameOverModal } from './GameOverModal';
 import { Cinematic } from './Cinematic';
+import { CoinFlights } from './CoinFlights';
+import { CoinCounter } from './CoinCounter';
 import { useGameEvents } from '../hooks/useGameEvents';
+import { useCoinFlow, TREASURY } from '../hooks/useCoinFlow';
+import { useTurnAnnounce } from '../hooks/useTurnAnnounce';
 import { socketService } from '../services/socket';
 import { sound } from '../audio/sound';
-import { Coins, Shield, Crown, HelpCircle, History, Sparkles, AlertCircle, LogOut, Eye } from 'lucide-react';
+import { Shield, Crown, HelpCircle, History, Sparkles, AlertCircle, LogOut, Eye } from 'lucide-react';
 
 interface GameTableProps {
   gameState: GameState;
@@ -22,6 +26,8 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
   const [error, setError] = useState<string | null>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
   const { current: cinematic, dismiss: dismissCinematic } = useGameEvents(gameState, playerId);
+  const { flows: coinFlows, consume: consumeCoinFlow } = useCoinFlow(gameState);
+  const turnAnnounce = useTurnAnnounce(gameState, playerId);
 
   const me = gameState.players.find(p => p.id === playerId);
   const isEliminated = !me || me.cards.every(c => c.revealed);
@@ -202,7 +208,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
                   key={player.id}
                   className={`relative p-3 xl:p-4 rounded-2xl border backdrop-blur-md transition-all flex flex-col items-center justify-between shadow-xl ${
                     isTurn
-                      ? 'bg-amber-950/40 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/20 scale-105'
+                      ? 'turn-aura bg-amber-950/40 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/20 scale-105'
                       : playerEliminated
                       ? 'bg-red-950/20 border-red-900/40 opacity-60'
                       : 'bg-slate-900/70 border-slate-800'
@@ -221,31 +227,43 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
                     ))}
                   </div>
 
-                  <div className="mt-2 flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs xl:text-sm font-bold shadow-inner">
-                    <Coins className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{player.coins}</span>
-                  </div>
+                  <CoinCounter
+                    playerId={player.id}
+                    value={player.coins}
+                    className="mt-2 flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs xl:text-sm font-bold shadow-inner"
+                  />
                 </div>
               );
             })}
           </div>
 
-          {/* Center Table Divider */}
-          <div className="py-1 text-center text-slate-600 flex flex-col items-center gap-1 pointer-events-none flex-shrink-0 opacity-70">
+          {/* Center Table Divider — também é a tesouraria: é daqui que as
+              moedas saem e para cá que os pagamentos voltam. */}
+          <div
+            data-coin-anchor={TREASURY}
+            className="py-1 text-center text-slate-600 flex flex-col items-center gap-1 pointer-events-none flex-shrink-0 opacity-70"
+          >
             <img src="/logosemfundo.png" alt="Coup Logo" className="h-[clamp(1.75rem,5vh,4rem)] opacity-80 filter brightness-110 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]" />
             <span className="font-serif tracking-widest text-[10px] uppercase text-amber-500/60 font-bold">Mesa de Jogo</span>
           </div>
 
           {/* Player Hand & Controls Bottom */}
           {me && (
-            <div className="w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-3 xl:p-5 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-4 xl:gap-6 flex-shrink-0">
+            <div
+              className={`w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl bg-slate-900/90 backdrop-blur-xl border rounded-3xl p-3 xl:p-5 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-4 xl:gap-6 flex-shrink-0 transition-colors ${
+                isMyTurn ? 'turn-aura border-amber-500/60' : 'border-slate-800'
+              }`}
+            >
               <div className="flex items-center gap-3 xl:gap-5 min-w-0">
                 <div className="flex flex-col items-center gap-1.5 shrink-0">
                   <span className="text-xs xl:text-sm uppercase tracking-widest font-extrabold text-amber-400 font-serif">Sua Mão</span>
-                  <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-sm xl:text-base font-extrabold shadow-inner">
-                    <Coins className="w-4 h-4 text-amber-400" />
-                    <span>{me.coins} Moedas</span>
-                  </div>
+                  <CoinCounter
+                    playerId={me.id}
+                    value={me.coins}
+                    suffix=" Moedas"
+                    iconClassName="w-4 h-4 text-amber-400"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-sm xl:text-base font-extrabold shadow-inner"
+                  />
                 </div>
 
                 <div className="flex gap-2 xl:gap-4">
@@ -371,6 +389,20 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
         targetActionReq={targetActionReq}
         onCloseTargetReq={() => setTargetActionReq(null)}
       />
+
+      {/* Moedas em voo entre a tesouraria e os jogadores (z-60). */}
+      <CoinFlights flows={coinFlows} onDone={consumeCoinFlow} />
+
+      {/* Anúncio da vez. `key` remonta o elemento a cada troca, que é o que
+          faz a animação rodar de novo. */}
+      {turnAnnounce && (
+        <div key={turnAnnounce.id} className="turn-announce">
+          <div className={`turn-announce-pill ${turnAnnounce.isMe ? 'is-me' : ''}`}>
+            <Crown className="w-[1.15em] h-[1.15em] shrink-0" />
+            {turnAnnounce.isMe ? 'Sua vez' : `Vez de ${turnAnnounce.name}`}
+          </div>
+        </div>
+      )}
 
       {/* Cutscene de assassinato / eliminação. Fica acima dos modais (z-100). */}
       {cinematic && (

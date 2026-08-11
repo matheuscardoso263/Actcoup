@@ -35,16 +35,24 @@ function snapshot(state: GameState): RevealMap {
  * Fila em vez de evento único: um desafio pode derrubar duas cartas no
  * mesmo broadcast, e as duas merecem sua cena.
  */
+/** Espaço para a carta virar na mesa antes da cutscene cobrir tudo.
+ *  Tem que acompanhar FLIP_MS do CardView. */
+const FLIP_LEAD = 640;
+
 export function useGameEvents(gameState: GameState, playerId: string) {
   const [queue, setQueue] = useState<CinematicEvent[]>([]);
   const prevReveals = useRef<RevealMap | null>(null);
   const prevStatus = useRef<GameState['status']>(gameState.status);
+  const pending = useRef<number[]>([]);
 
   useEffect(() => {
     // Troca de fase (nova partida, volta ao lobby): rebaseia sem disparar nada.
     if (prevStatus.current !== gameState.status) {
       prevStatus.current = gameState.status;
       prevReveals.current = snapshot(gameState);
+      // Também descarta cutscene em espera: a partida anterior acabou.
+      pending.current.forEach(clearTimeout);
+      pending.current = [];
       setQueue([]);
       return;
     }
@@ -84,9 +92,21 @@ export function useGameEvents(gameState: GameState, playerId: string) {
     }
 
     if (fresh.length > 0) {
-      setQueue(current => [...current, ...fresh]);
+      // Segura a cutscene pelo tempo da virada 3D: sem isso o overlay
+      // cobre a mesa antes de dar pra ver qual carta virou.
+      pending.current.push(
+        window.setTimeout(() => setQueue(current => [...current, ...fresh]), FLIP_LEAD)
+      );
     }
   }, [gameState, playerId]);
+
+  useEffect(
+    () => () => {
+      pending.current.forEach(clearTimeout);
+      pending.current = [];
+    },
+    []
+  );
 
   // Estável: a cutscene usa isso como dependência de efeito e não pode
   // reiniciar a cada broadcast do servidor.

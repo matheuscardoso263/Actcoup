@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CHARACTER_INFO, Character } from '../types/game';
 import { Shield, Skull, EyeOff } from 'lucide-react';
 import { sound } from '../audio/sound';
+
+/** Precisa bater com a duração de .card-flip em game-fx.css. */
+const FLIP_MS = 640;
 
 interface CardViewProps {
   card: Card;
@@ -18,8 +21,42 @@ export const CardView: React.FC<CardViewProps> = ({
   onClick,
   size = 'md'
 }) => {
-  const isHidden = card.character === 'hidden';
-  const info = !isHidden ? CHARACTER_INFO[card.character as Character] : null;
+  /* Durante a virada o conteúdo fica atrasado: até a metade da animação a
+     carta ainda é a antiga (verso, para os oponentes), e a troca acontece
+     com ela de perfil — invisível. É isso que faz um elemento só servir de
+     verso e frente, sem precisar empilhar duas faces em 3D. */
+  const [display, setDisplay] = useState(card);
+  const [flipping, setFlipping] = useState(false);
+  const wasRevealed = useRef(card.revealed);
+  const flippingRef = useRef(false);
+  const timers = useRef<number[]>([]);
+
+  useEffect(() => {
+    const justRevealed = card.revealed && !wasRevealed.current;
+    wasRevealed.current = card.revealed;
+
+    if (justRevealed) {
+      flippingRef.current = true;
+      setFlipping(true);
+      sound.playCardFlip();
+      timers.current.push(window.setTimeout(() => setDisplay(card), FLIP_MS * 0.5));
+      timers.current.push(
+        window.setTimeout(() => {
+          flippingRef.current = false;
+          setFlipping(false);
+        }, FLIP_MS)
+      );
+      return;
+    }
+
+    // Fora da virada o conteúdo acompanha o servidor normalmente.
+    if (!flippingRef.current) setDisplay(card);
+  }, [card]);
+
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  const isHidden = display.character === 'hidden';
+  const info = !isHidden ? CHARACTER_INFO[display.character as Character] : null;
 
   const handleClick = () => {
     if (selectable && onClick) {
@@ -41,9 +78,11 @@ export const CardView: React.FC<CardViewProps> = ({
     <div
       onClick={handleClick}
       className={`@container relative aspect-[2/3] shrink-0 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 transform perspective-1000 ${sizeClasses} ${
-        selectable ? 'cursor-pointer hover:scale-105 hover:shadow-amber-500/40' : ''
-      } ${selected ? 'ring-4 ring-amber-400 scale-105 shadow-amber-500/80' : ''} ${
-        card.revealed ? 'filter grayscale brightness-75 border-2 border-red-500/80' : 'border border-amber-500/40'
+        flipping ? 'card-flip' : ''
+      } ${selectable ? 'cursor-pointer hover:scale-105 hover:shadow-amber-500/40' : ''} ${
+        selected ? 'ring-4 ring-amber-400 scale-105 shadow-amber-500/80' : ''
+      } ${
+        display.revealed ? 'filter grayscale brightness-75 border-2 border-red-500/80' : 'border border-amber-500/40'
       }`}
     >
       {/* Front Face (Revealed or Self Hidden) */}
@@ -67,7 +106,7 @@ export const CardView: React.FC<CardViewProps> = ({
             <span className="font-extrabold tracking-wider text-amber-300 uppercase text-[8.5cqw] leading-none font-serif truncate">
               {info.name}
             </span>
-            {card.revealed ? (
+            {display.revealed ? (
               <Skull className="w-[11cqw] h-[11cqw] shrink-0 text-red-500 animate-pulse" />
             ) : (
               <Shield className="w-[11cqw] h-[11cqw] shrink-0 text-cyan-400" />
@@ -75,7 +114,7 @@ export const CardView: React.FC<CardViewProps> = ({
           </div>
 
           {/* Revealed Banner */}
-          {card.revealed && (
+          {display.revealed && (
             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-red-950/85 backdrop-blur-xs text-red-200 font-extrabold uppercase tracking-widest border-2 border-red-500 rotate-[-12deg] shadow-2xl">
               <Skull className="w-[26cqw] h-[26cqw] mb-[2cqw] text-red-400 animate-pulse" />
               <span className="text-[10cqw] leading-none font-serif">REVELADA</span>
@@ -83,7 +122,7 @@ export const CardView: React.FC<CardViewProps> = ({
           )}
 
           {/* Footer Info - Complete Uncut Description */}
-          {!card.revealed && (
+          {!display.revealed && (
             <div className="relative z-10 bg-black/85 backdrop-blur-md p-[3.5cqw] rounded-lg border border-amber-500/30 text-slate-100 font-sans shadow-lg">
               <p className="font-medium text-slate-200 text-[7.5cqw] leading-snug">
                 {info.description}
