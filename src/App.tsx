@@ -32,7 +32,7 @@ export function App() {
   const activePlayerId = playerId || socketService.socket.id || '';
 
   return (
-    <div className="min-h-screen bg-slate-950 font-sans antialiased text-slate-100">
+    <div className="min-h-[100dvh] bg-slate-950 font-sans antialiased text-slate-100">
       {!gameState || gameState.status === 'lobby' ? (
         <Lobby
           gameState={gameState}

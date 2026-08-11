@@ -85,12 +85,12 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom }
 
   if (!gameState) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white relative overflow-hidden">
+      <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white relative overflow-hidden">
         {/* Glow ambient background elements */}
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl" />
 
-        <div className="relative z-10 w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 shadow-2xl">
+        <div className="relative z-10 w-full max-w-md xl:max-w-lg bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 xl:p-10 shadow-2xl">
           <div className="text-center mb-6">
             <img
               src="/logosemfundo.png"
@@ -163,8 +163,8 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white relative">
-      <div className="w-full max-w-xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 shadow-2xl">
+    <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white relative">
+      <div className="w-full max-w-xl xl:max-w-2xl max-h-[92dvh] overflow-y-auto bg-slate-900/90 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 sm:p-8 shadow-2xl">
         <div className="flex justify-between items-center pb-6 border-b border-slate-800">
           <div>
             <img src="/logosemfundo.png" alt="Coup Logo" className="h-10 mb-2 drop-shadow-md" />
@@ -209,7 +209,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom }
             <span className="text-xs text-slate-400">Mínimo: 2 jogadores</span>
           </div>
 
-          <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[min(40dvh,20rem)] overflow-y-auto pr-1">
             {gameState.players.map((player) => (
               <div
                 key={player.id}

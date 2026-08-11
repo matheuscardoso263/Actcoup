@@ -1,6 +1,26 @@
 @import "tailwindcss";
 
+/* Tailwind v4 lê o tema daqui. O tailwind.config.js legado não é carregado
+   (v4 só usa arquivo de config via @config), então as famílias ficam aqui. */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Outfit', ui-serif, Georgia, serif;
+}
+
 @layer base {
+  :root {
+    /* Escala fluida da mesa.
+       A altura manda: a mesa precisa caber na tela sem rolagem, de notebook
+       1366x768 até monitor 1440p. clamp(piso, fluido, teto) evita tanto o
+       card gigante no monitor grande quanto o card ilegível no notebook.
+       O --card-h-sm aqui é só o fallback: GameTable sobrescreve por número
+       de oponentes, porque 5 oponentes na mesma linha não cabem no mesmo
+       tamanho que 1 oponente. */
+    --card-h-sm: clamp(6.5rem, 17vh, 13rem);
+    --card-h-md: clamp(10rem, 30vh, 24rem);
+    --card-h-lg: clamp(11rem, 32vh, 26rem);
+  }
+
   body {
     font-family: 'Inter', sans-serif;
     background-color: #020617;

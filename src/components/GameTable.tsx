@@ -83,17 +83,26 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
 
   const opponents = gameState.players.filter(p => p.id !== playerId);
 
+  /* Quanto menos oponentes, maior a carta: com 1 ou 2 sobra tela de sobra,
+     com 5 tudo precisa caber numa linha só sem estourar a altura. */
+  const opponentCardHeight =
+    opponents.length <= 2
+      ? 'clamp(7rem, 22vh, 17rem)'
+      : opponents.length <= 4
+      ? 'clamp(6.5rem, 17vh, 13rem)'
+      : 'clamp(6rem, 13vh, 10rem)';
+
   return (
-    <div className="h-screen w-screen bg-slate-950 text-white flex flex-col relative overflow-hidden select-none">
+    <div className="h-[100dvh] w-full bg-slate-950 text-white flex flex-col relative overflow-hidden select-none">
       {/* Background ambient elements */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black z-0" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-purple-950/20 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Header Bar */}
-      <header className="relative z-20 flex-shrink-0 flex justify-between items-center px-6 py-2.5 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+      <header className="relative z-20 flex-shrink-0 flex justify-between items-center px-6 2xl:px-10 py-2.5 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
         <div className="flex items-center gap-4">
-          <img src="/logosemfundo.png" alt="Coup Logo" className="h-8 drop-shadow-md" />
-          <span className="text-xs px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-300 font-mono">
+          <img src="/logosemfundo.png" alt="Coup Logo" className="h-8 2xl:h-10 drop-shadow-md" />
+          <span className="text-xs 2xl:text-sm px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-300 font-mono">
             Sala: {gameState.code}
           </span>
         </div>
@@ -120,12 +129,15 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
       </header>
 
       {/* Main Container */}
-      <div className="relative z-10 flex-1 flex flex-col lg:flex-row p-4 gap-4 overflow-hidden h-[calc(100vh-60px)]">
+      {/* min-h-0 é obrigatório: sem ele o filho com overflow-y-auto não encolhe
+          e o conteúdo vaza para fora da tela em vez de rolar internamente.
+          A altura vem só do flex-1 — nada de calc(100vh - header) chutado. */}
+      <div className="relative z-10 flex-1 min-h-0 w-full max-w-[120rem] mx-auto flex flex-col lg:flex-row p-3 xl:p-5 gap-3 xl:gap-5 overflow-hidden">
         {/* Left/Center Game Board Area */}
-        <div className="flex-1 flex flex-col justify-between items-center overflow-y-auto pr-1">
+        <div className="flex-1 min-h-0 min-w-0 flex flex-col justify-between items-center gap-2 overflow-y-auto pr-1">
           
           {/* Status Banner */}
-          <div className="w-full max-w-xl mx-auto my-2 text-center flex-shrink-0">
+          <div className="w-full max-w-xl xl:max-w-2xl mx-auto text-center flex-shrink-0">
             {(() => {
               const waitingFor = (gameState.pendingAction || gameState.pendingLoss || gameState.pendingExchange)
                 ? getWaitingPlayerNames(gameState)
@@ -141,10 +153,10 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
                     ? 'bg-amber-500/20 border-amber-400 text-amber-300 animate-pulse'
                     : 'bg-slate-900/90 border-slate-700 text-slate-300'
                 }`}>
-                  <span className="text-[11px] uppercase tracking-widest block opacity-75 font-semibold">
+                  <span className="text-[11px] 2xl:text-xs uppercase tracking-widest block opacity-75 font-semibold">
                     Status da Partida
                   </span>
-                  <span className="text-sm font-bold flex items-center justify-center gap-2">
+                  <span className="text-sm xl:text-base font-bold flex items-center justify-center gap-2">
                     {isEliminated ? (
                       <>
                         <Eye className="w-4 h-4 text-red-400" />
@@ -170,8 +182,13 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
             </div>
           )}
 
-          {/* Opponents Grid */}
-          <div className="w-full max-w-5xl grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 my-4 flex-shrink-0">
+          {/* Opponents — flex-wrap em vez de grid fixo de 5 colunas: com 1, 2 ou 3
+              oponentes o grid deixava todo mundo encostado à esquerda. Aqui os
+              cards têm largura de conteúdo e ficam sempre centralizados. */}
+          <div
+            className="w-full flex flex-wrap justify-center items-stretch gap-3 xl:gap-5 flex-shrink-0"
+            style={{ '--card-h-sm': opponentCardHeight } as React.CSSProperties}
+          >
             {opponents.map(player => {
               const isTurn = player.id === gameState.currentTurnPlayerId;
               const playerEliminated = player.cards.every(c => c.revealed);
@@ -179,7 +196,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
               return (
                 <div
                   key={player.id}
-                  className={`relative p-4 sm:p-5 rounded-2xl border backdrop-blur-md transition-all flex flex-col items-center justify-between shadow-xl ${
+                  className={`relative p-3 xl:p-4 rounded-2xl border backdrop-blur-md transition-all flex flex-col items-center justify-between shadow-xl ${
                     isTurn
                       ? 'bg-amber-950/40 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/20 scale-105'
                       : playerEliminated
@@ -189,18 +206,18 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
                 >
                   <div className="flex items-center gap-1.5 mb-2 w-full justify-center">
                     {player.isHost && <Crown className="w-3.5 h-3.5 text-amber-400" />}
-                    <span className={`text-xs font-bold truncate max-w-[100px] ${playerEliminated ? 'line-through text-red-400' : 'text-slate-200'}`}>
+                    <span className={`text-xs xl:text-sm font-bold truncate max-w-[12ch] ${playerEliminated ? 'line-through text-red-400' : 'text-slate-200'}`}>
                       {player.name}
                     </span>
                   </div>
 
-                  <div className="flex justify-center gap-3 sm:gap-4 my-2">
+                  <div className="flex justify-center gap-2 xl:gap-3 my-2">
                     {player.cards.map(card => (
                       <CardView key={card.id} card={card} size="sm" />
                     ))}
                   </div>
 
-                  <div className="mt-2 flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold shadow-inner">
+                  <div className="mt-2 flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs xl:text-sm font-bold shadow-inner">
                     <Coins className="w-3.5 h-3.5 text-amber-400" />
                     <span>{player.coins}</span>
                   </div>
@@ -210,24 +227,24 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
           </div>
 
           {/* Center Table Divider */}
-          <div className="my-auto py-2 text-center text-slate-600 flex flex-col items-center gap-1 pointer-events-none flex-shrink-0 opacity-70">
-            <img src="/logosemfundo.png" alt="Coup Logo" className="h-12 opacity-80 filter brightness-110 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]" />
+          <div className="py-1 text-center text-slate-600 flex flex-col items-center gap-1 pointer-events-none flex-shrink-0 opacity-70">
+            <img src="/logosemfundo.png" alt="Coup Logo" className="h-[clamp(1.75rem,5vh,4rem)] opacity-80 filter brightness-110 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]" />
             <span className="font-serif tracking-widest text-[10px] uppercase text-amber-500/60 font-bold">Mesa de Jogo</span>
           </div>
 
           {/* Player Hand & Controls Bottom */}
           {me && (
-            <div className="w-full max-w-5xl bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-5 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-6 flex-shrink-0 my-2">
-              <div className="flex items-center gap-5">
+            <div className="w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-3 xl:p-5 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-4 xl:gap-6 flex-shrink-0">
+              <div className="flex items-center gap-3 xl:gap-5 min-w-0">
                 <div className="flex flex-col items-center gap-1.5 shrink-0">
-                  <span className="text-xs uppercase tracking-widest font-extrabold text-amber-400 font-serif">Sua Mão</span>
-                  <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-sm font-extrabold shadow-inner">
+                  <span className="text-xs xl:text-sm uppercase tracking-widest font-extrabold text-amber-400 font-serif">Sua Mão</span>
+                  <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-sm xl:text-base font-extrabold shadow-inner">
                     <Coins className="w-4 h-4 text-amber-400" />
                     <span>{me.coins} Moedas</span>
                   </div>
                 </div>
 
-                <div className="flex gap-4 sm:gap-6">
+                <div className="flex gap-2 xl:gap-4">
                   {me.cards.map(card => (
                     <CardView key={card.id} card={card} size="md" />
                   ))}
@@ -235,8 +252,8 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
               </div>
 
               {/* Action Buttons Panel */}
-              <div className="flex-1 w-full max-w-md">
-                <span className="text-xs uppercase tracking-widest font-bold text-slate-400 mb-2 block text-center md:text-left">
+              <div className="flex-1 min-w-0 w-full max-w-md xl:max-w-lg 2xl:max-w-xl">
+                <span className="text-xs xl:text-sm uppercase tracking-widest font-bold text-slate-400 mb-2 block text-center md:text-left">
                   {isEliminated ? 'Você está Eliminado' : 'Ações Disponíveis'}
                 </span>
                 
@@ -244,62 +261,62 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
                   <button
                     onClick={() => handleActionClick('income')}
                     disabled={!isMyTurn || isEliminated || me.coins >= 10}
-                    className="p-2 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
+                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
                   >
                     <span className="font-bold text-emerald-400">Renda</span>
-                    <span className="text-[10px] text-slate-400">+1 Moeda (Livre)</span>
+                    <span className="text-[10px] xl:text-xs text-slate-400">+1 Moeda (Livre)</span>
                   </button>
 
                   <button
                     onClick={() => handleActionClick('foreign_aid')}
                     disabled={!isMyTurn || isEliminated || me.coins >= 10}
-                    className="p-2 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
+                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
                   >
                     <span className="font-bold text-blue-400">Ajuda Externa</span>
-                    <span className="text-[10px] text-slate-400">+2 Moedas</span>
+                    <span className="text-[10px] xl:text-xs text-slate-400">+2 Moedas</span>
                   </button>
 
                   <button
                     onClick={() => handleActionClick('tax')}
                     disabled={!isMyTurn || isEliminated || me.coins >= 10}
-                    className="p-2 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
+                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
                   >
                     <span className="font-bold text-amber-400">Taxa (Duque)</span>
-                    <span className="text-[10px] text-slate-400">+3 Moedas</span>
+                    <span className="text-[10px] xl:text-xs text-slate-400">+3 Moedas</span>
                   </button>
 
                   <button
                     onClick={() => handleActionClick('assassinate')}
                     disabled={!isMyTurn || isEliminated || me.coins < 3 || me.coins >= 10}
-                    className="p-2 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
+                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
                   >
                     <span className="font-bold text-red-400">Assassinar</span>
-                    <span className="text-[10px] text-slate-400">Custa 3 Moedas</span>
+                    <span className="text-[10px] xl:text-xs text-slate-400">Custa 3 Moedas</span>
                   </button>
 
                   <button
                     onClick={() => handleActionClick('steal')}
                     disabled={!isMyTurn || isEliminated || me.coins >= 10}
-                    className="p-2 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
+                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
                   >
                     <span className="font-bold text-purple-400">Roubar</span>
-                    <span className="text-[10px] text-slate-400">Até 2 Moedas</span>
+                    <span className="text-[10px] xl:text-xs text-slate-400">Até 2 Moedas</span>
                   </button>
 
                   <button
                     onClick={() => handleActionClick('exchange')}
                     disabled={!isMyTurn || isEliminated || me.coins >= 10}
-                    className="p-2 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
+                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
                   >
                     <span className="font-bold text-cyan-400">Trocar</span>
-                    <span className="text-[10px] text-slate-400">Comprar 2 do deck</span>
+                    <span className="text-[10px] xl:text-xs text-slate-400">Comprar 2 do deck</span>
                   </button>
                 </div>
 
                 <button
                   onClick={() => handleActionClick('coup')}
                   disabled={!isMyTurn || isEliminated || me.coins < 7}
-                  className={`w-full mt-2 py-2 px-4 rounded-xl font-extrabold uppercase tracking-wider text-xs shadow-lg transition-all flex items-center justify-center gap-2 ${
+                  className={`w-full mt-2 py-2 xl:py-2.5 px-4 rounded-xl font-extrabold uppercase tracking-wider text-xs xl:text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${
                     !isEliminated && me.coins >= 10
                       ? 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white animate-bounce ring-4 ring-red-500/50'
                       : 'bg-gradient-to-r from-red-700 to-rose-600 hover:from-red-600 hover:to-rose-500 text-white disabled:opacity-40'
@@ -313,13 +330,13 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
         </div>
 
         {/* Right Sidebar - Capped Height Action History Chat Feed */}
-        <div className="w-full lg:w-80 h-48 lg:h-full bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-4 flex flex-col shrink-0 shadow-2xl overflow-hidden">
-          <div className="flex items-center gap-2 pb-3 mb-3 border-b border-slate-800 text-slate-300 font-bold text-sm shrink-0">
+        <div className="w-full lg:w-72 xl:w-80 2xl:w-96 h-40 lg:h-auto lg:self-stretch min-h-0 bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-3 xl:p-4 flex flex-col shrink-0 shadow-2xl overflow-hidden">
+          <div className="flex items-center gap-2 pb-3 mb-3 border-b border-slate-800 text-slate-300 font-bold text-sm xl:text-base shrink-0">
             <History className="w-4 h-4 text-amber-400" />
             <span>Histórico da Partida</span>
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1 text-xs">
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 text-xs xl:text-sm">
             {gameState.logs.map(log => (
               <div
                 key={log.id}
@@ -363,13 +380,13 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
       {/* Character Cheat Sheet Dialog */}
       {showCheatSheet && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-xl bg-slate-900 border border-purple-500/50 rounded-2xl p-6 shadow-2xl">
-            <h3 className="text-xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+          <div className="w-full max-w-xl 2xl:max-w-2xl max-h-[90dvh] flex flex-col bg-slate-900 border border-purple-500/50 rounded-2xl p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-amber-400 mb-4 flex items-center gap-2 shrink-0">
               <Shield className="w-5 h-5" />
               Guia das 5 Cartas do Coup
             </h3>
 
-            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+            <div className="space-y-3 flex-1 min-h-0 overflow-y-auto pr-1">
               {(Object.keys(CHARACTER_INFO) as Character[]).map(charKey => {
                 const info = CHARACTER_INFO[charKey];
                 return (
@@ -399,7 +416,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
                 sound.playClick();
                 setShowCheatSheet(false);
               }}
-              className="w-full mt-6 py-2.5 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm"
+              className="w-full mt-6 py-2.5 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm shrink-0"
             >
               Fechar Guia
             </button>

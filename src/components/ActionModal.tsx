@@ -111,7 +111,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-        <div className="w-full max-w-lg bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl">
+        <div className="w-full max-w-lg 2xl:max-w-xl max-h-[90dvh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl">
           <h3 className="text-xl font-bold text-amber-400 mb-2 flex items-center gap-2">
             <Sword className="w-5 h-5" />
             Selecione o Alvo
@@ -194,7 +194,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
 
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-lg bg-slate-900 border border-red-500/60 rounded-2xl p-6 shadow-2xl text-center">
+          <div className="w-full max-w-lg 2xl:max-w-xl max-h-[90dvh] overflow-y-auto bg-slate-900 border border-red-500/60 rounded-2xl p-6 shadow-2xl text-center">
             <div className="inline-flex p-3 rounded-full bg-red-950/60 border border-red-500/40 text-red-400 mb-3 animate-bounce">
               <Skull className="w-8 h-8" />
             </div>
@@ -283,7 +283,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
 
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-2xl bg-slate-900 border border-cyan-500/60 rounded-2xl p-6 shadow-2xl text-center">
+          <div className="w-full max-w-2xl xl:max-w-4xl max-h-[90dvh] overflow-y-auto bg-slate-900 border border-cyan-500/60 rounded-2xl p-6 shadow-2xl text-center">
             <div className="inline-flex p-3 rounded-full bg-cyan-950/60 border border-cyan-500/40 text-cyan-400 mb-3">
               <Shuffle className="w-8 h-8" />
             </div>
