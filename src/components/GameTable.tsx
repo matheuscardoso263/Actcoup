@@ -3,6 +3,8 @@ import { GameState, ActionType, CHARACTER_INFO, Character } from '../types/game'
 import { CardView } from './CardView';
 import { ActionModal, getWaitingPlayerNames } from './ActionModal';
 import { GameOverModal } from './GameOverModal';
+import { Cinematic } from './Cinematic';
+import { useGameEvents } from '../hooks/useGameEvents';
 import { socketService } from '../services/socket';
 import { sound } from '../audio/sound';
 import { Coins, Shield, Crown, HelpCircle, History, Sparkles, AlertCircle, LogOut, Eye } from 'lucide-react';
@@ -11,13 +13,15 @@ interface GameTableProps {
   gameState: GameState;
   playerId: string;
   onLeaveRoom: () => void;
+  onReturnToLobby: () => void;
 }
 
-export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLeaveRoom }) => {
+export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLeaveRoom, onReturnToLobby }) => {
   const [targetActionReq, setTargetActionReq] = useState<'assassinate' | 'steal' | 'coup' | null>(null);
   const [showCheatSheet, setShowCheatSheet] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
+  const { current: cinematic, dismiss: dismissCinematic } = useGameEvents(gameState, playerId);
 
   const me = gameState.players.find(p => p.id === playerId);
   const isEliminated = !me || me.cards.every(c => c.revealed);
@@ -368,12 +372,18 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, onLea
         onCloseTargetReq={() => setTargetActionReq(null)}
       />
 
-      {/* Game Over Modal */}
-      {gameState.status === 'ended' && (
+      {/* Cutscene de assassinato / eliminação. Fica acima dos modais (z-100). */}
+      {cinematic && (
+        <Cinematic key={cinematic.id} event={cinematic} onDone={dismissCinematic} />
+      )}
+
+      {/* Game Over Modal — só depois da última cutscene, senão o confete e o
+          som de vitória atropelam a cena de eliminação que encerrou a partida. */}
+      {gameState.status === 'ended' && !cinematic && (
         <GameOverModal
           gameState={gameState}
           playerId={playerId}
-          onReturnToLobby={onLeaveRoom}
+          onReturnToLobby={onReturnToLobby}
         />
       )}
 

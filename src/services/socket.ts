@@ -15,6 +15,50 @@ const getBackendUrl = () => {
   return 'http://localhost:3001';
 };
 
+const PLAYER_ID_KEY = 'coup_player_id';
+const SESSION_KEY = 'coup_session';
+
+export interface StoredSession {
+  code: string;
+  playerName: string;
+}
+
+// Identidade estável: socket.id muda a cada reconexão, então não serve
+// como identificador de jogador (o jogador perderia host, vez e cartas).
+export function getPersistentPlayerId(): string {
+  try {
+    let id = localStorage.getItem(PLAYER_ID_KEY);
+    if (!id) {
+      id = (crypto.randomUUID?.() ?? `p_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+      localStorage.setItem(PLAYER_ID_KEY, id);
+    }
+    return id;
+  } catch {
+    return `p_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  }
+}
+
+export function saveSession(session: StoredSession) {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  } catch { /* storage indisponível */ }
+}
+
+export function loadSession(): StoredSession | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? (JSON.parse(raw) as StoredSession) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearSession() {
+  try {
+    localStorage.removeItem(SESSION_KEY);
+  } catch { /* storage indisponível */ }
+}
+
 class SocketService {
   public socket: Socket;
 
@@ -92,7 +136,7 @@ class SocketService {
       await this.ensureConnected();
       return await this.withTimeout<{ success: boolean; code?: string; playerId?: string; message?: string }>(
         new Promise((resolve) => {
-          this.socket.emit('createRoom', { playerName }, resolve);
+          this.socket.emit('createRoom', { playerName, playerId: getPersistentPlayerId() }, resolve);
         })
       );
     } catch (err: any) {
@@ -105,7 +149,11 @@ class SocketService {
       await this.ensureConnected();
       return await this.withTimeout<{ success: boolean; code?: string; playerId?: string; message?: string }>(
         new Promise((resolve) => {
-          this.socket.emit('joinRoom', { code, playerName, existingPlayerId }, resolve);
+          this.socket.emit(
+            'joinRoom',
+            { code, playerName, existingPlayerId: existingPlayerId || getPersistentPlayerId() },
+            resolve
+          );
         })
       );
     } catch (err: any) {
@@ -132,6 +180,19 @@ class SocketService {
       return await this.withTimeout<{ success: boolean; message?: string }>(
         new Promise((resolve) => {
           this.socket.emit('removePlayer', { code, targetPlayerId }, resolve);
+        })
+      );
+    } catch (err: any) {
+      return { success: false, message: err.message };
+    }
+  }
+
+  async claimHost(code: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      await this.ensureConnected();
+      return await this.withTimeout<{ success: boolean; message?: string }>(
+        new Promise((resolve) => {
+          this.socket.emit('claimHost', { code }, resolve);
         })
       );
     } catch (err: any) {

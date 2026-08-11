@@ -106,6 +106,116 @@ class SoundEffects {
     });
   }
 
+  /** Ruído branco cru — base dos efeitos de sopro/corte. */
+  private createNoise(seconds: number): AudioBufferSourceNode | null {
+    if (!this.ctx) return null;
+    const length = Math.floor(this.ctx.sampleRate * seconds);
+    const buffer = this.ctx.createBuffer(1, length, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    const source = this.ctx.createBufferSource();
+    source.buffer = buffer;
+    return source;
+  }
+
+  /** Lâmina cortando o ar: ruído filtrado descendo + estalo grave. */
+  playSlash() {
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    const noise = this.createNoise(0.3);
+    if (noise) {
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.Q.setValueAtTime(1.4, now);
+      filter.frequency.setValueAtTime(5200, now);
+      filter.frequency.exponentialRampToValueAtTime(420, now + 0.26);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.32, now + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      noise.start(now);
+    }
+
+    const osc = this.ctx.createOscillator();
+    const oscGain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(90, now + 0.16);
+    oscGain.gain.setValueAtTime(0.18, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(oscGain);
+    oscGain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+
+  /** Impacto grave, para o baque logo depois do corte. */
+  playThud() {
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(38, now + 0.35);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.45);
+  }
+
+  /** Sopro de despressurização + corpo se afastando (eliminação). */
+  playEject() {
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    const noise = this.createNoise(3.2);
+    if (noise) {
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1800, now);
+      filter.frequency.exponentialRampToValueAtTime(180, now + 3);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.22, now + 0.25);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 3.1);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      noise.start(now);
+    }
+
+    // Seno descendente = corpo sumindo ao longe.
+    const osc = this.ctx.createOscillator();
+    const oscGain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(260, now);
+    osc.frequency.exponentialRampToValueAtTime(42, now + 2.8);
+    oscGain.gain.setValueAtTime(0.0001, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.2, now + 0.3);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 3);
+    osc.connect(oscGain);
+    oscGain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 3);
+  }
+
   playError() {
     this.init();
     if (!this.ctx) return;

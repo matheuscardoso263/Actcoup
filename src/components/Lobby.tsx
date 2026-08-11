@@ -8,9 +8,10 @@ interface LobbyProps {
   gameState: GameState | null;
   playerId: string | null;
   onLeaveRoom: () => void;
+  onEnterRoom: () => void;
 }
 
-export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom }) => {
+export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, onEnterRoom }) => {
   const [playerName, setPlayerName] = useState('');
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,6 +26,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom }
     sound.playClick();
     setLoading(true);
     setError(null);
+    onEnterRoom();
     const res = await socketService.createRoom(playerName.trim());
     setLoading(false);
     if (!res.success) {
@@ -45,6 +47,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom }
     sound.playClick();
     setLoading(true);
     setError(null);
+    onEnterRoom();
     const res = await socketService.joinRoom(roomCodeInput.trim().toUpperCase(), playerName.trim());
     setLoading(false);
     if (!res.success) {
@@ -80,7 +83,23 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom }
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isHost = gameState?.players.find(p => p.id === playerId)?.isHost;
+  const handleClaimHost = async () => {
+    if (!gameState) return;
+    sound.playClick();
+    const res = await socketService.claimHost(gameState.code);
+    if (!res.success) {
+      setError(res.message || 'Não foi possível assumir a sala.');
+      sound.playError();
+    }
+  };
+
+  const me = gameState?.players.find(p => p.id === playerId);
+  const isHost = me?.isHost;
+  const currentHost = gameState?.players.find(p => p.isHost);
+  // Sala travada: host virou bot, sumiu ou caiu — qualquer humano presente destrava.
+  const canClaimHost = Boolean(
+    gameState && me && !isHost && (!currentHost || currentHost.isBot || !currentHost.isConnected)
+  );
   const canStart = isHost && gameState && gameState.players.length >= gameState.minPlayers && gameState.players.length <= gameState.maxPlayers;
 
   if (!gameState) {
@@ -270,11 +289,26 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom }
           </div>
         )}
 
-        {!isHost && (
+        {!isHost && !canClaimHost && (
           <div className="pt-4 border-t border-slate-800 text-center">
             <p className="text-xs text-slate-400 animate-pulse">
               Aguardando o host iniciar a partida...
             </p>
+          </div>
+        )}
+
+        {canClaimHost && (
+          <div className="pt-4 border-t border-slate-800 flex flex-col gap-2">
+            <p className="text-xs text-slate-400 text-center">
+              O host da sala está ausente. Assuma o controle para iniciar a partida.
+            </p>
+            <button
+              onClick={handleClaimHost}
+              className="w-full py-3 px-6 rounded-xl font-bold bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
+            >
+              <Crown className="w-4 h-4" />
+              Assumir a sala
+            </button>
           </div>
         )}
       </div>

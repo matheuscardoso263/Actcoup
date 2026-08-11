@@ -62,15 +62,18 @@ export class GameEngine {
   joinRoom(code, playerId, playerName) {
     const room = this.getRoom(code);
     if (!room) throw new Error('Sala não encontrada.');
-    if (room.status !== 'lobby') throw new Error('Partida já em andamento.');
-    if (room.players.length >= room.maxPlayers) throw new Error('Sala cheia.');
 
+    // Reconexão: jogador que já pertence à sala pode voltar em qualquer status.
     const existingPlayer = room.players.find(p => p.id === playerId);
     if (existingPlayer) {
       existingPlayer.isConnected = true;
       existingPlayer.name = playerName || existingPlayer.name;
+      this.assignHost(room);
       return room;
     }
+
+    if (room.status !== 'lobby') throw new Error('Partida já em andamento.');
+    if (room.players.length >= room.maxPlayers) throw new Error('Sala cheia.');
 
     const newPlayer = {
       id: playerId,
@@ -113,6 +116,60 @@ export class GameEngine {
     return room;
   }
 
+  /**
+   * Garante que o host seja sempre um humano conectado.
+   * Bots nunca emitem startGame, então promover um bot trava a sala.
+   * Retorna o novo host quando houve troca.
+   */
+  assignHost(room) {
+    const humans = room.players.filter(p => !p.isBot);
+    const currentHost = room.players.find(p => p.isHost);
+
+    if (currentHost && !currentHost.isBot && currentHost.isConnected) return null;
+    if (humans.length === 0) {
+      room.players.forEach(p => { p.isHost = false; });
+      return null;
+    }
+
+    const newHost = humans.find(p => p.isConnected) || humans[0];
+    if (currentHost && currentHost.id === newHost.id) return null;
+
+    room.players.forEach(p => { p.isHost = p.id === newHost.id; });
+    this.addLog(room, `👑 ${newHost.name} agora é o host da sala.`, 'system');
+    return newHost;
+  }
+
+  /**
+   * Permite que um humano conectado assuma a sala quando o host
+   * está ausente (desconectado) ou a sala ficou sem host válido.
+   */
+  claimHost(code, playerId) {
+    const room = this.getRoom(code);
+    if (!room) throw new Error('Sala não encontrada.');
+
+    const player = room.players.find(p => p.id === playerId);
+    if (!player) throw new Error('Você não está nesta sala.');
+    if (player.isBot) throw new Error('Bots não podem ser host.');
+    if (player.isHost) return room;
+
+    const currentHost = room.players.find(p => p.isHost);
+    if (currentHost && !currentHost.isBot && currentHost.isConnected) {
+      throw new Error('A sala já possui um host ativo.');
+    }
+
+    room.players.forEach(p => { p.isHost = p.id === playerId; });
+    this.addLog(room, `👑 ${player.name} assumiu o controle da sala.`, 'system');
+    return room;
+  }
+
+  hasHumanPlayers(room) {
+    return room.players.some(p => !p.isBot);
+  }
+
+  deleteRoom(code) {
+    this.rooms.delete(code?.toUpperCase());
+  }
+
   removePlayer(code, playerId, requesterId) {
     const room = this.getRoom(code);
     if (!room) return null;
@@ -129,15 +186,25 @@ export class GameEngine {
     if (room.status === 'lobby') {
       room.players = room.players.filter(p => p.id !== playerId);
       this.addLog(room, `${targetPlayer.name} saiu da sala.`, 'system');
-      if (targetPlayer.isHost && room.players.length > 0) {
-        room.players[0].isHost = true;
-        this.addLog(room, `${room.players[0].name} agora é o host.`, 'system');
-      }
+      this.assignHost(room);
     } else {
       targetPlayer.isConnected = false;
       this.addLog(room, `${targetPlayer.name} desconectou-se da partida.`, 'system');
     }
 
+    return room;
+  }
+
+  markDisconnected(code, playerId) {
+    const room = this.getRoom(code);
+    if (!room) return null;
+
+    const player = room.players.find(p => p.id === playerId);
+    if (!player) return room;
+
+    player.isConnected = false;
+    this.addLog(room, `${player.name} perdeu a conexão.`, 'system');
+    this.assignHost(room);
     return room;
   }
 
@@ -152,10 +219,20 @@ export class GameEngine {
     room.pendingExchange = null;
     room.deck = [];
 
+    // Jogadores humanos que caíram durante a partida não seguram a sala:
+    // eles podem voltar pelo código, mas não podem travar o host.
+    const ghosts = room.players.filter(p => !p.isBot && !p.isConnected);
+    if (ghosts.length > 0) {
+      room.players = room.players.filter(p => p.isBot || p.isConnected);
+      ghosts.forEach(g => this.addLog(room, `${g.name} saiu da sala (desconectado).`, 'system'));
+    }
+
     room.players.forEach(p => {
       p.coins = 2;
       p.cards = [];
     });
+
+    this.assignHost(room);
 
     this.addLog(room, '🔄 A partida foi encerrada. Todos os jogadores retornaram à sala de espera.', 'system');
     return room;

@@ -97,15 +97,64 @@ setInterval(() => {
   }
 }, 1200);
 
+// Jogadores desconectados só são removidos após um período de tolerância,
+// para que refresh/queda de rede não faça o jogador perder o lugar (nem o host).
+const DISCONNECT_GRACE_MS = 30000;
+const pendingRemovals = new Map();
+
+function cancelPendingRemoval(code, playerId) {
+  const key = `${code}:${playerId}`;
+  const timer = pendingRemovals.get(key);
+  if (timer) {
+    clearTimeout(timer);
+    pendingRemovals.delete(key);
+  }
+}
+
+function scheduleRemoval(code, playerId) {
+  cancelPendingRemoval(code, playerId);
+  const key = `${code}:${playerId}`;
+  const timer = setTimeout(() => {
+    pendingRemovals.delete(key);
+    const room = gameEngine.getRoom(code);
+    if (!room) return;
+
+    const player = room.players.find(p => p.id === playerId);
+    if (!player || player.isConnected) return;
+
+    if (room.status === 'lobby') {
+      gameEngine.removePlayer(code, playerId, playerId);
+    }
+    cleanupOrBroadcast(code, true);
+  }, DISCONNECT_GRACE_MS);
+  pendingRemovals.set(key, timer);
+}
+
+// Sala sem humano é descartada (senão sobra lobby só de bots ocupando memória).
+// `pruneInactive` só é usado após o período de tolerância, para não matar
+// a sala de quem está no meio de uma reconexão.
+function cleanupOrBroadcast(code, pruneInactive = false) {
+  const room = gameEngine.getRoom(code);
+  if (!room) return;
+
+  const hasActiveHuman = room.players.some(p => !p.isBot && p.isConnected);
+  if (!gameEngine.hasHumanPlayers(room) || (pruneInactive && !hasActiveHuman)) {
+    gameEngine.deleteRoom(code);
+    return;
+  }
+  broadcastRoomState(code);
+}
+
 io.on('connection', (socket) => {
-  socket.on('createRoom', ({ playerName }, callback) => {
+  socket.on('createRoom', ({ playerName, playerId }, callback) => {
     try {
-      const room = gameEngine.createRoom(socket.id, playerName);
-      socket.data.playerId = socket.id;
+      const id = playerId || socket.id;
+      const room = gameEngine.createRoom(id, playerName);
+      socket.data.playerId = id;
       socket.data.roomCode = room.code;
       socket.join(room.code);
       broadcastRoomState(room.code);
-      if (callback) callback({ success: true, code: room.code, playerId: socket.id });
+      if (callback) callback({ success: true, code: room.code, playerId: id });
     } catch (err) {
       if (callback) callback({ success: false, message: err.message });
     }
@@ -114,12 +163,24 @@ io.on('connection', (socket) => {
   socket.on('joinRoom', ({ code, playerName, existingPlayerId }, callback) => {
     try {
       const playerId = existingPlayerId || socket.id;
+      const roomCode = code.toUpperCase();
+      const room = gameEngine.joinRoom(roomCode, playerId, playerName);
       socket.data.playerId = playerId;
-      socket.data.roomCode = code.toUpperCase();
-      const room = gameEngine.joinRoom(code, playerId, playerName);
+      socket.data.roomCode = room.code;
       socket.join(room.code);
+      cancelPendingRemoval(room.code, playerId);
       broadcastRoomState(room.code);
       if (callback) callback({ success: true, code: room.code, playerId });
+    } catch (err) {
+      if (callback) callback({ success: false, message: err.message });
+    }
+  });
+
+  socket.on('claimHost', ({ code }, callback) => {
+    try {
+      const room = gameEngine.claimHost(code, socket.data.playerId || socket.id);
+      broadcastRoomState(room.code);
+      if (callback) callback({ success: true });
     } catch (err) {
       if (callback) callback({ success: false, message: err.message });
     }
@@ -137,8 +198,19 @@ io.on('connection', (socket) => {
 
   socket.on('removePlayer', ({ code, targetPlayerId }, callback) => {
     try {
-      const room = gameEngine.removePlayer(code, targetPlayerId, socket.data.playerId || socket.id);
-      if (room) broadcastRoomState(room.code);
+      const requesterId = socket.data.playerId || socket.id;
+      const room = gameEngine.removePlayer(code, targetPlayerId, requesterId);
+
+      // Saída própria: desliga o socket da sala, senão os broadcasts
+      // continuam chegando e jogam o jogador de volta na tela da sala.
+      if (targetPlayerId === requesterId) {
+        const roomCode = (room && room.code) || code?.toUpperCase();
+        cancelPendingRemoval(roomCode, requesterId);
+        socket.leave(roomCode);
+        socket.data.roomCode = null;
+      }
+
+      if (room) cleanupOrBroadcast(room.code);
       if (callback) callback({ success: true });
     } catch (err) {
       if (callback) callback({ success: false, message: err.message });
@@ -208,10 +280,17 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     const code = socket.data.roomCode;
     const playerId = socket.data.playerId || socket.id;
-    if (code) {
-      gameEngine.removePlayer(code, playerId, playerId);
-      broadcastRoomState(code);
-    }
+    if (!code) return;
+
+    // Outro socket já assumiu essa identidade (reconexão rápida): ignora.
+    const stillConnected = [...io.sockets.sockets.values()].some(
+      s => s.id !== socket.id && s.data.playerId === playerId && s.data.roomCode === code
+    );
+    if (stillConnected) return;
+
+    gameEngine.markDisconnected(code, playerId);
+    scheduleRemoval(code, playerId);
+    broadcastRoomState(code);
   });
 });
 
