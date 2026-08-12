@@ -16,7 +16,7 @@ interface ActionModalProps {
    Tailwind — âmbar, vermelho, ciano, azul, roxo, rosa —, o que dava
    sete matizes para três significados. Aqui: ouro é a sua vez de
    decidir, carmim é o que custa influência, ardósia é defesa. */
-type Tone = 'gold' | 'crimson' | 'slate';
+type Tone = 'gold' | 'ember' | 'moss';
 
 /* ============================================================
    Duas formas cobrem as oito janelas: uma decide, a outra espera.
@@ -136,7 +136,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
 
   const alert = error && (
     <div className="court-alert mt-4 text-left">
-      <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0 text-rose-300" />
+      <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
       <span>{error}</span>
     </div>
   );
@@ -182,7 +182,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
               className={`court-pick ${selectedTargetId === target.id ? 'is-on' : ''}`}
             >
               <span className="font-semibold text-sm truncate">{target.name}</span>
-              <span className="court-pick-coins">{target.coins} moedas</span>
+              <span className="court-pick-coins">{target.coins} bananas</span>
             </button>
           ))}
         </div>
@@ -232,7 +232,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
       };
 
       return (
-        <Decree tone="crimson" icon={<Skull className="w-6 h-6" />} title="Você perde uma influência">
+        <Decree tone="ember" icon={<Skull className="w-6 h-6" />} title="Você perde uma influência">
           <p className="court-modal-say">{pendingLoss.reason}</p>
 
           <div className="court-stake">
@@ -259,7 +259,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
             <button
               onClick={handleConfirmLoss}
               disabled={!selectedLossCardId || isSubmitting}
-              className="court-btn is-crimson"
+              className="court-btn is-ember"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               Revelar esta carta
@@ -270,7 +270,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
     } else {
       // Pending loss for OTHER player: Show waiting message
       const targetName = getWaitingPlayerNames(gameState);
-      return <Waiting tone="crimson" label="Escolhendo a carta que perde" who={targetName} />;
+      return <Waiting tone="ember" label="Escolhendo a carta que perde" who={targetName} />;
     }
   }
 
@@ -306,7 +306,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
       };
 
       return (
-        <Decree tone="gold" icon={<Shuffle className="w-6 h-6" />} title="Troca do Embaixador" wide>
+        <Decree tone="gold" icon={<Shuffle className="w-6 h-6" />} title={`Sabedoria do ${CHARACTER_INFO.ambassador.name}`} wide>
           <p className="court-modal-say">
             Fique com <em>{pendingExchange.keepCount}</em>{' '}
             {pendingExchange.keepCount === 1 ? 'carta' : 'cartas'}. O resto volta para o baralho.
@@ -390,7 +390,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
         : '';
 
       return (
-        <Decree tone="crimson" icon={<ShieldAlert className="w-6 h-6" />} title="Acredita nele?">
+        <Decree tone="ember" icon={<ShieldAlert className="w-6 h-6" />} title="Acredita nele?">
           <p className="court-modal-say">
             <strong>{actor?.name}</strong> declarou ser <em>{claimed}</em>.
           </p>
@@ -408,7 +408,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
             <button
               disabled={isSubmitting}
               onClick={() => handleResponse('challenge')}
-              className="court-btn is-crimson"
+              className="court-btn is-ember"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sword className="w-4 h-4" />}
               Duvidar
@@ -433,7 +433,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
 
       if (canIBlock) {
         return (
-          <Decree tone="slate" icon={<Shield className="w-6 h-6" />} title="Quer bloquear?">
+          <Decree tone="moss" icon={<Shield className="w-6 h-6" />} title="Quer bloquear?">
             <p className="court-modal-say">
               <strong>{actor?.name}</strong> está fazendo <em>{ACTION_LABELS[pendingAction.action]}</em>.
             </p>
@@ -493,7 +493,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
         : '';
 
       return (
-        <Decree tone="crimson" icon={<ShieldAlert className="w-6 h-6" />} title="Acredita no bloqueio?">
+        <Decree tone="ember" icon={<ShieldAlert className="w-6 h-6" />} title="Acredita no bloqueio?">
           <p className="court-modal-say">
             <strong>{blocker?.name}</strong> alegou ter <em>{blocked}</em> para bloquear.
           </p>
@@ -509,7 +509,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
             <button
               disabled={isSubmitting}
               onClick={() => handleResponse('challenge')}
-              className="court-btn is-crimson"
+              className="court-btn is-ember"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sword className="w-4 h-4" />}
               Duvidar do bloqueio

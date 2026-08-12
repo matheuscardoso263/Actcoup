@@ -70,7 +70,7 @@ export const CoinCounter: React.FC<CoinCounterProps> = ({
 
   return (
     <div data-coin-anchor={playerId} className={`coin-badge ${className}`}>
-      <Coins className={iconClassName} />
+      <span className="text-[1.1em] leading-none select-none">🍌</span>
       <span key={pulse} className="coin-count-pop">
         {shown}
         {suffix}

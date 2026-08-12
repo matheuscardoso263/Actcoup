@@ -114,49 +114,49 @@ export interface GameState {
 /** Nome em português de cada ação, para o texto que aparece ao jogador.
  *  Os identificadores do protocolo continuam em inglês — só a exibição traduz. */
 export const ACTION_LABELS: Record<ActionType, string> = {
-  income: 'Renda',
-  foreign_aid: 'Ajuda Externa',
-  coup: 'Golpe de Estado',
-  tax: 'Taxa',
-  assassinate: 'Assassinato',
-  steal: 'Roubo',
-  exchange: 'Troca'
+  income: 'Colheita',
+  foreign_aid: 'Coleta Geral',
+  coup: 'Exílio',
+  tax: 'Coleta',
+  assassinate: 'Caçada',
+  steal: 'Furto',
+  exchange: 'Sabedoria'
 };
 
 export const CHARACTER_INFO: Record<Character, { name: string; description: string; action?: string; block?: string; image: string }> = {
   duke: {
-    name: 'Duque',
-    description: 'Pega 3 moedas da tesouraria. Bloqueia Ajuda Externa.',
-    action: 'Taxa (+3 moedas)',
-    block: 'Bloqueia Ajuda Externa',
-    image: '/cards/duke.webp'
+    name: 'Gorila',
+    description: 'Recolhe 3 bananas do estoque. Bloqueia Coleta Geral.',
+    action: 'Coleta (+3 bananas)',
+    block: 'Bloqueia Coleta Geral',
+    image: '/cards/gorila.png'
   },
   assassin: {
-    name: 'Assassino',
-    description: 'Paga 3 moedas para tentar eliminar uma influência de um jogador.',
-    action: 'Assassinar (Custa 3 moedas)',
+    name: 'Chimpanzé',
+    description: 'Paga 3 bananas para eliminar uma influência de outro jogador.',
+    action: 'Caçar (Custa 3 bananas)',
     block: undefined,
-    image: '/cards/assassin.webp'
+    image: '/cards/chimpanze.png'
   },
   captain: {
-    name: 'Capitão',
-    description: 'Rouba até 2 moedas de outro jogador. Bloqueia Roubo.',
-    action: 'Roubar (Até 2 moedas)',
-    block: 'Bloqueia Roubo',
-    image: '/cards/captain.webp'
+    name: 'Macaco-prego',
+    description: 'Furta até 2 bananas de outro jogador. Bloqueia Furto.',
+    action: 'Furtar (Até 2 bananas)',
+    block: 'Bloqueia Furto',
+    image: '/cards/macacoprego.png'
   },
   ambassador: {
-    name: 'Embaixador',
-    description: 'Troca cartas com o baralho. Bloqueia Roubo.',
-    action: 'Trocar (Comprar 2 do baralho)',
-    block: 'Bloqueia Roubo',
-    image: '/cards/ambassador.webp'
+    name: 'Orangotango',
+    description: 'Troca cartas com o baralho. Bloqueia Furto.',
+    action: 'Sabedoria (Comprar 2 do baralho)',
+    block: 'Bloqueia Furto',
+    image: '/cards/orangotango.png'
   },
   countess: {
-    name: 'Condessa',
-    description: 'Não possui ação ativa. Bloqueia Assassinato.',
+    name: 'Babuíno',
+    description: 'Não possui ação ativa. Bloqueia Caçada.',
     action: undefined,
-    block: 'Bloqueia Assassinato',
-    image: '/cards/countess.webp'
+    block: 'Bloqueia Caçada',
+    image: '/cards/babuino.png'
   }
 };

@@ -72,7 +72,7 @@ class SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ Conectado ao servidor Coup:', this.socket.id);
+      console.log('✅ Conectado ao servidor República dos Primatas:', this.socket.id);
     });
 
     this.socket.on('connect_error', (err) => {

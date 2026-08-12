@@ -11,9 +11,9 @@ interface LobbyProps {
   onEnterRoom: () => void;
 }
 
-/* O leque da tela de entrada. A ordem é a da mesa, não a alfabética:
-   Duque na esquerda e Condessa na direita deixam os dois retratos de
-   manto vermelho nas pontas, e o leque fecha simétrico. */
+/* O leque da tela de entrada. A ordem é a da colônia: o Gorila abre à
+   esquerda e o Babuíno fecha à direita, deixando os dois retratos de
+   manto verde nas pontas para o leque fechar simétrico. */
 const FAN: Array<{ id: Character; rot: string; lift: string }> = [
   { id: 'duke', rot: '-14deg', lift: '1.1rem' },
   { id: 'assassin', rot: '-7deg', lift: '0.35rem' },
@@ -119,38 +119,43 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
 
   if (!gameState) {
     return (
-      <div className="court-screen flex items-center justify-center p-4 sm:p-6 text-slate-100">
-        <div className="court-stage w-full max-w-6xl grid gap-8 lg:gap-12 lg:grid-cols-[1.05fr_minmax(0,22rem)] items-center">
+      <div className="court-screen court-hall text-slate-100">
+        <div className="court-stage court-entry">
 
           {/* --- O convite ------------------------------------- */}
-          <div className="text-center lg:text-left">
-            <span className="court-crest court-rise" style={{ '--delay': '40ms' } as React.CSSProperties}>
-              <span>2 a 6 nobres</span>
+          <div className="court-entry-intro">
+            <span
+              className="court-crest court-entry-crest court-rise"
+              style={{ '--delay': '40ms' } as React.CSSProperties}
+            >
+              <span>2 a 6 primatas</span>
             </span>
 
             <h1
-              className="court-title court-rise mt-4 text-[clamp(3.5rem,11vw,7.5rem)]"
+              className="court-title court-entry-title court-rise"
               style={{ '--delay': '90ms' } as React.CSSProperties}
             >
-              Coup
+              República
+              <br />
+              dos Primatas
             </h1>
 
             <div
-              className="court-rule is-start court-rise mt-5 max-w-sm mx-auto lg:mx-0"
+              className="court-rule is-start court-entry-rule court-rise"
               style={{ '--delay': '150ms' } as React.CSSProperties}
             />
 
             <p
-              className="court-lede court-rise mt-5 max-w-sm mx-auto lg:mx-0"
+              className="court-lede court-entry-lede court-rise"
               style={{ '--delay': '200ms' } as React.CSSProperties}
             >
-              Duas cartas na mão e <strong>nenhuma verdade na mesa</strong>. Derrube a
-              corte inteira sem que ninguém descubra quem você realmente é.
+              Duas cartas na mão e <strong>nenhuma verdade na copa</strong>. Exile a
+              colônia inteira sem que ninguém descubra quem você realmente é.
             </p>
 
             {/* O leque é o herói: são os cinco retratos do jogo, e passar
-                o mouse revela o nome de cada um. */}
-            <div className="court-fan mt-2 lg:-ml-6">
+                o mouse abre a ficha de cada um — quem é e o que faz. */}
+            <div className="court-fan court-entry-fan">
               {FAN.map((card, i) => (
                 <div
                   key={card.id}
@@ -165,7 +170,10 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
                       <img src={CHARACTER_INFO[card.id].image} alt={CHARACTER_INFO[card.id].name} />
                     </div>
                   </div>
-                  <span className="court-fan-name">{CHARACTER_INFO[card.id].name}</span>
+                  <span className="court-fan-say">
+                    <span className="court-fan-name">{CHARACTER_INFO[card.id].name}</span>
+                    <span className="court-fan-desc">{CHARACTER_INFO[card.id].description}</span>
+                  </span>
                 </div>
               ))}
             </div>
@@ -173,31 +181,31 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
 
           {/* --- A mesa ---------------------------------------- */}
           <div
-            className="court-plate court-rise p-6 sm:p-7"
+            className="court-plate court-entry-plate court-rise"
             style={{ '--delay': '260ms' } as React.CSSProperties}
           >
             <span className="court-plate-corner is-tl" />
             <span className="court-plate-corner is-br" />
 
-            <img src="/logosemfundo.png" alt="ActCoup" className="h-11 mx-auto opacity-90" />
+            <img src="/logo.png" alt="República dos Primatas" className="court-entry-logo" />
 
-            <div className="court-rule mt-5" />
+            <div className="court-rule" />
 
             {error && (
-              <div className="court-alert mt-5">
-                <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0 text-rose-300" />
+              <div className="court-alert">
+                <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <div className="mt-6">
-              <label className="court-label mb-2" htmlFor="lobby-name">
+            <div className="court-entry-name">
+              <label className="court-label" htmlFor="lobby-name">
                 Seu nome
               </label>
               <input
                 id="lobby-name"
                 type="text"
-                placeholder="Ex: Duque Matheus"
+                placeholder="Ex: Gorila Alfa"
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 className="court-field"
@@ -207,12 +215,12 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
             <button
               onClick={handleCreateRoom}
               disabled={loading}
-              className="court-btn is-gold w-full mt-5"
+              className="court-btn is-gold w-full"
             >
-              Abrir uma mesa
+              Abrir uma copa
             </button>
 
-            <div className="court-divider my-6">
+            <div className="court-divider court-entry-divider">
               <span className="court-label is-tight">ou entre numa</span>
             </div>
 
@@ -228,9 +236,9 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
             <button
               onClick={handleJoinRoom}
               disabled={loading}
-              className="court-btn is-stone w-full mt-3"
+              className="court-btn is-stone w-full"
             >
-              Entrar na mesa
+              Entrar na copa
             </button>
           </div>
         </div>
@@ -248,147 +256,147 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
   const missing = Math.max(0, gameState.minPlayers - gameState.players.length);
 
   return (
-    <div className="court-screen flex items-center justify-center p-4 text-slate-100">
-      <div className="court-stage w-full max-w-2xl">
-        <div className="court-plate court-rise max-h-[92dvh] overflow-y-auto p-6 sm:p-8">
-          <span className="court-plate-corner is-tl" />
-          <span className="court-plate-corner is-br" />
+    <div className="court-screen court-hall text-slate-100">
+      <div className="court-stage court-plate court-room court-rise">
+        <span className="court-plate-corner is-tl" />
+        <span className="court-plate-corner is-br" />
 
-          {/* --- Cabeçalho: o código é o que importa aqui ------- */}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <span className="court-crest">
-                <span>Antessala</span>
-              </span>
-
-              <div className="flex items-center gap-3 mt-3">
-                <span className="court-code">{gameState.code}</span>
-                <button
-                  onClick={handleCopyCode}
-                  className="court-btn is-stone is-compact"
-                  title="Copiar código da sala"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  {copied ? 'Copiado' : 'Copiar'}
-                </button>
-              </div>
-
-              <p className="court-label is-tight mt-2">Passe o código para quem vai jogar</p>
-            </div>
-
-            <button onClick={onLeaveRoom} className="court-btn is-crimson is-compact shrink-0">
-              <LogOut className="w-3.5 h-3.5" />
-              Sair
-            </button>
-          </div>
-
-          <div className="court-rule mt-6" />
-
-          {error && (
-            <div className="court-alert mt-5">
-              <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0 text-rose-300" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* --- Os assentos ----------------------------------- */}
-          <div className="flex items-baseline justify-between mt-6 mb-3">
-            <span className="court-label is-row">
-              <Users className="w-3.5 h-3.5" />
-              À mesa · {gameState.players.length} de {gameState.maxPlayers}
+        {/* --- Cabeçalho: o código é o que importa aqui ------- */}
+        <div className="flex items-start justify-between gap-4 shrink-0">
+          <div>
+            <span className="court-crest">
+              <span>Antessala</span>
             </span>
-            {missing > 0 && (
-              <span className="text-[0.7rem] font-semibold text-amber-300/70">
-                {missing === 1 ? 'Falta 1 jogador' : `Faltam ${missing} jogadores`}
-              </span>
-            )}
-          </div>
 
-          <div className="space-y-2 max-h-[min(38dvh,22rem)] overflow-y-auto pr-1">
-            {gameState.players.map((player) => (
-              <div
-                key={player.id}
-                className={`court-seat ${player.id === playerId ? 'is-me' : ''}`}
+            <div className="flex items-center gap-3 mt-3">
+              <span className="court-code">{gameState.code}</span>
+              <button
+                onClick={handleCopyCode}
+                className="court-btn is-stone is-compact"
+                title="Copiar código da sala"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="court-sigil">{player.name.charAt(0).toUpperCase()}</span>
-                  <span className="font-semibold text-sm truncate">
-                    {player.name}
-                    {player.id === playerId && (
-                      <span className="ml-2 text-[0.65rem] font-bold uppercase tracking-widest text-rose-300/80">
-                        Você
-                      </span>
-                    )}
-                  </span>
-                </div>
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? 'Copiado' : 'Copiar'}
+              </button>
+            </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {player.isHost && (
-                    <span className="court-tag is-host">
-                      <Crown className="w-3 h-3" /> Anfitrião
-                    </span>
-                  )}
-                  {player.isBot && (
-                    <span className="court-tag is-bot">
-                      <Bot className="w-3 h-3" /> IA
-                    </span>
-                  )}
-                  {!player.isBot && !player.isConnected && (
-                    <span className="court-tag is-away">
-                      <WifiOff className="w-3 h-3" /> Caiu
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {Array.from({ length: emptySeats }, (_, i) => (
-              <div key={`empty-${i}`} className="court-seat is-empty">
-                <div className="flex items-center gap-3">
-                  <span className="court-sigil opacity-30">·</span>
-                  <span className="court-label is-tight">Cadeira vaga</span>
-                </div>
-              </div>
-            ))}
+            <p className="court-label is-tight mt-2">Passe o código para quem vai jogar</p>
           </div>
 
-          {/* --- Comandos -------------------------------------- */}
-          {isHost && (
-            <div className="mt-6 pt-5 border-t border-[rgba(201,180,140,0.14)] flex flex-col gap-3">
-              {gameState.players.length < gameState.maxPlayers && (
-                <button onClick={handleAddBot} className="court-btn is-stone w-full">
-                  <Bot className="w-4 h-4" />
-                  Sentar uma IA à mesa
-                </button>
-              )}
+          <button onClick={onLeaveRoom} className="court-btn is-ember is-compact shrink-0">
+            <LogOut className="w-3.5 h-3.5" />
+            Sair
+          </button>
+        </div>
 
-              <button onClick={handleStartGame} disabled={!canStart} className="court-btn is-gold w-full">
-                <Play className="w-4 h-4 fill-current" />
-                Distribuir as cartas
-              </button>
-            </div>
-          )}
+        <div className="court-rule shrink-0" />
 
-          {!isHost && !canClaimHost && (
-            <div className="mt-6 pt-5 border-t border-[rgba(201,180,140,0.14)] text-center">
-              <p className="court-label is-tight">
-                {currentHost ? `${currentHost.name} abre a partida` : 'Aguardando o anfitrião'}
-              </p>
-            </div>
-          )}
+        {error && (
+          <div className="court-alert shrink-0">
+            <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-          {canClaimHost && (
-            <div className="mt-6 pt-5 border-t border-[rgba(201,180,140,0.14)] flex flex-col gap-3">
-              <p className="text-xs text-center text-slate-400">
-                O anfitrião não está mais à mesa. Assuma para poder começar.
-              </p>
-              <button onClick={handleClaimHost} className="court-btn is-gold w-full">
-                <Crown className="w-4 h-4" />
-                Assumir a sala
-              </button>
-            </div>
+        {/* --- Os assentos ----------------------------------- */}
+        <div className="flex items-baseline justify-between shrink-0">
+          <span className="court-label is-row">
+            <Users className="w-3.5 h-3.5" />
+            Na copa · {gameState.players.length} de {gameState.maxPlayers}
+          </span>
+          {missing > 0 && (
+            <span className="text-[0.7rem] font-semibold text-amber-300/70">
+              {missing === 1 ? 'Falta 1 jogador' : `Faltam ${missing} jogadores`}
+            </span>
           )}
         </div>
+
+        {/* A única parte que rola: seis cadeiras numa janela baixa não
+            cabem, e é melhor rolar a lista do que a tela inteira. */}
+        <div className="court-room-seats">
+          {gameState.players.map((player) => (
+            <div
+              key={player.id}
+              className={`court-seat ${player.id === playerId ? 'is-me' : ''}`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="court-sigil">{player.name.charAt(0).toUpperCase()}</span>
+                <span className="font-semibold text-sm truncate">
+                  {player.name}
+                  {player.id === playerId && (
+                    <span className="ml-2 text-[0.65rem] font-bold uppercase tracking-widest text-[color:var(--court-ember-hi)]">
+                      Você
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                {player.isHost && (
+                  <span className="court-tag is-host">
+                    <Crown className="w-3 h-3" /> Anfitrião
+                  </span>
+                )}
+                {player.isBot && (
+                  <span className="court-tag is-bot">
+                    <Bot className="w-3 h-3" /> IA
+                  </span>
+                )}
+                {!player.isBot && !player.isConnected && (
+                  <span className="court-tag is-away">
+                    <WifiOff className="w-3 h-3" /> Caiu
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {Array.from({ length: emptySeats }, (_, i) => (
+            <div key={`empty-${i}`} className="court-seat is-empty">
+              <div className="flex items-center gap-3">
+                <span className="court-sigil opacity-30">·</span>
+                <span className="court-label is-tight">Cadeira vaga</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* --- Comandos -------------------------------------- */}
+        {isHost && (
+          <div className="court-room-acts">
+            {gameState.players.length < gameState.maxPlayers && (
+              <button onClick={handleAddBot} className="court-btn is-stone w-full">
+                <Bot className="w-4 h-4" />
+                Sentar uma IA na copa
+              </button>
+            )}
+
+            <button onClick={handleStartGame} disabled={!canStart} className="court-btn is-gold w-full">
+              <Play className="w-4 h-4 fill-current" />
+              Distribuir as cartas
+            </button>
+          </div>
+        )}
+
+        {!isHost && !canClaimHost && (
+          <div className="court-room-acts text-center">
+            <p className="court-label is-tight">
+              {currentHost ? `${currentHost.name} abre a partida` : 'Aguardando o anfitrião'}
+            </p>
+          </div>
+        )}
+
+        {canClaimHost && (
+          <div className="court-room-acts">
+            <p className="text-xs text-center text-slate-400">
+              O anfitrião não está mais na copa. Assuma para poder começar.
+            </p>
+            <button onClick={handleClaimHost} className="court-btn is-gold w-full">
+              <Crown className="w-4 h-4" />
+              Assumir a sala
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

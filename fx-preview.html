@@ -49,10 +49,10 @@
                 <span class="cine-duel-name">Guilherme</span>
               </div>
             </div>
-            <p class="cine-duel-claim">Alegou ser <strong>Duque</strong></p>
+            <p class="cine-duel-claim">Alegou ser <strong>Gorila</strong></p>
           </div>
           <div class="cine-duel-card">
-            <img src="/cards/duke.webp" alt="">
+            <img src="/cards/gorila.png" alt="">
             <div class="cine-duel-veil"></div>
             <div class="cine-duel-cross cine-duel-cross-1"></div>
             <div class="cine-duel-cross cine-duel-cross-2"></div>
@@ -62,8 +62,8 @@
             <h2 class="cine-duel-title">${bluff ? 'Blefe desmascarado!' : 'Você duvidou — e ele tinha'}</h2>
             <div class="cine-duel-rule"></div>
             <p class="cine-duel-detail">${bluff
-              ? 'Guilherme não tinha Duque e perde uma influência.'
-              : 'Guilherme revelou Duque. Você perde uma influência.'}</p>
+              ? 'Guilherme não tinha Gorila e perde uma influência.'
+              : 'Guilherme revelou Gorila. Você perde uma influência.'}</p>
           </div>
           <span class="cine-skip">clique para pular</span>
         </div>`;
@@ -77,7 +77,7 @@
             <span class="block-flash-crest">${shield}</span>
             <span class="block-flash-text">
               <span class="block-flash-name">Guilherme bloqueia</span>
-              <span class="block-flash-role">Condessa</span>
+              <span class="block-flash-role">Babuíno</span>
             </span>
           </div>
         </div>`;
@@ -111,7 +111,7 @@
             </div>
             <button class="vic-action">${refresh}Voltar para a sala</button>
           </div>
-          <img src="/logosemfundo.png" alt="Coup" class="vic-mark">
+          <img src="/logo.png" alt="Coup" class="vic-mark">
         </div>`;
       }
 
@@ -136,28 +136,28 @@
       }
 
       const challengeModal = () => decree(
-        'crimson', alarm, 'Acredita nele?',
-        '<strong>Guilherme</strong> declarou ser <em>Duque</em>.',
-        'Se duvidar e ele <strong>não tiver Duque</strong>, ele perde uma influência. Se tiver, quem perde é <strong>você</strong>.',
-        '<button class="court-btn is-crimson">Duvidar</button><button class="court-btn is-stone">Deixar passar</button>'
+        'ember', alarm, 'Acredita nele?',
+        '<strong>Guilherme</strong> declarou ser <em>Gorila</em>.',
+        'Se duvidar e ele <strong>não tiver Gorila</strong>, ele perde uma influência. Se tiver, quem perde é <strong>você</strong>.',
+        '<button class="court-btn is-ember">Duvidar</button><button class="court-btn is-stone">Deixar passar</button>'
       );
 
       const blockModal = () => decree(
-        'slate', shield.replace('viewBox', 'style="width:1.5rem;height:1.5rem" viewBox'), 'Quer bloquear?',
-        '<strong>Matheus</strong> está fazendo <em>Roubar</em>.',
+        'moss', shield.replace('viewBox', 'style="width:1.5rem;height:1.5rem" viewBox'), 'Quer bloquear?',
+        '<strong>Matheus</strong> está fazendo <em>Furto</em>.',
         'Bloquear é <strong>alegar uma carta</strong>. Se alguém duvidar e você não tiver, perde uma influência.',
         `<span class="court-label is-tight" style="margin-bottom:.2rem">Bloquear como</span>
-         <button class="court-pick is-on"><span style="font-weight:600;font-size:.875rem">Capitão</span></button>
-         <button class="court-pick"><span style="font-weight:600;font-size:.875rem">Embaixador</span></button>
+         <button class="court-pick is-on"><span style="font-weight:600;font-size:.875rem">Macaco-prego</span></button>
+         <button class="court-pick"><span style="font-weight:600;font-size:.875rem">Orangotango</span></button>
          <button class="court-btn is-gold" style="margin-top:.5rem">Bloquear</button>
          <button class="court-btn is-stone">Permitir</button>`
       );
 
       const lossModal = () => decree(
-        'crimson', skull, 'Você perde uma influência',
+        'ember', skull, 'Você perde uma influência',
         'Seu blefe foi desmascarado por Beatriz.',
         'A carta escolhida é <strong>revelada para todos</strong> e sai do jogo. A outra continua sua, e ninguém sabe qual é.',
-        '<button class="court-btn is-crimson">Revelar esta carta</button>'
+        '<button class="court-btn is-ember">Revelar esta carta</button>'
       );
 
       const targetModal = () => `
@@ -171,7 +171,7 @@
                 ${[['Bot Arthur', 4], ['Beatriz', 7], ['Matheus', 2]].map(([n, c], i) => `
                   <button class="court-pick ${i === 1 ? 'is-on' : ''}">
                     <span style="font-weight:600;font-size:.875rem">${n}</span>
-                    <span class="court-pick-coins">${c} moedas</span>
+                    <span class="court-pick-coins">${c} bananas</span>
                   </button>`).join('')}
               </div>
               <div class="court-modal-acts is-row">

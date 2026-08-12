@@ -129,7 +129,7 @@ export const Cinematic: React.FC<CinematicProps> = ({ event, onDone }) => {
                   : 'text-amber-100 drop-shadow-[0_0_35px_rgba(180,83,9,0.6)]'
               }`}
             >
-              {event.isMe ? 'Você foi deposto' : `${event.victimName} foi deposto`}
+              {event.isMe ? 'Você foi exilado' : `${event.victimName} foi exilado`}
             </h2>
 
             <div className="cine-eject-rule" />
@@ -141,8 +141,8 @@ export const Cinematic: React.FC<CinematicProps> = ({ event, onDone }) => {
 
             <p className="cine-eject-remain mt-6 text-[clamp(0.75rem,1.8vw,1rem)] tracking-[0.25em] uppercase text-amber-200/45">
               {event.playersLeft === 1
-                ? 'Resta 1 nobre na corte'
-                : `Restam ${event.playersLeft} nobres na corte`}
+                ? 'Resta 1 primata na colônia'
+                : `Restam ${event.playersLeft} primatas na colônia`}
             </p>
           </div>
         </>
