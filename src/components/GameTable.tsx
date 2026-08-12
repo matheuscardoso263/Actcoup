@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GameState, ActionType, CHARACTER_INFO, Character, ACTION_LABELS } from '../types/game';
 import { CardView } from './CardView';
 import { ActionModal, getWaitingPlayerNames } from './ActionModal';
+import { CardGuide } from './CardGuide';
 import { GameOverModal } from './GameOverModal';
 import { Cinematic } from './Cinematic';
 import { ChallengeSceneView } from './ChallengeScene';
@@ -450,55 +451,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
       )}
 
       {/* Character Cheat Sheet Dialog */}
-      {showCheatSheet && (
-        <div className="court-scrim">
-          <div className="court-modal is-gold is-wide">
-            <div className="court-modal-scroll text-left">
-              <span className="court-crest">
-                <span>Os cinco primatas</span>
-              </span>
-
-              <div className="space-y-2.5 mt-4">
-                {(Object.keys(CHARACTER_INFO) as Character[]).map(charKey => {
-                  const info = CHARACTER_INFO[charKey];
-                  return (
-                    <div
-                      key={charKey}
-                      className="flex gap-3.5 p-2.5 rounded-[3px] bg-[rgba(6,8,13,0.5)] border border-[rgba(201,180,140,0.14)]"
-                    >
-                      <img
-                        src={info.image}
-                        alt={info.name}
-                        className="w-14 h-20 object-cover rounded-[3px] border border-[rgba(224,169,46,0.3)] shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="court-act-name">{info.name}</h4>
-                        <p className="text-xs text-slate-400 mt-0.5 leading-snug">{info.description}</p>
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {info.action && <span className="court-tag is-act">{info.action}</span>}
-                          {info.block && <span className="court-tag is-def">{info.block}</span>}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="court-modal-acts">
-                <button
-                  onClick={() => {
-                    sound.playClick();
-                    setShowCheatSheet(false);
-                  }}
-                  className="court-btn is-stone"
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {showCheatSheet && <CardGuide onClose={() => setShowCheatSheet(false)} />}
     </div>
   );
 };

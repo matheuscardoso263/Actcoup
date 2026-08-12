@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GameState, ActionType, Character, CHARACTER_INFO, ACTION_LABELS } from '../types/game';
 import { CardView } from './CardView';
+import { CardGuide, CardGuideLink } from './CardGuide';
 import { socketService } from '../services/socket';
 import { sound } from '../audio/sound';
 import { ShieldAlert, Sword, Shield, Shuffle, Skull, CheckCircle2, Loader2, Crosshair } from 'lucide-react';
@@ -22,23 +23,32 @@ type Tone = 'gold' | 'ember' | 'moss';
    Duas formas cobrem as oito janelas: uma decide, a outra espera.
    ============================================================ */
 
+/* `focus` é a carta que a janela cita — abre o guia já marcando ela. */
 const Decree: React.FC<{
   tone: Tone;
   icon: React.ReactNode;
   title: string;
   wide?: boolean;
+  focus?: Character;
   children: React.ReactNode;
-}> = ({ tone, icon, title, wide, children }) => (
-  <div className="court-scrim">
-    <div className={`court-modal is-${tone}${wide ? ' is-wide' : ''}`}>
-      <div className="court-modal-scroll">
-        <span className="court-seal">{icon}</span>
-        <h3 className="court-modal-title">{title}</h3>
-        {children}
+}> = ({ tone, icon, title, wide, focus, children }) => {
+  const [guide, setGuide] = useState(false);
+
+  return (
+    <div className="court-scrim">
+      <div className={`court-modal is-${tone}${wide ? ' is-wide' : ''}`}>
+        <div className="court-modal-scroll">
+          <span className="court-seal">{icon}</span>
+          <h3 className="court-modal-title">{title}</h3>
+          {children}
+          <CardGuideLink onClick={() => setGuide(true)} />
+        </div>
       </div>
+
+      {guide && <CardGuide over focus={focus} onClose={() => setGuide(false)} />}
     </div>
-  </div>
-);
+  );
+};
 
 /* A ficha do primata em jogo. O decreto cobre a mesa, e o guia das
    cartas está atrás dele: quem não lembra o que o Gorila faz não tem
@@ -95,23 +105,43 @@ const BLOCK_CHARACTERS: Partial<Record<ActionType, Character[]>> = {
   steal: ['captain', 'ambassador']
 };
 
+/* Quem a ação obriga a alegar, para o guia já abrir na carta certa
+   enquanto você escolhe o alvo. O Exílio não alega nada. */
+const TARGET_ACTION_CLAIM: Record<'assassinate' | 'steal' | 'coup', Character | undefined> = {
+  assassinate: 'assassin',
+  steal: 'captain',
+  coup: undefined
+};
+
 /* Espera não trava a leitura da mesa: véu fraco e cartela curta,
    porque a informação útil aqui é só quem ainda não respondeu. */
-const Waiting: React.FC<{ tone: Tone; label: string; who: string }> = ({ tone, label, who }) => (
-  <div className="court-scrim is-soft">
-    <div className={`court-modal is-${tone} is-slim`}>
-      <div className="court-modal-scroll">
-        <span className="court-wait-dots">
-          <i />
-          <i />
-          <i />
-        </span>
-        <p className="court-label is-tight mt-3">{label}</p>
-        <span className="court-wait-who">{who}</span>
+const Waiting: React.FC<{ tone: Tone; label: string; who: string; focus?: Character }> = ({
+  tone,
+  label,
+  who,
+  focus
+}) => {
+  const [guide, setGuide] = useState(false);
+
+  return (
+    <div className="court-scrim is-soft">
+      <div className={`court-modal is-${tone} is-slim`}>
+        <div className="court-modal-scroll">
+          <span className="court-wait-dots">
+            <i />
+            <i />
+            <i />
+          </span>
+          <p className="court-label is-tight mt-3">{label}</p>
+          <span className="court-wait-who">{who}</span>
+          <CardGuideLink onClick={() => setGuide(true)} />
+        </div>
       </div>
+
+      {guide && <CardGuide over focus={focus} onClose={() => setGuide(false)} />}
     </div>
-  </div>
-);
+  );
+};
 
 export function getWaitingPlayerNames(gameState: GameState): string {
   const pending = gameState.pendingAction;
@@ -218,7 +248,12 @@ export const ActionModal: React.FC<ActionModalProps> = ({
     };
 
     return (
-      <Decree tone="gold" icon={<Crosshair className="w-6 h-6" />} title="Contra quem?">
+      <Decree
+        tone="gold"
+        icon={<Crosshair className="w-6 h-6" />}
+        title="Contra quem?"
+        focus={TARGET_ACTION_CLAIM[targetActionReq]}
+      >
         <p className="court-modal-say">
           Escolha quem sofre <em>{ACTION_LABELS[targetActionReq]}</em>.
         </p>
@@ -361,7 +396,13 @@ export const ActionModal: React.FC<ActionModalProps> = ({
       };
 
       return (
-        <Decree tone="gold" icon={<Shuffle className="w-6 h-6" />} title={`Sabedoria do ${CHARACTER_INFO.ambassador.name}`} wide>
+        <Decree
+          tone="gold"
+          icon={<Shuffle className="w-6 h-6" />}
+          title={`Sabedoria do ${CHARACTER_INFO.ambassador.name}`}
+          wide
+          focus="ambassador"
+        >
           <p className="court-modal-say">
             Fique com <em>{pendingExchange.keepCount}</em>{' '}
             {pendingExchange.keepCount === 1 ? 'carta' : 'cartas'}. O resto volta para o baralho.
@@ -402,7 +443,14 @@ export const ActionModal: React.FC<ActionModalProps> = ({
     } else {
       // Pending exchange for OTHER player: Show waiting message
       const targetName = getWaitingPlayerNames(gameState);
-      return <Waiting tone="gold" label="Trocando cartas com o baralho" who={targetName} />;
+      return (
+        <Waiting
+          tone="gold"
+          label="Trocando cartas com o baralho"
+          who={targetName}
+          focus="ambassador"
+        />
+      );
     }
   }
 
@@ -421,6 +469,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
           tone="gold"
           label={myResponse ? 'Resposta registrada · falta' : 'A mesa decide · falta'}
           who={waitingNames}
+          focus={pendingAction.blockedCharacter || pendingAction.claimedCharacter}
         />
       );
     }
@@ -445,7 +494,12 @@ export const ActionModal: React.FC<ActionModalProps> = ({
         : '';
 
       return (
-        <Decree tone="ember" icon={<ShieldAlert className="w-6 h-6" />} title="Acredita nele?">
+        <Decree
+          tone="ember"
+          icon={<ShieldAlert className="w-6 h-6" />}
+          title="Acredita nele?"
+          focus={pendingAction.claimedCharacter}
+        >
           <p className="court-modal-say">
             <strong>{actor?.name}</strong> declarou ser <em>{claimed}</em>.
           </p>
@@ -498,7 +552,12 @@ export const ActionModal: React.FC<ActionModalProps> = ({
         const blockers = BLOCK_CHARACTERS[pendingAction.action] || [];
 
         return (
-          <Decree tone="moss" icon={<Shield className="w-6 h-6" />} title="Quer bloquear?">
+          <Decree
+            tone="moss"
+            icon={<Shield className="w-6 h-6" />}
+            title="Quer bloquear?"
+            focus={blockers.length === 1 ? blockers[0] : undefined}
+          >
             <p className="court-modal-say">
               <strong>{actor?.name}</strong> está fazendo <em>{ACTION_LABELS[pendingAction.action]}</em>.
             </p>
@@ -561,7 +620,12 @@ export const ActionModal: React.FC<ActionModalProps> = ({
         : '';
 
       return (
-        <Decree tone="ember" icon={<ShieldAlert className="w-6 h-6" />} title="Acredita no bloqueio?">
+        <Decree
+          tone="ember"
+          icon={<ShieldAlert className="w-6 h-6" />}
+          title="Acredita no bloqueio?"
+          focus={pendingAction.blockedCharacter}
+        >
           <p className="court-modal-say">
             <strong>{blocker?.name}</strong> alegou ter <em>{blocked}</em> para bloquear.
           </p>
