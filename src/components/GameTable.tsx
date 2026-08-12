@@ -139,17 +139,30 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
 
   const opponents = gameState.players.filter(p => p.id !== playerId);
 
-  /* Quanto menos oponentes, maior a carta: com 1 ou 2 sobra tela, com 5
-     tudo precisa caber numa linha só sem estourar a altura nem a largura.
-     Daí o min(dvh, vw): a linha inteira mede 5 × (2 cartas + moldura), e
-     numa tela larga e baixa quem aperta é a altura, numa estreita e alta
-     é a largura. O eixo mais apertado é que decide. */
+  /* A carta é 2:3, então a largura de cada painel sai da altura dele: a
+     linha inteira mede N × (2 cartas + moldura). Duas restrições, e vence
+     a mais apertada — numa tela larga e baixa é a altura, numa estreita e
+     alta é a largura.
+
+     A parte da largura é medida em `cqw`, contra a própria linha dos
+     oponentes (`container-type` em .court-rivals), e não em `vw`. Em `vw`
+     a conta incluía a barra lateral e o respiro da mesa: com 4 oponentes
+     numa janela de 1152 a linha quebrava em duas e o topo dos retratos
+     era cortado. O termo fixo desconta moldura, respiro entre cartas e
+     entre painéis, mais uma folga. */
+  const seats = Math.max(opponents.length, 1);
+  const chromePx = 33 * seats + 14 * (seats - 1) + 24;
+  const byRowWidth = `calc((100cqw - ${chromePx}px) * ${(3 / (4 * seats)).toFixed(4)})`;
+  const byScreenHeight = seats <= 2 ? '30dvh' : seats <= 4 ? '22dvh' : '17dvh';
+  const cardCeiling = seats <= 2 ? '17rem' : seats <= 4 ? '13rem' : '10rem';
+  /* A terceira restrição só aparece em janela muito baixa (abaixo de ~540px,
+     tipo celular deitado): abaixo disso a fração de dvh não basta, porque o
+     que sobra para os oponentes é a altura da tela menos a mão e as ações,
+     que têm um piso em rem. Acima desse ponto o termo é maior que os outros
+     dois e o min() o ignora. */
+  const byRowHeight = 'calc(66dvh - 250px)';
   const opponentCardHeight =
-    opponents.length <= 2
-      ? 'clamp(4.5rem, min(30dvh, 22vw), 15rem)'
-      : opponents.length <= 4
-      ? 'clamp(4rem, min(20dvh, 13vw), 11rem)'
-      : 'clamp(3.5rem, min(16dvh, 8.5vw), 9rem)';
+    `clamp(2.75rem, min(${byScreenHeight}, ${byRowWidth}, ${byRowHeight}), ${cardCeiling})`;
 
   return (
     <div className="court-table w-full text-slate-100 flex flex-col">

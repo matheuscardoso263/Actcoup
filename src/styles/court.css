@@ -1304,6 +1304,21 @@
   opacity: 0.95;
 }
 
+/* Celular estreito: os dois botões e o código não cabem com o respiro
+   cheio, e o rótulo do último acabava cortado pela borda da tela. */
+@media (max-width: 30rem) {
+  .court-bar {
+    gap: 0.4rem;
+    padding-inline: 0.5rem;
+  }
+
+  .court-bar .court-btn.is-compact {
+    padding: 0.4rem 0.45rem;
+    font-size: 0.52rem;
+    letter-spacing: 0.08em;
+  }
+}
+
 .court-bar-code {
   font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
   font-size: 0.75rem;
@@ -1387,10 +1402,14 @@
   border-color: rgba(74, 30, 12, 0.4);
 }
 
+/* min-width: 0 é o que deixa o nome truncar de verdade. Sem ele o texto
+   define a largura mínima do painel, e num celular três nomes longos
+   empurram a linha dos oponentes para fora da tela. */
 .court-seat-name {
   display: flex;
   align-items: center;
   gap: 0.3rem;
+  min-width: 0;
   max-width: 14ch;
   font-family: 'Outfit', ui-serif, Georgia, serif;
   font-size: clamp(0.7rem, 1.3vw, 0.85rem);
@@ -1630,16 +1649,12 @@
   /* O anel de vez (.turn-aura::after) mora em inset: -3px, fora da caixa
      do painel. Sem esta folga ele é recortado justamente embaixo da mão. */
   padding: 3px;
-  overflow: hidden;
-}
-
-/* Celular em retrato é o único caso em que a mesa não cabe de fato:
-   com 5 oponentes empilhados sobre a mão, nenhuma escala resolve. Ali
-   o miolo rola — melhor que cortar a mão do jogador pela metade. */
-@media (max-width: 47.99rem) {
-  .court-board {
-    overflow-y: auto;
-  }
+  /* `auto` e não `hidden`: nos tamanhos de tela reais a conta fecha e a
+     barra nunca aparece — é o que estes ajustes garantem. Mas numa janela
+     absurda (celular deitado com 400px de altura) alguma coisa tem de
+     ceder, e rolar é melhor do que cortar a mão do jogador pela metade. */
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .court-board-head {
@@ -1670,9 +1685,22 @@
   align-items: stretch;
   align-content: center;
   gap: clamp(0.3rem, 0.9vw, 1rem);
+  /* Sem `min-height: 0` de propósito, ao contrário do resto desta folha:
+     aqui o piso de min-content é o que se quer. Autorizada a encolher
+     abaixo do conteúdo, a linha era espremida numa janela baixa e os
+     painéis passavam por cima do estoque e da mão — e por serem overflow
+     de um item flex, não dava nem para rolar até eles. */
   flex: 1 1 auto;
   width: 100%;
-  min-height: 0;
+  /* É contra esta largura que GameTable dimensiona os retratos (cqw). */
+  container-type: inline-size;
+}
+
+/* `safe`: numa janela baixa demais (celular deitado) a linha encosta no
+   topo em vez de sangrar para os dois lados por cima da faixa de status
+   — e aí o que sobra fica alcançável pela rolagem do miolo. */
+.court-rivals {
+  align-content: safe center;
 }
 
 .court-seat-hand {
@@ -1709,15 +1737,20 @@
 .court-hand {
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: clamp(0.4rem, 1.2dvh, 1.1rem);
+  justify-content: center;
+  /* Rede de segurança: se a mão e as ações não couberem lado a lado
+     (janela larga o bastante para a barra lateral, estreita demais para
+     as duas colunas), elas empilham. Sem isto os retratos passavam por
+     cima dos botões — a carta não encolhe, o `aspect-ratio` manda. */
+  flex-wrap: wrap;
+  gap: clamp(0.4rem, 1.2dvh, 1.1rem) clamp(0.5rem, 1.2vw, 1.25rem);
   flex-shrink: 0;
   width: 100%;
   max-width: 76rem;
   padding: clamp(0.4rem, 1.2dvh, 0.9rem) clamp(0.55rem, 1.4vw, 1.15rem);
   /* A carta da mão é a maior da mesa, mas ainda é uma fatia do que
-     sobrou: 26dvh no notebook, teto de 14rem no monitor grande. */
-  --card-h-md: clamp(4.5rem, min(26dvh, 15vw), 14rem);
+     sobrou: 26dvh no notebook, teto de 16rem no monitor grande. */
+  --card-h-md: clamp(4.5rem, min(26dvh, 13vw), 16rem);
 }
 
 @media (min-width: 48rem) {
@@ -1726,10 +1759,19 @@
   }
 }
 
+/* Empilhado o painel tem a largura toda, então a carta não precisa mais
+   ceder para a coluna das ações — o `13vw` daria 51px num celular. */
+@media (max-width: 47.99rem) {
+  .court-hand {
+    --card-h-md: clamp(4.5rem, 18dvh, 10rem);
+  }
+}
+
 .court-hand-mine {
   display: flex;
   align-items: center;
   gap: clamp(0.45rem, 1.2vw, 1.25rem);
+  flex: 0 1 auto;
   min-width: 0;
 }
 
@@ -1738,11 +1780,20 @@
   gap: clamp(0.28rem, 0.8vw, 0.9rem);
 }
 
+/* Empilhado, a coluna das ações ocupa a linha inteira. Lado a lado, quem
+   manda é o `flex-basis` em rem — com `width: 100%` ela reservava a linha
+   toda e empurrava os retratos para fora do painel. */
 .court-hand-acts {
-  flex: 1 1 auto;
-  min-width: 0;
   width: 100%;
+  min-width: 0;
   max-width: 34rem;
+}
+
+@media (min-width: 48rem) {
+  .court-hand-acts {
+    flex: 1 1 18rem;
+    width: auto;
+  }
 }
 
 /* Três colunas por duas linhas: é o arranjo mais baixo que cabe as
@@ -1771,7 +1822,9 @@
 
 @media (min-width: 64rem) {
   .court-feed {
-    flex: 0 0 clamp(14rem, 21vw, 22rem);
+    /* 19vw e piso baixo: a barra lateral não pode comer a largura de que
+       a mão precisa para ficar ao lado das ações num notebook de 1024. */
+    flex: 0 0 clamp(11.5rem, 19vw, 22rem);
     align-self: stretch;
     width: auto;
   }
