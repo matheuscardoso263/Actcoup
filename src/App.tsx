@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
-import { GameState } from './types/game';
+import { useState, useEffect, useRef } from "react";
+import { GameState } from "./types/game";
 import {
   socketService,
   getPersistentPlayerId,
   saveSession,
   loadSession,
-  clearSession
-} from './services/socket';
-import { Lobby } from './components/Lobby';
-import { GameTable } from './components/GameTable';
-import { useDealTrigger } from './hooks/useDeal';
+  clearSession,
+} from "./services/socket";
+import { Lobby } from "./components/Lobby";
+import { GameTable } from "./components/GameTable";
+import { useDealTrigger } from "./hooks/useDeal";
 
 export function App() {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -26,7 +26,7 @@ export function App() {
       setGameState(state);
       saveSession({
         code: state.code,
-        playerName: state.players.find(p => p.id === playerId)?.name || ''
+        playerName: state.players.find((p) => p.id === playerId)?.name || "",
       });
     });
 
@@ -35,16 +35,18 @@ export function App() {
     const handleConnect = () => {
       const session = loadSession();
       if (!session || leftRoomRef.current) return;
-      socketService.joinRoom(session.code, session.playerName, playerId).then((res) => {
-        if (!res.success) clearSession();
-      });
+      socketService
+        .joinRoom(session.code, session.playerName, playerId)
+        .then((res) => {
+          if (!res.success) clearSession();
+        });
     };
 
-    socketService.socket.on('connect', handleConnect);
+    socketService.socket.on("connect", handleConnect);
     if (socketService.socket.connected) handleConnect();
 
     return () => {
-      socketService.socket.off('connect', handleConnect);
+      socketService.socket.off("connect", handleConnect);
     };
   }, [playerId]);
 
@@ -58,7 +60,9 @@ export function App() {
 
   // Fim de partida: a sala foi resetada para o lobby, o jogador continua nela.
   const handleReturnToLobby = () => {
-    setGameState(prev => (prev ? { ...prev, status: 'lobby', winner: null } : prev));
+    setGameState((prev) =>
+      prev ? { ...prev, status: "lobby", winner: null } : prev,
+    );
   };
 
   const handleEnterRoom = () => {
@@ -66,8 +70,8 @@ export function App() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-slate-950 font-sans antialiased text-slate-100">
-      {!gameState || gameState.status === 'lobby' ? (
+    <div className="min-h-dvh bg-slate-950 font-sans antialiased text-slate-100">
+      {!gameState || gameState.status === "lobby" ? (
         <Lobby
           gameState={gameState}
           playerId={playerId}
