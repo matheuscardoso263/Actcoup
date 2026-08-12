@@ -11,9 +11,9 @@ interface LobbyProps {
   onEnterRoom: () => void;
 }
 
-/* O leque da tela de entrada. A ordem é a da mesa, não a alfabética:
-   Duque na esquerda e Condessa na direita deixam os dois retratos de
-   manto vermelho nas pontas, e o leque fecha simétrico. */
+/* O leque da tela de entrada. A ordem é a da colônia: o Gorila abre à
+   esquerda e o Babuíno fecha à direita, deixando os dois retratos de
+   manto verde nas pontas para o leque fechar simétrico. */
 const FAN: Array<{ id: Character; rot: string; lift: string }> = [
   { id: 'duke', rot: '-14deg', lift: '1.1rem' },
   { id: 'assassin', rot: '-7deg', lift: '0.35rem' },
@@ -125,14 +125,16 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
           {/* --- O convite ------------------------------------- */}
           <div className="text-center lg:text-left">
             <span className="court-crest court-rise" style={{ '--delay': '40ms' } as React.CSSProperties}>
-              <span>2 a 6 nobres</span>
+              <span>2 a 6 primatas</span>
             </span>
 
             <h1
-              className="court-title court-rise mt-4 text-[clamp(3.5rem,11vw,7.5rem)]"
+              className="court-title court-rise mt-4 text-[clamp(2.25rem,7vw,4.75rem)]"
               style={{ '--delay': '90ms' } as React.CSSProperties}
             >
-              Coup
+              República
+              <br />
+              dos Primatas
             </h1>
 
             <div
@@ -144,8 +146,8 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
               className="court-lede court-rise mt-5 max-w-sm mx-auto lg:mx-0"
               style={{ '--delay': '200ms' } as React.CSSProperties}
             >
-              Duas cartas na mão e <strong>nenhuma verdade na mesa</strong>. Derrube a
-              corte inteira sem que ninguém descubra quem você realmente é.
+              Duas cartas na mão e <strong>nenhuma verdade na copa</strong>. Exile a
+              colônia inteira sem que ninguém descubra quem você realmente é.
             </p>
 
             {/* O leque é o herói: são os cinco retratos do jogo, e passar
@@ -179,13 +181,13 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
             <span className="court-plate-corner is-tl" />
             <span className="court-plate-corner is-br" />
 
-            <img src="/logosemfundo.png" alt="ActCoup" className="h-11 mx-auto opacity-90" />
+            <img src="/logo.png" alt="República dos Primatas" className="h-16 mx-auto opacity-95" />
 
             <div className="court-rule mt-5" />
 
             {error && (
               <div className="court-alert mt-5">
-                <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0 text-rose-300" />
+                <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -197,7 +199,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
               <input
                 id="lobby-name"
                 type="text"
-                placeholder="Ex: Duque Matheus"
+                placeholder="Ex: Gorila Alfa"
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 className="court-field"
@@ -209,7 +211,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
               disabled={loading}
               className="court-btn is-gold w-full mt-5"
             >
-              Abrir uma mesa
+              Abrir uma copa
             </button>
 
             <div className="court-divider my-6">
@@ -230,7 +232,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
               disabled={loading}
               className="court-btn is-stone w-full mt-3"
             >
-              Entrar na mesa
+              Entrar na copa
             </button>
           </div>
         </div>
@@ -276,7 +278,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
               <p className="court-label is-tight mt-2">Passe o código para quem vai jogar</p>
             </div>
 
-            <button onClick={onLeaveRoom} className="court-btn is-crimson is-compact shrink-0">
+            <button onClick={onLeaveRoom} className="court-btn is-ember is-compact shrink-0">
               <LogOut className="w-3.5 h-3.5" />
               Sair
             </button>
@@ -286,7 +288,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
 
           {error && (
             <div className="court-alert mt-5">
-              <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0 text-rose-300" />
+              <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -295,7 +297,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
           <div className="flex items-baseline justify-between mt-6 mb-3">
             <span className="court-label is-row">
               <Users className="w-3.5 h-3.5" />
-              À mesa · {gameState.players.length} de {gameState.maxPlayers}
+              Na copa · {gameState.players.length} de {gameState.maxPlayers}
             </span>
             {missing > 0 && (
               <span className="text-[0.7rem] font-semibold text-amber-300/70">
@@ -315,7 +317,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
                   <span className="font-semibold text-sm truncate">
                     {player.name}
                     {player.id === playerId && (
-                      <span className="ml-2 text-[0.65rem] font-bold uppercase tracking-widest text-rose-300/80">
+                      <span className="ml-2 text-[0.65rem] font-bold uppercase tracking-widest text-[color:var(--court-ember-hi)]">
                         Você
                       </span>
                     )}
@@ -358,7 +360,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
               {gameState.players.length < gameState.maxPlayers && (
                 <button onClick={handleAddBot} className="court-btn is-stone w-full">
                   <Bot className="w-4 h-4" />
-                  Sentar uma IA à mesa
+                  Sentar uma IA na copa
                 </button>
               )}
 
@@ -380,7 +382,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
           {canClaimHost && (
             <div className="mt-6 pt-5 border-t border-[rgba(201,180,140,0.14)] flex flex-col gap-3">
               <p className="text-xs text-center text-slate-400">
-                O anfitrião não está mais à mesa. Assuma para poder começar.
+                O anfitrião não está mais na copa. Assuma para poder começar.
               </p>
               <button onClick={handleClaimHost} className="court-btn is-gold w-full">
                 <Crown className="w-4 h-4" />

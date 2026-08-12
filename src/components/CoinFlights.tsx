@@ -67,7 +67,7 @@ const Flight: React.FC<{ flow: CoinFlow; onDone: () => void }> = ({ flow, onDone
           }
         >
           <span className="coin-fly-arc">
-            <span className="coin-fly-disc" />
+            <span className="banana-fly-item">🍌</span>
           </span>
         </span>
       ))}

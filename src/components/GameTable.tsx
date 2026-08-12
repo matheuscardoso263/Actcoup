@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GameState, ActionType, CHARACTER_INFO, Character } from '../types/game';
+import { GameState, ActionType, CHARACTER_INFO, Character, ACTION_LABELS } from '../types/game';
 import { CardView } from './CardView';
 import { ActionModal, getWaitingPlayerNames } from './ActionModal';
 import { GameOverModal } from './GameOverModal';
@@ -18,10 +18,11 @@ import { socketService } from '../services/socket';
 import { sound } from '../audio/sound';
 import { Crown, HelpCircle, History, AlertCircle, LogOut, Eye, Hourglass } from 'lucide-react';
 
-/* As ações do turno. `claim` é o personagem que a ação obriga a alegar —
-   é o que abre espaço para desafio, e por isso aparece no botão. Renda e
-   Ajuda Externa não alegam nada; o Golpe fica de fora porque não é
-   bloqueável nem desafiável e tem botão próprio. */
+/* As ações do turno. `claim` é o primata que a ação obriga a alegar — é o
+   que abre espaço para desafio, e por isso aparece no botão. Colheita e
+   Coleta Geral não alegam nada; o Exílio fica de fora porque não é
+   bloqueável nem desafiável e tem botão próprio.
+   Os nomes saem de ACTION_LABELS para a lore ficar num lugar só. */
 const TABLE_ACTIONS: Array<{
   id: ActionType;
   name: string;
@@ -29,12 +30,12 @@ const TABLE_ACTIONS: Array<{
   claim?: Character;
   minCoins?: number;
 }> = [
-  { id: 'income', name: 'Renda', cost: '+1 moeda' },
-  { id: 'foreign_aid', name: 'Ajuda externa', cost: '+2 moedas' },
-  { id: 'tax', name: 'Taxa', cost: '+3 moedas', claim: 'duke' },
-  { id: 'assassinate', name: 'Assassinar', cost: 'custa 3 moedas', claim: 'assassin', minCoins: 3 },
-  { id: 'steal', name: 'Roubar', cost: 'até 2 moedas', claim: 'captain' },
-  { id: 'exchange', name: 'Trocar', cost: 'compra 2 do deck', claim: 'ambassador' }
+  { id: 'income', name: ACTION_LABELS.income, cost: '+1 banana' },
+  { id: 'foreign_aid', name: ACTION_LABELS.foreign_aid, cost: '+2 bananas' },
+  { id: 'tax', name: ACTION_LABELS.tax, cost: '+3 bananas', claim: 'duke' },
+  { id: 'assassinate', name: ACTION_LABELS.assassinate, cost: 'custa 3 bananas', claim: 'assassin', minCoins: 3 },
+  { id: 'steal', name: ACTION_LABELS.steal, cost: 'até 2 bananas', claim: 'captain' },
+  { id: 'exchange', name: ACTION_LABELS.exchange, cost: 'compra 2 do deck', claim: 'ambassador' }
 ];
 
 interface GameTableProps {
@@ -88,16 +89,16 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
     if (!isMyTurn || isEliminated) return;
     setError(null);
 
-    // Mandatory coup rule (10+ coins)
+    // Exílio obrigatório com 10+ bananas
     if (me && me.coins >= 10 && action !== 'coup') {
-      setError('Você possui 10 ou mais moedas e é OBRIGADO a realizar um Golpe!');
+      setError('Você possui 10 ou mais bananas e é OBRIGADO a realizar um Exílio!');
       sound.playError();
       return;
     }
 
     if (action === 'assassinate') {
       if (me && me.coins < 3) {
-        setError('Moedas insuficientes para Assassinato (Custa 3 moedas).');
+        setError('Bananas insuficientes para Caçada (Custa 3 bananas).');
         sound.playError();
         return;
       }
@@ -110,7 +111,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
         p => p.id !== playerId && p.cards.some(c => !c.revealed) && p.coins > 0
       );
       if (validTargets.length === 0) {
-        setError('Nenhum jogador disponível possui moedas para serem roubadas.');
+        setError('Nenhum jogador disponível possui bananas para serem furtadas.');
         sound.playError();
         return;
       }
@@ -120,7 +121,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
 
     if (action === 'coup') {
       if (me && me.coins < 7) {
-        setError('Moedas insuficientes para Golpe (Custa 7 moedas).');
+        setError('Bananas insuficientes para Exílio (Custa 7 bananas).');
         sound.playError();
         return;
       }
@@ -152,7 +153,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
       {/* Top Header Bar */}
       <header className="court-bar">
         <div className="flex items-center gap-3">
-          <img src="/logosemfundo.png" alt="ActCoup" className="h-7 2xl:h-9 opacity-85" />
+          <img src="/logo.png" alt="República dos Primatas" className="h-8 2xl:h-10 opacity-95" />
           <span className="court-bar-code">{gameState.code}</span>
         </div>
 
@@ -165,9 +166,9 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
             className="court-btn is-stone is-compact"
           >
             <HelpCircle className="w-3.5 h-3.5" />
-            As 5 cartas
+            Os 5 primatas
           </button>
-          <button onClick={onLeaveRoom} className="court-btn is-crimson is-compact">
+          <button onClick={onLeaveRoom} className="court-btn is-ember is-compact">
             <LogOut className="w-3.5 h-3.5" />
             Sair
           </button>
@@ -228,7 +229,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
 
           {error && (
             <div className="court-alert max-w-md flex-shrink-0">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-rose-300" />
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -273,14 +274,14 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
             })}
           </div>
 
-          {/* Center Table Divider — também é a tesouraria: é daqui que as
-              moedas saem e para cá que os pagamentos voltam. */}
+          {/* Center Table Divider — também é o estoque: é daqui que as
+              bananas saem e para cá que os pagamentos voltam. */}
           <div
             data-coin-anchor={TREASURY}
             className="py-1 text-center text-slate-600 flex flex-col items-center gap-1 pointer-events-none flex-shrink-0 opacity-70"
           >
-            <img src="/logosemfundo.png" alt="ActCoup" className="h-[clamp(1.5rem,4.5vh,3.5rem)] opacity-70" />
-            <span className="court-label is-tight">Tesouraria</span>
+            <img src="/logo.png" alt="República dos Primatas" className="h-[clamp(1.75rem,5vh,4rem)] opacity-80" />
+            <span className="court-label is-tight">Estoque de bananas</span>
           </div>
 
           {/* Player Hand & Controls Bottom */}
@@ -296,7 +297,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                   <CoinCounter
                     playerId={me.id}
                     value={me.coins}
-                    suffix=" moedas"
+                    suffix=" bananas"
                     iconClassName="w-3.5 h-3.5"
                     className="court-purse is-big"
                   />
@@ -354,10 +355,10 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                     !isEliminated && me.coins >= 10 ? 'is-forced' : ''
                   }`}
                 >
-                  <span className="court-act-name">Golpe de Estado</span>
+                  <span className="court-act-name">{ACTION_LABELS.coup}</span>
                   <span className="court-act-cost">
                     {!isEliminated && me.coins >= 10
-                      ? 'custa 7 · obrigatório com 10 moedas'
+                      ? 'custa 7 · obrigatório com 10 bananas'
                       : 'custa 7 · ninguém bloqueia nem desafia'}
                   </span>
                 </button>
@@ -397,7 +398,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
         <DealFlights key={dealKey} playerIds={gameState.players.map(p => p.id)} />
       )}
 
-      {/* Moedas em voo entre a tesouraria e os jogadores (z-60). */}
+      {/* Bananas em voo entre o estoque e os jogadores (z-60). */}
       <CoinFlights flows={coinFlows} onDone={consumeCoinFlow} />
 
       {/* Anúncio de bloqueio (z-80). Não intercepta clique: o modal de desafio
@@ -443,7 +444,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
           <div className="court-modal is-gold is-wide">
             <div className="court-modal-scroll text-left">
               <span className="court-crest">
-                <span>As cinco cartas</span>
+                <span>Os cinco primatas</span>
               </span>
 
               <div className="space-y-2.5 mt-4">

@@ -298,7 +298,7 @@ const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   const url = `http://localhost:${PORT}`;
   console.log(`\n==================================================`);
-  console.log(` 🏆 COUP ONLINE SERVIDOR INICIADO COM SUCESSO! 🏆`);
+  console.log(` 🍌 REPÚBLICA DOS PRIMATAS - SERVIDOR INICIADO! 🍌`);
   console.log(` 🌐 Acesse no navegador: ${url}`);
   console.log(`==================================================\n`);
 

@@ -4,11 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
  *  identificador em inglês continua sendo o do protocolo — só o texto traduz.
  *  Precisa acompanhar CHARACTER_INFO em src/types/game.ts. */
 const CHARACTER_NAMES = {
-  duke: 'Duque',
-  assassin: 'Assassino',
-  captain: 'Capitão',
-  ambassador: 'Embaixador',
-  countess: 'Condessa'
+  duke: 'Gorila',
+  assassin: 'Chimpanzé',
+  captain: 'Macaco-prego',
+  ambassador: 'Orangotango',
+  countess: 'Babuíno'
 };
 
 const characterName = character => CHARACTER_NAMES[character] || character;
@@ -339,7 +339,7 @@ export class GameEngine {
     room.pendingExchange = null;
     room.currentTurnPlayerId = this.getNextPlayerId(room, room.currentTurnPlayerId);
     const current = room.players.find(p => p.id === room.currentTurnPlayerId);
-    this.addLog(room, `🔄 Vez de ${current.name}. (Moedas: ${current.coins})`, 'system');
+    this.addLog(room, `🔄 Vez de ${current.name}. (Bananas: ${current.coins})`, 'system');
   }
 
   checkWinCondition(room) {
@@ -354,7 +354,7 @@ export class GameEngine {
       room.pendingAction = null;
       room.pendingLoss = null;
       room.pendingExchange = null;
-      this.addLog(room, `🏆 ${alive[0].name} venceu o jogo Coup!`, 'system');
+      this.addLog(room, `🏆 ${alive[0].name} dominou a República dos Primatas!`, 'system');
       return true;
     }
     return false;
@@ -375,7 +375,7 @@ export class GameEngine {
     }
 
     if (player.coins >= 10 && action !== 'coup') {
-      throw new Error('Com 10 ou mais moedas, você é OBRIGADO a realizar um Golpe!');
+      throw new Error('Com 10 ou mais bananas, você é OBRIGADO a realizar um Exílio!');
     }
 
     let target = null;
@@ -392,12 +392,12 @@ export class GameEngine {
     switch (action) {
       case 'income':
         player.coins += 1;
-        this.addLog(room, `💰 ${player.name} pegou Renda (+1 moeda).`);
+        this.addLog(room, `💰 ${player.name} pegou Colheita (+1 banana).`);
         this.advanceTurn(room);
         break;
 
       case 'foreign_aid':
-        this.addLog(room, `🤝 ${player.name} pediu Ajuda Externa (+2 moedas).`);
+        this.addLog(room, `🤝 ${player.name} pediu Coleta Geral (+2 bananas).`);
         room.pendingAction = {
           id: uuidv4(),
           actorId: playerId,
@@ -410,18 +410,18 @@ export class GameEngine {
         break;
 
       case 'coup':
-        if (player.coins < 7) throw new Error('Moedas insuficientes para Golpe (Custa 7).');
-        if (!target) throw new Error('Selecione um alvo para o Golpe.');
+        if (player.coins < 7) throw new Error('Bananas insuficientes para Exílio (Custa 7).');
+        if (!target) throw new Error('Selecione um alvo para o Exílio.');
         player.coins -= 7;
-        this.addLog(room, `⚔️ ${player.name} deu um GOLPE em ${target.name}! (-7 moedas)`);
+        this.addLog(room, `⚔️ ${player.name} deu um EXÍLIO em ${target.name}! (-7 bananas)`);
         room.pendingLoss = {
           playerId: target.id,
-          reason: `${player.name} deu um Golpe em você! Escolha uma carta para perder.`
+          reason: `${player.name} te mandou para o Exílio! Escolha uma carta para perder.`
         };
         break;
 
       case 'tax':
-        this.addLog(room, `👑 ${player.name} declarou ser DUQUE e cobrou Taxa (+3 moedas).`);
+        this.addLog(room, `👑 ${player.name} declarou ser GORILA e fez uma Coleta (+3 bananas).`);
         room.pendingAction = {
           id: uuidv4(),
           actorId: playerId,
@@ -434,10 +434,10 @@ export class GameEngine {
         break;
 
       case 'assassinate':
-        if (player.coins < 3) throw new Error('Moedas insuficientes para Assassinato (Custa 3).');
-        if (!target) throw new Error('Selecione um alvo para o Assassinato.');
+        if (player.coins < 3) throw new Error('Bananas insuficientes para Caçada (Custa 3).');
+        if (!target) throw new Error('Selecione um alvo para a Caçada.');
         player.coins -= 3;
-        this.addLog(room, `🗡️ ${player.name} pagou 3 moedas e declarou ser ASSASSINO para eliminar ${target.name}.`);
+        this.addLog(room, `🗡️ ${player.name} pagou 3 bananas e declarou ser CHIMPANZÉ para caçar ${target.name}.`);
         room.pendingAction = {
           id: uuidv4(),
           actorId: playerId,
@@ -451,9 +451,9 @@ export class GameEngine {
         break;
 
       case 'steal':
-        if (!target) throw new Error('Selecione um alvo para Roubo.');
-        if (target.coins === 0) throw new Error(`${target.name} não possui moedas para serem roubadas!`);
-        this.addLog(room, `🪝 ${player.name} declarou ser CAPITÃO e tentou roubar ${target.name}.`);
+        if (!target) throw new Error('Selecione um alvo para Furto.');
+        if (target.coins === 0) throw new Error(`${target.name} não possui bananas para serem furtadas!`);
+        this.addLog(room, `🪝 ${player.name} declarou ser MACACO-PREGO e tentou furtar ${target.name}.`);
         room.pendingAction = {
           id: uuidv4(),
           actorId: playerId,
@@ -467,7 +467,7 @@ export class GameEngine {
         break;
 
       case 'exchange':
-        this.addLog(room, `📜 ${player.name} declarou ser EMBAIXADOR para trocar cartas.`);
+        this.addLog(room, `📜 ${player.name} declarou ser ORANGOTANGO para consultar a sabedoria.`);
         room.pendingAction = {
           id: uuidv4(),
           actorId: playerId,
@@ -541,7 +541,7 @@ export class GameEngine {
         if (responseType === 'block') {
           const char = pending.action === 'assassinate' ? 'countess' : blockCharacter;
           if (pending.action === 'steal' && char !== 'captain' && char !== 'ambassador') {
-            throw new Error('Carta de bloqueio inválida para Roubo.');
+            throw new Error('Carta de bloqueio inválida para Furto.');
           }
           this.initiateBlock(room, pending, playerId, char);
           return room;
@@ -674,7 +674,11 @@ export class GameEngine {
         playerId: claimerId,
         reason: `Seu blefe (${characterName(claimedCharacter).toUpperCase()}) foi desmascarado por ${challenger.name}! Escolha uma carta para revelar.`,
         callbackAction: () => {
-          if (onFailure) {
+          if (scope === 'action') {
+            // Se o blefe foi na própria ação (ex: declarou Gorila/Taxa sem ter a carta), a ação é cancelada.
+            this.advanceTurn(room);
+          } else if (onFailure) {
+            // Se foi um blefe em bloqueio, o bloqueio falha e a ação original é executada.
             onFailure();
           } else {
             this.advanceTurn(room);
@@ -694,13 +698,13 @@ export class GameEngine {
     switch (pending.action) {
       case 'foreign_aid':
         actor.coins += 2;
-        this.addLog(room, `💰 ${actor.name} recebeu 2 moedas de Ajuda Externa.`);
+        this.addLog(room, `💰 ${actor.name} recebeu 2 bananas de Coleta Geral.`);
         this.advanceTurn(room);
         break;
 
       case 'tax':
         actor.coins += 3;
-        this.addLog(room, `💰 ${actor.name} recolheu 3 moedas de Taxa.`);
+        this.addLog(room, `💰 ${actor.name} obteve 3 bananas na Coleta.`);
         this.advanceTurn(room);
         break;
 
@@ -717,18 +721,18 @@ export class GameEngine {
           currentCards: unrevealedCards,
           keepCount: unrevealedCards.length
         };
-        this.addLog(room, `📜 ${actor.name} está escolhendo as cartas da Troca.`);
+        this.addLog(room, `📜 ${actor.name} está buscando Sabedoria.`);
         break;
       }
 
       case 'assassinate': {
         const target = room.players.find(p => p.id === pending.targetId);
         if (target && target.cards.some(c => !c.revealed)) {
-          this.addLog(room, `🗡️ O assassinato contra ${target.name} foi executado!`);
+          this.addLog(room, `🗡️ A caçada contra ${target.name} foi bem-sucedida!`);
           room.pendingAction = null;
           room.pendingLoss = {
             playerId: target.id,
-            reason: `${actor.name} te assassinou! Escolha uma carta para perder.`
+            reason: `${actor.name} caçou você! Escolha uma carta para perder.`
           };
         } else {
           this.advanceTurn(room);
@@ -742,7 +746,7 @@ export class GameEngine {
           const stolenAmount = Math.min(2, target.coins);
           target.coins -= stolenAmount;
           actor.coins += stolenAmount;
-          this.addLog(room, `🪝 ${actor.name} roubou ${stolenAmount} moeda(s) de ${target.name}.`);
+          this.addLog(room, `🪝 ${actor.name} furtou ${stolenAmount} banana(s) de ${target.name}.`);
         }
         this.advanceTurn(room);
         break;
@@ -813,7 +817,7 @@ export class GameEngine {
     returnedCards.forEach(c => room.deck.push(c.character));
     this.shuffle(room.deck);
 
-    this.addLog(room, `📜 ${player.name} concluiu a Troca de cartas.`);
+    this.addLog(room, `📜 ${player.name} concluiu a busca por Sabedoria.`);
     room.pendingExchange = null;
     this.advanceTurn(room);
 

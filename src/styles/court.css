@@ -1,43 +1,44 @@
 /* ============================================================
    A CORTE — linguagem visual das interfaces.
 
-   As cutscenes já falavam carmim/ouro/pedra (cinematic.css e
-   victory.css); as telas de interface ainda falavam roxo/ciano
-   de template. Este arquivo é o vocabulário comum: as cores
-   saem da arte das cartas, não da paleta padrão do Tailwind.
+   As telas de interface falavam roxo/ciano de template. Este
+   arquivo é o vocabulário comum: as cores saem da arte das
+   cartas, não da paleta padrão do Tailwind.
 
-   Referência é o próprio retrato do Duque: fundo ardósia fria,
-   pedra entalhada morna, ouro do medalhão e o carmim do brasão.
+   Referência é o retrato do Gorila: dossel de selva escuro,
+   filigrana de ouro batido na moldura, banana madura e a brasa
+   da tocha para o que custa caro.
    ============================================================ */
 
 :root {
-  /* Tinta — o breu do salão */
-  --court-ink: #080a10;
-  --court-ink-2: #0e111a;
+  /* Tinta — o breu sob o dossel */
+  --court-ink: #0b0d0a;
+  --court-ink-2: #12160f;
 
-  /* Ardósia — o fundo dos retratos */
-  --court-slate: #39414f;
-  --court-slate-deep: #1b202b;
+  /* Musgo — o verde da selva ao fundo dos retratos */
+  --court-moss: #2d4030;
+  --court-moss-deep: #162018;
 
-  /* Pedra entalhada — os arcos atrás dos nobres */
-  --court-stone: #c9b48c;
-  --court-stone-dim: #8a7857;
+  /* Ouro-tan — a moldura entalhada das cartas */
+  --court-stone: #c8a86b;
+  --court-stone-dim: #87754a;
 
-  /* Ouro — o medalhão e as moedas */
-  --court-gold: #e0a92e;
-  --court-gold-hi: #f7dd8a;
-  --court-gold-dim: #8a5f14;
+  /* Ouro — os medalhões, os braceletes e as bananas */
+  --court-gold: #c9a227;
+  --court-gold-hi: #f0d98a;
+  --court-gold-dim: #785c14;
 
-  /* Carmim — o brasão em estrela e a tarja do nome */
-  --court-crimson: #c8102e;
-  --court-crimson-hi: #e8324b;
-  --court-crimson-deep: #6f0a1a;
+  /* Brasa — o que custa influência. A arte não tem vermelho,
+     então o alerta vem da tocha, não do sangue. */
+  --court-ember: #a23a1a;
+  --court-ember-hi: #c8542a;
+  --court-ember-deep: #4a1e0c;
 }
 
 /* ============================================================
    1. O SALÃO — fundo das telas
-   Sem "blobs" desfocados: a luz vem de cima, como numa sala com
-   candelabro, e a pedra escurece nos cantos.
+   Sem "blobs" desfocados: a luz desce como pelo vão do dossel e
+   a mata escurece nos cantos.
    ============================================================ */
 
 .court-screen {
@@ -45,12 +46,12 @@
   min-height: 100dvh;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 80% 55% at 50% -8%, rgba(224, 169, 46, 0.16) 0%, transparent 62%),
-    radial-gradient(ellipse 60% 50% at 12% 105%, rgba(111, 10, 26, 0.28) 0%, transparent 68%),
-    linear-gradient(178deg, #141926 0%, var(--court-ink-2) 46%, var(--court-ink) 100%);
+    radial-gradient(ellipse 80% 55% at 50% -8%, rgba(201, 162, 39, 0.16) 0%, transparent 62%),
+    radial-gradient(ellipse 60% 50% at 12% 105%, rgba(74, 30, 12, 0.28) 0%, transparent 68%),
+    linear-gradient(178deg, #141d15 0%, var(--court-ink-2) 46%, var(--court-ink) 100%);
 }
 
-/* Textura de pedra: duas tramas cruzadas em ângulos diferentes,
+/* Textura de folhagem: duas tramas cruzadas em ângulos diferentes,
    grandes o bastante para não virar padrão visível. Substitui o
    "backdrop-blur" — a superfície é matéria, não vidro. */
 .court-screen::before {
@@ -62,15 +63,15 @@
   background-image:
     repeating-linear-gradient(
       64deg,
-      rgba(201, 180, 140, 0.028) 0px,
-      rgba(201, 180, 140, 0.028) 1px,
+      rgba(200, 168, 107, 0.028) 0px,
+      rgba(200, 168, 107, 0.028) 1px,
       transparent 1px,
       transparent 7px
     ),
     repeating-linear-gradient(
       -18deg,
-      rgba(8, 10, 16, 0.35) 0px,
-      rgba(8, 10, 16, 0.35) 2px,
+      rgba(9, 12, 9, 0.35) 0px,
+      rgba(9, 12, 9, 0.35) 2px,
       transparent 2px,
       transparent 11px
     );
@@ -82,7 +83,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 78% 72% at 50% 42%, transparent 40%, rgba(3, 4, 8, 0.72) 100%);
+  background: radial-gradient(ellipse 78% 72% at 50% 42%, transparent 40%, rgba(4, 6, 4, 0.72) 100%);
 }
 
 .court-stage {
@@ -91,10 +92,9 @@
 }
 
 /* ============================================================
-   2. O BRASÃO — a tarja carmim
-   Device tirado da própria carta: a faixa angular com hachuras
-   que segura o nome do personagem. É a assinatura gráfica do
-   jogo, então é ela que marca seção aqui também.
+   2. O BRASÃO — a tarja angular
+   Faixa cortada em diagonal com hachuras, no tom de brasa. É a
+   marca de seção das telas, ecoando a ferragem das cartas.
    ============================================================ */
 
 .court-crest {
@@ -107,18 +107,18 @@
   clip-path: polygon(0 0, 100% 0, calc(100% - 0.85rem) 100%, 0 100%);
   background: linear-gradient(
     177deg,
-    var(--court-crimson-hi) 0%,
-    var(--court-crimson) 52%,
-    var(--court-crimson-deep) 100%
+    var(--court-ember-hi) 0%,
+    var(--court-ember) 52%,
+    var(--court-ember-deep) 100%
   );
   font-family: 'Outfit', ui-serif, Georgia, serif;
   font-size: clamp(0.55rem, 1.15vw, 0.68rem);
   font-weight: 800;
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: #ffe9ec;
+  color: #fff0e2;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
-  box-shadow: 0 6px 18px rgba(111, 10, 26, 0.45);
+  box-shadow: 0 6px 18px rgba(74, 30, 12, 0.45);
 }
 
 /* As hachuras diagonais, presas na metade esquerda da tarja. */
@@ -144,19 +144,19 @@
 
 /* ============================================================
    3. PLACA — o painel de conteúdo
-   Borda de pedra e fundo de ardósia, com um fio de ouro no topo
-   pegando a luz do candelabro. Nada de vidro fosco.
+   Borda dourada e fundo de musgo, com um fio de ouro no topo
+   pegando a luz. Nada de vidro fosco.
    ============================================================ */
 
 .court-plate {
   position: relative;
   background:
-    linear-gradient(180deg, rgba(57, 65, 79, 0.42) 0%, rgba(27, 32, 43, 0.86) 38%, rgba(10, 12, 19, 0.94) 100%);
-  border: 1px solid rgba(201, 180, 140, 0.2);
+    linear-gradient(180deg, rgba(45, 64, 48, 0.42) 0%, rgba(22, 32, 24, 0.86) 38%, rgba(10, 14, 10, 0.94) 100%);
+  border: 1px solid rgba(200, 168, 107, 0.2);
   border-radius: 4px;
   box-shadow:
     0 28px 70px rgba(0, 0, 0, 0.66),
-    inset 0 1px 0 rgba(247, 221, 138, 0.14);
+    inset 0 1px 0 rgba(240, 217, 138, 0.14);
 }
 
 /* Fio de luz correndo no topo da placa. */
@@ -171,9 +171,9 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(224, 169, 46, 0.75) 22%,
-    rgba(247, 221, 138, 0.95) 50%,
-    rgba(224, 169, 46, 0.75) 78%,
+    rgba(201, 162, 39, 0.75) 22%,
+    rgba(240, 217, 138, 0.95) 50%,
+    rgba(201, 162, 39, 0.75) 78%,
     transparent 100%
   );
 }
@@ -186,7 +186,7 @@
   width: 0.85rem;
   height: 0.85rem;
   pointer-events: none;
-  border: 1px solid rgba(224, 169, 46, 0.55);
+  border: 1px solid rgba(201, 162, 39, 0.55);
 }
 
 .court-plate-corner.is-tl {
@@ -215,7 +215,7 @@
   font-weight: 800;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(201, 180, 140, 0.62);
+  color: rgba(200, 168, 107, 0.62);
 }
 
 /* Estas folhas não entram em @layer, e no cascade CSS o que está
@@ -250,7 +250,7 @@
    sólida acima é o que garante que o título nunca suma. */
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .court-title {
-    background: linear-gradient(176deg, #fffdf6 0%, var(--court-gold-hi) 36%, var(--court-gold) 62%, #7c4d0c 100%);
+    background: linear-gradient(176deg, #fffdf2 0%, var(--court-gold-hi) 36%, var(--court-gold) 62%, #6b4f0a 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -273,7 +273,7 @@
 
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .court-code {
-    background: linear-gradient(176deg, #fffdf6 0%, var(--court-gold-hi) 40%, var(--court-gold) 100%);
+    background: linear-gradient(176deg, #fffdf2 0%, var(--court-gold-hi) 40%, var(--court-gold) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -293,11 +293,11 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(201, 180, 140, 0.32));
+  background: linear-gradient(90deg, transparent, rgba(200, 168, 107, 0.32));
 }
 
 .court-divider::after {
-  background: linear-gradient(90deg, rgba(201, 180, 140, 0.32), transparent);
+  background: linear-gradient(90deg, rgba(200, 168, 107, 0.32), transparent);
 }
 
 .court-lede {
@@ -315,7 +315,7 @@
 .court-rule {
   position: relative;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(201, 180, 140, 0.42), transparent);
+  background: linear-gradient(90deg, transparent, rgba(200, 168, 107, 0.42), transparent);
 }
 
 .court-rule::after {
@@ -327,12 +327,12 @@
   height: 5px;
   transform: translate(-50%, -50%) rotate(45deg);
   background: var(--court-gold);
-  box-shadow: 0 0 10px rgba(224, 169, 46, 0.7);
+  box-shadow: 0 0 10px rgba(201, 162, 39, 0.7);
 }
 
 /* Variante alinhada à esquerda: o losango vai para a ponta. */
 .court-rule.is-start {
-  background: linear-gradient(90deg, rgba(201, 180, 140, 0.5), transparent 72%);
+  background: linear-gradient(90deg, rgba(200, 168, 107, 0.5), transparent 72%);
 }
 
 .court-rule.is-start::after {
@@ -349,21 +349,21 @@
   border-radius: 3px;
   font-family: inherit;
   font-size: 0.95rem;
-  color: #f4ede0;
-  background: rgba(6, 8, 13, 0.72);
-  border: 1px solid rgba(201, 180, 140, 0.22);
+  color: #f2ecdc;
+  background: rgba(7, 10, 7, 0.72);
+  border: 1px solid rgba(200, 168, 107, 0.22);
   outline: none;
   transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
 }
 
 .court-field::placeholder {
-  color: rgba(201, 180, 140, 0.3);
+  color: rgba(200, 168, 107, 0.3);
 }
 
 .court-field:focus {
-  background: rgba(10, 13, 20, 0.86);
-  border-color: rgba(224, 169, 46, 0.75);
-  box-shadow: 0 0 0 3px rgba(224, 169, 46, 0.12), inset 0 0 22px rgba(224, 169, 46, 0.06);
+  background: rgba(11, 15, 11, 0.86);
+  border-color: rgba(201, 162, 39, 0.75);
+  box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.12), inset 0 0 22px rgba(201, 162, 39, 0.06);
 }
 
 /* O código da sala é dado para ler em voz alta — monoespaçado e
@@ -424,42 +424,42 @@
 
 /* Primário — o ouro batido do medalhão. */
 .court-btn.is-gold {
-  color: #2a1c05;
-  background: linear-gradient(178deg, var(--court-gold-hi) 0%, var(--court-gold) 46%, #b07d18 100%);
-  border-color: rgba(247, 221, 138, 0.85);
-  box-shadow: 0 10px 26px rgba(138, 95, 20, 0.4), inset 0 1px 0 rgba(255, 253, 246, 0.7);
+  color: #231c05;
+  background: linear-gradient(178deg, var(--court-gold-hi) 0%, var(--court-gold) 46%, #9a7a16 100%);
+  border-color: rgba(240, 217, 138, 0.85);
+  box-shadow: 0 10px 26px rgba(120, 92, 20, 0.4), inset 0 1px 0 rgba(255, 253, 246, 0.7);
   text-shadow: 0 1px 0 rgba(255, 250, 235, 0.35);
 }
 
 .court-btn.is-gold:hover:not(:disabled) {
-  background: linear-gradient(178deg, #fffdf6 0%, var(--court-gold-hi) 46%, var(--court-gold) 100%);
-  box-shadow: 0 12px 34px rgba(224, 169, 46, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  background: linear-gradient(178deg, #fffdf2 0%, var(--court-gold-hi) 46%, var(--court-gold) 100%);
+  box-shadow: 0 12px 34px rgba(201, 162, 39, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 /* Secundário — pedra. Para o que não é a ação principal. */
 .court-btn.is-stone {
-  color: rgba(201, 180, 140, 0.9);
-  background: linear-gradient(180deg, rgba(57, 65, 79, 0.55), rgba(16, 20, 28, 0.85));
-  border-color: rgba(201, 180, 140, 0.28);
+  color: rgba(200, 168, 107, 0.9);
+  background: linear-gradient(180deg, rgba(45, 64, 48, 0.55), rgba(15, 22, 16, 0.85));
+  border-color: rgba(200, 168, 107, 0.28);
 }
 
 .court-btn.is-stone:hover:not(:disabled) {
   color: var(--court-gold-hi);
-  border-color: rgba(224, 169, 46, 0.6);
-  background: linear-gradient(180deg, rgba(70, 79, 96, 0.6), rgba(20, 25, 35, 0.9));
+  border-color: rgba(201, 162, 39, 0.6);
+  background: linear-gradient(180deg, rgba(56, 76, 58, 0.6), rgba(19, 28, 20, 0.9));
 }
 
 /* Carmim — golpe, saída, o que tem consequência. */
-.court-btn.is-crimson {
-  color: #ffe4e6;
-  background: linear-gradient(178deg, var(--court-crimson) 0%, var(--court-crimson-deep) 100%);
-  border-color: rgba(232, 50, 75, 0.5);
+.court-btn.is-ember {
+  color: #ffe9dc;
+  background: linear-gradient(178deg, var(--court-ember) 0%, var(--court-ember-deep) 100%);
+  border-color: rgba(200, 84, 42, 0.5);
 }
 
-.court-btn.is-crimson:hover:not(:disabled) {
+.court-btn.is-ember:hover:not(:disabled) {
   color: #fff;
-  border-color: rgba(232, 50, 75, 0.9);
-  box-shadow: 0 10px 28px rgba(111, 10, 26, 0.55);
+  border-color: rgba(200, 84, 42, 0.9);
+  box-shadow: 0 10px 28px rgba(74, 30, 12, 0.55);
 }
 
 /* ============================================================
@@ -512,7 +512,7 @@
   display: block;
   border-radius: 7px;
   overflow: hidden;
-  border: 1px solid rgba(201, 180, 140, 0.25);
+  border: 1px solid rgba(200, 168, 107, 0.25);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s, border-color 0.3s;
 }
@@ -525,8 +525,8 @@
 
 .court-fan-card:hover .court-fan-face {
   transform: translateY(-1.1rem);
-  border-color: rgba(224, 169, 46, 0.7);
-  box-shadow: 0 26px 56px rgba(0, 0, 0, 0.78), 0 0 34px rgba(224, 169, 46, 0.25);
+  border-color: rgba(201, 162, 39, 0.7);
+  box-shadow: 0 26px 56px rgba(0, 0, 0, 0.78), 0 0 34px rgba(201, 162, 39, 0.25);
 }
 
 /* A altura manda, mas a largura também precisa opinar: cinco retratos
@@ -572,24 +572,24 @@
   gap: 0.75rem;
   padding: 0.6rem 0.85rem;
   border-radius: 3px;
-  background: linear-gradient(90deg, rgba(27, 32, 43, 0.75), rgba(10, 12, 19, 0.5));
-  border: 1px solid rgba(201, 180, 140, 0.14);
-  border-left: 2px solid rgba(201, 180, 140, 0.28);
+  background: linear-gradient(90deg, rgba(22, 32, 24, 0.75), rgba(10, 14, 10, 0.5));
+  border: 1px solid rgba(200, 168, 107, 0.14);
+  border-left: 2px solid rgba(200, 168, 107, 0.28);
   transition: border-color 0.2s, background 0.2s;
 }
 
 /* O seu assento é o único com o carmim na borda. */
 .court-seat.is-me {
-  background: linear-gradient(90deg, rgba(111, 10, 26, 0.34), rgba(10, 12, 19, 0.5));
-  border-color: rgba(200, 16, 46, 0.34);
-  border-left-color: var(--court-crimson);
+  background: linear-gradient(90deg, rgba(74, 30, 12, 0.34), rgba(10, 14, 10, 0.5));
+  border-color: rgba(162, 58, 26, 0.34);
+  border-left-color: var(--court-ember);
 }
 
 .court-seat.is-empty {
-  background: rgba(6, 8, 13, 0.35);
+  background: rgba(7, 10, 7, 0.35);
   border-style: dashed;
   border-left-style: dashed;
-  border-color: rgba(201, 180, 140, 0.12);
+  border-color: rgba(200, 168, 107, 0.12);
 }
 
 /* Sinete com a inicial — o lugar do lacre na cadeira. */
@@ -604,15 +604,15 @@
   font-size: 0.9rem;
   font-weight: 800;
   color: var(--court-gold-hi);
-  background: radial-gradient(circle at 34% 28%, rgba(57, 65, 79, 0.9), rgba(8, 10, 16, 0.95));
-  border: 1px solid rgba(224, 169, 46, 0.4);
-  box-shadow: inset 0 1px 0 rgba(247, 221, 138, 0.2);
+  background: radial-gradient(circle at 34% 28%, rgba(45, 64, 48, 0.9), rgba(9, 12, 9, 0.95));
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  box-shadow: inset 0 1px 0 rgba(240, 217, 138, 0.2);
 }
 
 .court-seat.is-me .court-sigil {
-  color: #ffe4e6;
-  border-color: rgba(232, 50, 75, 0.6);
-  background: radial-gradient(circle at 34% 28%, rgba(160, 20, 44, 0.85), rgba(30, 4, 10, 0.95));
+  color: #ffe9dc;
+  border-color: rgba(200, 84, 42, 0.6);
+  background: radial-gradient(circle at 34% 28%, rgba(140, 52, 22, 0.85), rgba(22, 9, 4, 0.95));
 }
 
 /* Selo de papel — anfitrião, IA, ausente. */
@@ -633,33 +633,33 @@
 
 .court-tag.is-host {
   color: var(--court-gold-hi);
-  background: rgba(138, 95, 20, 0.22);
-  border-color: rgba(224, 169, 46, 0.42);
+  background: rgba(120, 92, 20, 0.22);
+  border-color: rgba(201, 162, 39, 0.42);
 }
 
 .court-tag.is-bot {
-  color: rgba(201, 180, 140, 0.75);
-  background: rgba(57, 65, 79, 0.45);
-  border-color: rgba(201, 180, 140, 0.24);
+  color: rgba(200, 168, 107, 0.75);
+  background: rgba(45, 64, 48, 0.45);
+  border-color: rgba(200, 168, 107, 0.24);
 }
 
 /* Guia das cartas: o que a carta faz e o que ela impede. */
 .court-tag.is-act {
   color: var(--court-gold-hi);
-  background: rgba(138, 95, 20, 0.2);
-  border-color: rgba(224, 169, 46, 0.38);
+  background: rgba(120, 92, 20, 0.2);
+  border-color: rgba(201, 162, 39, 0.38);
 }
 
 .court-tag.is-def {
-  color: rgba(201, 180, 140, 0.8);
-  background: rgba(57, 65, 79, 0.45);
-  border-color: rgba(201, 180, 140, 0.26);
+  color: rgba(200, 168, 107, 0.8);
+  background: rgba(45, 64, 48, 0.45);
+  border-color: rgba(200, 168, 107, 0.26);
 }
 
 .court-tag.is-away {
-  color: rgba(232, 120, 140, 0.9);
-  background: rgba(111, 10, 26, 0.28);
-  border-color: rgba(200, 16, 46, 0.4);
+  color: rgba(226, 140, 96, 0.9);
+  background: rgba(74, 30, 12, 0.28);
+  border-color: rgba(162, 58, 26, 0.4);
 }
 
 /* ============================================================
@@ -673,10 +673,10 @@
   padding: 0.7rem 0.9rem;
   border-radius: 3px;
   font-size: 0.85rem;
-  color: #ffd9de;
-  background: linear-gradient(90deg, rgba(111, 10, 26, 0.55), rgba(40, 6, 14, 0.4));
-  border: 1px solid rgba(200, 16, 46, 0.45);
-  border-left: 3px solid var(--court-crimson);
+  color: #ffe3d2;
+  background: linear-gradient(90deg, rgba(74, 30, 12, 0.55), rgba(30, 12, 6, 0.4));
+  border: 1px solid rgba(162, 58, 26, 0.45);
+  border-left: 3px solid var(--court-ember);
   animation: courtAlertIn 0.24s ease-out both;
 }
 
@@ -729,8 +729,8 @@
 
    Antes cada estado escolhia uma cor do Tailwind: âmbar, vermelho,
    ciano, azul, roxo, rosa, índigo. Sete matizes para três coisas.
-   A corte só distingue três: o ouro é a sua vez de decidir, o
-   carmim é o que tem consequência, a ardósia é defesa.
+   A colônia só distingue três: o ouro é a sua vez de decidir, a
+   brasa é o que tem consequência, o musgo é defesa.
    ============================================================ */
 
 .court-scrim {
@@ -741,7 +741,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: rgba(3, 4, 8, 0.82);
+  background: rgba(4, 6, 4, 0.82);
   animation: courtScrimIn 0.2s ease-out both;
 }
 
@@ -753,7 +753,7 @@
 /* Espera não é decisão: o véu abre pouco, para a mesa continuar
    legível atrás enquanto os outros pensam. */
 .court-scrim.is-soft {
-  background: rgba(3, 4, 8, 0.42);
+  background: rgba(4, 6, 4, 0.42);
 }
 
 .court-modal {
@@ -770,8 +770,8 @@
   border-radius: 4px;
   text-align: center;
   background:
-    linear-gradient(180deg, rgba(57, 65, 79, 0.4) 0%, rgba(24, 29, 39, 0.94) 40%, rgba(8, 10, 16, 0.97) 100%);
-  border: 1px solid rgba(201, 180, 140, 0.22);
+    linear-gradient(180deg, rgba(45, 64, 48, 0.4) 0%, rgba(20, 29, 22, 0.94) 40%, rgba(9, 12, 9, 0.97) 100%);
+  border: 1px solid rgba(200, 168, 107, 0.22);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
   animation: courtModalIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -810,18 +810,18 @@
 
 .court-modal.is-gold {
   --tone: var(--court-gold-hi);
-  --tone-dim: rgba(224, 169, 46, 0.42);
+  --tone-dim: rgba(201, 162, 39, 0.42);
 }
 
-.court-modal.is-crimson {
-  --tone: var(--court-crimson-hi);
-  --tone-dim: rgba(200, 16, 46, 0.45);
-  border-color: rgba(200, 16, 46, 0.34);
+.court-modal.is-ember {
+  --tone: var(--court-ember-hi);
+  --tone-dim: rgba(162, 58, 26, 0.45);
+  border-color: rgba(162, 58, 26, 0.34);
 }
 
-.court-modal.is-slate {
+.court-modal.is-moss {
   --tone: var(--court-stone);
-  --tone-dim: rgba(201, 180, 140, 0.4);
+  --tone-dim: rgba(200, 168, 107, 0.4);
 }
 
 /* --- Cabeça do decreto --------------------------------------- */
@@ -835,7 +835,7 @@
   height: 3rem;
   border-radius: 50%;
   color: var(--tone);
-  background: radial-gradient(circle at 36% 30%, rgba(57, 65, 79, 0.7), rgba(6, 8, 13, 0.9));
+  background: radial-gradient(circle at 36% 30%, rgba(45, 64, 48, 0.7), rgba(7, 10, 7, 0.9));
   border: 1px solid var(--tone-dim);
   box-shadow: 0 0 24px -6px var(--tone-dim), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
@@ -859,7 +859,7 @@
 
 .court-modal-say strong {
   font-weight: 800;
-  color: #f4ede0;
+  color: #f2ecdc;
 }
 
 .court-modal-say em {
@@ -879,8 +879,8 @@
   font-size: 0.78rem;
   line-height: 1.5;
   text-align: left;
-  color: rgba(201, 180, 140, 0.78);
-  background: rgba(6, 8, 13, 0.5);
+  color: rgba(200, 168, 107, 0.78);
+  background: rgba(7, 10, 7, 0.5);
   border-left: 2px solid var(--tone-dim);
 }
 
@@ -918,21 +918,21 @@
   font-family: inherit;
   font-size: inherit;
   color: rgba(226, 232, 240, 0.82);
-  background: rgba(6, 8, 13, 0.55);
-  border: 1px solid rgba(201, 180, 140, 0.16);
-  border-left: 2px solid rgba(201, 180, 140, 0.22);
+  background: rgba(7, 10, 7, 0.55);
+  border: 1px solid rgba(200, 168, 107, 0.16);
+  border-left: 2px solid rgba(200, 168, 107, 0.22);
   transition: border-color 0.16s, background 0.16s, color 0.16s;
 }
 
 .court-pick:hover:not(:disabled) {
-  border-color: rgba(224, 169, 46, 0.4);
-  background: rgba(20, 25, 35, 0.7);
+  border-color: rgba(201, 162, 39, 0.4);
+  background: rgba(19, 28, 20, 0.7);
 }
 
 .court-pick.is-on {
-  color: #fffdf6;
-  background: linear-gradient(90deg, rgba(138, 95, 20, 0.32), rgba(10, 12, 19, 0.5));
-  border-color: rgba(224, 169, 46, 0.55);
+  color: #fffdf2;
+  background: linear-gradient(90deg, rgba(120, 92, 20, 0.32), rgba(10, 14, 10, 0.5));
+  border-color: rgba(201, 162, 39, 0.55);
   border-left-color: var(--court-gold);
 }
 
@@ -981,7 +981,7 @@
   font-family: 'Outfit', ui-serif, Georgia, serif;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #f4ede0;
+  color: #f2ecdc;
 }
 
 /* --- Acessibilidade ------------------------------------------- */
@@ -1014,9 +1014,9 @@
   overflow: hidden;
   user-select: none;
   background:
-    radial-gradient(ellipse 70% 50% at 50% 42%, rgba(57, 65, 79, 0.34) 0%, transparent 70%),
-    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(224, 169, 46, 0.09) 0%, transparent 60%),
-    linear-gradient(178deg, #10141e 0%, var(--court-ink-2) 50%, var(--court-ink) 100%);
+    radial-gradient(ellipse 70% 50% at 50% 42%, rgba(45, 64, 48, 0.34) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(201, 162, 39, 0.09) 0%, transparent 60%),
+    linear-gradient(178deg, #101710 0%, var(--court-ink-2) 50%, var(--court-ink) 100%);
 }
 
 /* Feltro: trama fina, só para a superfície não ser um degradê liso. */
@@ -1028,7 +1028,7 @@
   pointer-events: none;
   opacity: 0.5;
   background-image:
-    repeating-linear-gradient(52deg, rgba(201, 180, 140, 0.022) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(52deg, rgba(200, 168, 107, 0.022) 0 1px, transparent 1px 8px),
     repeating-linear-gradient(-38deg, rgba(0, 0, 0, 0.3) 0 2px, transparent 2px 9px);
 }
 
@@ -1043,8 +1043,8 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.5rem clamp(0.75rem, 2vw, 2.5rem);
-  background: linear-gradient(180deg, rgba(24, 29, 39, 0.95), rgba(10, 12, 19, 0.9));
-  border-bottom: 1px solid rgba(201, 180, 140, 0.16);
+  background: linear-gradient(180deg, rgba(20, 29, 22, 0.95), rgba(10, 14, 10, 0.9));
+  border-bottom: 1px solid rgba(200, 168, 107, 0.16);
 }
 
 .court-bar-code {
@@ -1055,8 +1055,8 @@
   padding: 0.28rem 0.6rem;
   border-radius: 2px;
   color: var(--court-gold-hi);
-  background: rgba(6, 8, 13, 0.7);
-  border: 1px solid rgba(224, 169, 46, 0.28);
+  background: rgba(7, 10, 7, 0.7);
+  border: 1px solid rgba(201, 162, 39, 0.28);
 }
 
 /* --- Faixa de status ----------------------------------------- */
@@ -1066,20 +1066,20 @@
   padding: 0.45rem 1rem;
   border-radius: 3px;
   text-align: center;
-  background: linear-gradient(180deg, rgba(27, 32, 43, 0.9), rgba(10, 12, 19, 0.85));
-  border: 1px solid rgba(201, 180, 140, 0.18);
-  border-left: 3px solid var(--tone, rgba(201, 180, 140, 0.4));
+  background: linear-gradient(180deg, rgba(22, 32, 24, 0.9), rgba(10, 14, 10, 0.85));
+  border: 1px solid rgba(200, 168, 107, 0.18);
+  border-left: 3px solid var(--tone, rgba(200, 168, 107, 0.4));
 }
 
 .court-status.is-mine {
   --tone: var(--court-gold);
-  background: linear-gradient(90deg, rgba(138, 95, 20, 0.28), rgba(10, 12, 19, 0.85));
-  border-color: rgba(224, 169, 46, 0.4);
+  background: linear-gradient(90deg, rgba(120, 92, 20, 0.28), rgba(10, 14, 10, 0.85));
+  border-color: rgba(201, 162, 39, 0.4);
 }
 
 .court-status.is-out {
-  --tone: var(--court-crimson);
-  background: linear-gradient(90deg, rgba(111, 10, 26, 0.34), rgba(10, 12, 19, 0.85));
+  --tone: var(--court-ember);
+  background: linear-gradient(90deg, rgba(74, 30, 12, 0.34), rgba(10, 14, 10, 0.85));
 }
 
 .court-status-say {
@@ -1090,7 +1090,7 @@
   font-family: 'Outfit', ui-serif, Georgia, serif;
   font-size: clamp(0.82rem, 1.6vw, 1rem);
   font-weight: 700;
-  color: #f4ede0;
+  color: #f2ecdc;
 }
 
 .court-status.is-mine .court-status-say {
@@ -1098,7 +1098,7 @@
 }
 
 .court-status.is-out .court-status-say {
-  color: #ffb3bd;
+  color: #ffbfa0;
 }
 
 /* --- Painel de oponente -------------------------------------- */
@@ -1111,8 +1111,8 @@
   justify-content: space-between;
   padding: clamp(0.5rem, 1.4vh, 0.9rem);
   border-radius: 4px;
-  background: linear-gradient(180deg, rgba(41, 48, 60, 0.6), rgba(10, 12, 19, 0.8));
-  border: 1px solid rgba(201, 180, 140, 0.16);
+  background: linear-gradient(180deg, rgba(34, 48, 36, 0.6), rgba(10, 14, 10, 0.8));
+  border: 1px solid rgba(200, 168, 107, 0.16);
   transition: border-color 0.25s, box-shadow 0.25s, opacity 0.25s;
 }
 
@@ -1120,13 +1120,13 @@
    `scale`: aumentar o painel empurra os vizinhos e a linha inteira
    dança a cada troca de vez. */
 .court-seat-panel.is-turn {
-  border-color: rgba(224, 169, 46, 0.75);
-  box-shadow: 0 0 0 1px rgba(224, 169, 46, 0.25), 0 10px 34px -8px rgba(224, 169, 46, 0.4);
+  border-color: rgba(201, 162, 39, 0.75);
+  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.25), 0 10px 34px -8px rgba(201, 162, 39, 0.4);
 }
 
 .court-seat-panel.is-out {
   opacity: 0.5;
-  border-color: rgba(111, 10, 26, 0.4);
+  border-color: rgba(74, 30, 12, 0.4);
 }
 
 .court-seat-name {
@@ -1141,9 +1141,9 @@
 }
 
 .court-seat-panel.is-out .court-seat-name {
-  color: rgba(232, 120, 140, 0.8);
+  color: rgba(226, 140, 96, 0.8);
   text-decoration: line-through;
-  text-decoration-color: rgba(200, 16, 46, 0.7);
+  text-decoration-color: rgba(162, 58, 26, 0.7);
 }
 
 /* --- Bolsa de moedas ----------------------------------------- */
@@ -1158,8 +1158,8 @@
   font-size: clamp(0.68rem, 1.2vw, 0.8rem);
   font-weight: 700;
   color: var(--court-gold-hi);
-  background: radial-gradient(ellipse at 30% 25%, rgba(138, 95, 20, 0.5), rgba(6, 8, 13, 0.8));
-  border: 1px solid rgba(224, 169, 46, 0.35);
+  background: radial-gradient(ellipse at 30% 25%, rgba(120, 92, 20, 0.5), rgba(7, 10, 7, 0.8));
+  border: 1px solid rgba(201, 162, 39, 0.35);
 }
 
 .court-purse.is-big {
@@ -1179,15 +1179,15 @@
   text-align: left;
   cursor: pointer;
   font-family: inherit;
-  background: linear-gradient(180deg, rgba(41, 48, 60, 0.5), rgba(10, 12, 19, 0.7));
-  border: 1px solid rgba(201, 180, 140, 0.16);
-  border-left: 2px solid rgba(201, 180, 140, 0.28);
+  background: linear-gradient(180deg, rgba(34, 48, 36, 0.5), rgba(10, 14, 10, 0.7));
+  border: 1px solid rgba(200, 168, 107, 0.16);
+  border-left: 2px solid rgba(200, 168, 107, 0.28);
   transition: border-color 0.16s, background 0.16s, transform 0.08s;
 }
 
 .court-act:hover:not(:disabled) {
-  background: linear-gradient(180deg, rgba(57, 65, 79, 0.6), rgba(16, 20, 28, 0.8));
-  border-color: rgba(224, 169, 46, 0.45);
+  background: linear-gradient(180deg, rgba(45, 64, 48, 0.6), rgba(15, 22, 16, 0.8));
+  border-color: rgba(201, 162, 39, 0.45);
 }
 
 .court-act:active:not(:disabled) {
@@ -1204,12 +1204,12 @@
   font-size: clamp(0.72rem, 1.3vw, 0.86rem);
   font-weight: 800;
   letter-spacing: 0.02em;
-  color: #f4ede0;
+  color: #f2ecdc;
 }
 
 .court-act-cost {
   font-size: clamp(0.58rem, 1vw, 0.68rem);
-  color: rgba(201, 180, 140, 0.6);
+  color: rgba(200, 168, 107, 0.6);
 }
 
 /* Ação que alega um personagem: é a que pode ser desafiada, então a
@@ -1224,25 +1224,25 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(224, 169, 46, 0.85);
+  color: rgba(201, 162, 39, 0.85);
 }
 
 /* Golpe: ninguém bloqueia, ninguém desafia. */
 .court-act.is-coup {
   align-items: center;
   text-align: center;
-  border-left: 1px solid rgba(200, 16, 46, 0.5);
-  border-color: rgba(200, 16, 46, 0.5);
-  background: linear-gradient(180deg, rgba(111, 10, 26, 0.55), rgba(30, 6, 12, 0.8));
+  border-left: 1px solid rgba(162, 58, 26, 0.5);
+  border-color: rgba(162, 58, 26, 0.5);
+  background: linear-gradient(180deg, rgba(74, 30, 12, 0.55), rgba(24, 10, 5, 0.8));
 }
 
 .court-act.is-coup:hover:not(:disabled) {
-  border-color: rgba(232, 50, 75, 0.9);
-  background: linear-gradient(180deg, rgba(140, 14, 34, 0.7), rgba(40, 8, 16, 0.85));
+  border-color: rgba(200, 84, 42, 0.9);
+  background: linear-gradient(180deg, rgba(126, 44, 18, 0.7), rgba(30, 13, 6, 0.85));
 }
 
 .court-act.is-coup .court-act-name {
-  color: #ffd9de;
+  color: #ffe3d2;
 }
 
 /* Com 10+ moedas o golpe é obrigatório: em vez de fazer o botão
@@ -1252,8 +1252,8 @@
 }
 
 @keyframes courtForced {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0); }
-  50%      { box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.28); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(162, 58, 26, 0); }
+  50%      { box-shadow: 0 0 0 3px rgba(162, 58, 26, 0.28); }
 }
 
 /* --- Histórico ------------------------------------------------ */
@@ -1263,8 +1263,8 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: 4px;
-  background: linear-gradient(180deg, rgba(27, 32, 43, 0.85), rgba(8, 10, 16, 0.9));
-  border: 1px solid rgba(201, 180, 140, 0.16);
+  background: linear-gradient(180deg, rgba(22, 32, 24, 0.85), rgba(9, 12, 9, 0.9));
+  border: 1px solid rgba(200, 168, 107, 0.16);
 }
 
 /* O anel de vez (.turn-aura::after) mora em inset: -3px, ou seja, fora
@@ -1280,8 +1280,8 @@
   gap: 0.5rem;
   flex-shrink: 0;
   padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid rgba(201, 180, 140, 0.14);
-  color: rgba(201, 180, 140, 0.75);
+  border-bottom: 1px solid rgba(200, 168, 107, 0.14);
+  color: rgba(200, 168, 107, 0.75);
 }
 
 .court-log {
@@ -1289,34 +1289,34 @@
   border-radius: 2px;
   line-height: 1.45;
   color: rgba(226, 232, 240, 0.78);
-  background: rgba(6, 8, 13, 0.5);
-  border-left: 2px solid rgba(201, 180, 140, 0.22);
+  background: rgba(7, 10, 7, 0.5);
+  border-left: 2px solid rgba(200, 168, 107, 0.22);
 }
 
 .court-log.is-challenge {
-  color: #ffd9de;
-  background: rgba(111, 10, 26, 0.24);
-  border-left-color: var(--court-crimson);
+  color: #ffe3d2;
+  background: rgba(74, 30, 12, 0.24);
+  border-left-color: var(--court-ember);
 }
 
 .court-log.is-block {
   color: rgba(226, 232, 240, 0.9);
-  background: rgba(57, 65, 79, 0.35);
+  background: rgba(45, 64, 48, 0.35);
   border-left-color: var(--court-stone);
 }
 
 .court-log.is-elimination {
   font-weight: 700;
-  color: #ffb3bd;
-  background: rgba(111, 10, 26, 0.4);
-  border-left-color: var(--court-crimson-hi);
+  color: #ffbfa0;
+  background: rgba(74, 30, 12, 0.4);
+  border-left-color: var(--court-ember-hi);
 }
 
 .court-log.is-system {
   font-style: italic;
-  color: rgba(201, 180, 140, 0.5);
+  color: rgba(200, 168, 107, 0.5);
   background: transparent;
-  border-left-color: rgba(201, 180, 140, 0.16);
+  border-left-color: rgba(200, 168, 107, 0.16);
 }
 
 /* --- Acessibilidade ------------------------------------------- */
@@ -1324,7 +1324,7 @@
 @media (prefers-reduced-motion: reduce) {
   .court-act.is-forced {
     animation: none;
-    box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.35);
+    box-shadow: 0 0 0 2px rgba(162, 58, 26, 0.35);
   }
 }
 
@@ -1345,7 +1345,7 @@
   aspect-ratio: 2 / 3;
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid rgba(201, 180, 140, 0.3);
+  border: 1px solid rgba(200, 168, 107, 0.3);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.6);
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s, border-color 0.22s;
 }
@@ -1363,8 +1363,8 @@
 
 .court-card.is-pick:hover {
   transform: translateY(-5px);
-  border-color: rgba(224, 169, 46, 0.7);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7), 0 0 26px rgba(224, 169, 46, 0.28);
+  border-color: rgba(201, 162, 39, 0.7);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7), 0 0 26px rgba(201, 162, 39, 0.28);
 }
 
 /* Escolhida: o ouro fecha em volta em vez do `ring` de 4px, que
@@ -1372,7 +1372,7 @@
 .court-card.is-on {
   transform: translateY(-7px);
   border-color: var(--court-gold-hi);
-  box-shadow: 0 0 0 2px rgba(224, 169, 46, 0.7), 0 20px 44px rgba(0, 0, 0, 0.72), 0 0 34px rgba(224, 169, 46, 0.35);
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.7), 0 20px 44px rgba(0, 0, 0, 0.72), 0 0 34px rgba(201, 162, 39, 0.35);
 }
 
 /* --- Deposta --------------------------------------------------- */
@@ -1381,7 +1381,7 @@
    escurece e recebe o carimbo. Antes o estado virava um painel
    vermelho inclinado cobrindo o retrato inteiro. */
 .court-card.is-down {
-  border-color: rgba(200, 16, 46, 0.55);
+  border-color: rgba(162, 58, 26, 0.55);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
 }
 
@@ -1401,11 +1401,29 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   white-space: nowrap;
-  color: #ff9aa8;
-  border: 2px solid rgba(232, 50, 75, 0.8);
+  color: #ffab84;
+  border: 2px solid rgba(200, 84, 42, 0.8);
   border-radius: 2px;
-  background: rgba(50, 6, 14, 0.5);
+  background: rgba(38, 16, 7, 0.5);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* Faixa de habilidade. A arte nova grava o nome no topo mas não o que a
+   carta faz, então esse texto precisa de lugar próprio — encostado no pé
+   da carta, sobre um esmaecido, para não brigar com o retrato. */
+.court-card-skill {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 4cqw 4cqw 4.5cqw;
+  background: linear-gradient(to top, rgba(6, 9, 6, 0.95) 42%, rgba(6, 9, 6, 0.78) 70%, transparent 100%);
+}
+
+.court-card-skill p {
+  font-size: 6.4cqw;
+  line-height: 1.3;
+  font-weight: 600;
+  color: rgba(242, 236, 220, 0.94);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 /* --- Verso ----------------------------------------------------- */
@@ -1423,8 +1441,8 @@
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(ellipse at 50% 38%, rgba(57, 65, 79, 0.9) 0%, rgba(16, 20, 28, 0.96) 62%),
-    linear-gradient(160deg, #232936, #0b0e15);
+    radial-gradient(ellipse at 50% 38%, rgba(45, 64, 48, 0.9) 0%, rgba(15, 22, 16, 0.96) 62%),
+    linear-gradient(160deg, #1d2a1e, #0b100c);
 }
 
 /* Trama de losangos, como o verso impresso de um baralho. */
@@ -1434,8 +1452,8 @@
   inset: 0;
   opacity: 0.35;
   background-image:
-    repeating-linear-gradient(45deg, rgba(201, 180, 140, 0.09) 0 1px, transparent 1px 7px),
-    repeating-linear-gradient(-45deg, rgba(201, 180, 140, 0.09) 0 1px, transparent 1px 7px);
+    repeating-linear-gradient(45deg, rgba(200, 168, 107, 0.09) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(-45deg, rgba(200, 168, 107, 0.09) 0 1px, transparent 1px 7px);
 }
 
 /* Moldura interna de ouro, recuada da borda. */
@@ -1443,7 +1461,7 @@
   content: '';
   position: absolute;
   inset: 4cqw;
-  border: 1px solid rgba(224, 169, 46, 0.28);
+  border: 1px solid rgba(201, 162, 39, 0.28);
   border-radius: 3px;
 }
 
@@ -1454,16 +1472,17 @@
   width: 34cqw;
   height: 34cqw;
   border-radius: 50%;
-  background: radial-gradient(circle at 36% 30%, rgba(111, 10, 26, 0.7), rgba(8, 10, 16, 0.9));
-  border: 1.5px solid rgba(224, 169, 46, 0.55);
-  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.7), 0 0 18px -4px rgba(224, 169, 46, 0.4);
+  background: radial-gradient(circle at 36% 30%, rgba(45, 64, 48, 0.85), rgba(9, 12, 9, 0.92));
+  border: 1.5px solid rgba(201, 162, 39, 0.55);
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.7), 0 0 18px -4px rgba(201, 162, 39, 0.4);
 }
 
-/* A estrela de cinco pontas do brasão, direto em clip-path. */
+/* A estrela de cinco pontas do brasão, direto em clip-path. Em ouro, e
+   não em brasa: a ferragem das cartas novas é toda dourada. */
 .court-card-emblem i {
   width: 17cqw;
   height: 17cqw;
-  background: linear-gradient(180deg, var(--court-crimson-hi), var(--court-crimson-deep));
+  background: linear-gradient(180deg, var(--court-gold-hi), var(--court-gold-dim));
   clip-path: polygon(
     50% 0%, 61% 35%, 98% 35%, 68% 57%,
     79% 91%, 50% 70%, 21% 91%, 32% 57%,
@@ -1481,7 +1500,7 @@
   letter-spacing: 0.3em;
   text-indent: 0.3em;
   text-transform: uppercase;
-  color: rgba(224, 169, 46, 0.72);
+  color: rgba(201, 162, 39, 0.72);
 }
 
 /* Fallback de arte quebrada: aqui entra o nome do personagem, que pode

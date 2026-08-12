@@ -87,9 +87,9 @@ export const CardView: React.FC<CardViewProps> = ({
     <div onClick={handleClick} className={`@container court-card ${sizeClasses} ${state}`}>
       {!isHidden && info ? (
         <>
-          {/* A arte já é a carta inteira — nome na tarja, as duas habilidades
-              e o texto de ambientação. Repetir isso em caixas por cima só
-              tapava a pintura. */}
+          {/* A arte traz o nome gravado no topo, em ouro — repetir isso num
+              badge por cima só tapava a pintura. O que ela não traz é a
+              habilidade, então essa continua numa faixa no rodapé. */}
           {artFailed ? (
             <div className="court-card-back">
               <span className="court-card-emblem">
@@ -106,7 +106,13 @@ export const CardView: React.FC<CardViewProps> = ({
             />
           )}
 
-          {display.revealed && <span className="court-card-stamp">Deposta</span>}
+          {!display.revealed && (
+            <div className="court-card-skill">
+              <p>{info.description}</p>
+            </div>
+          )}
+
+          {display.revealed && <span className="court-card-stamp">Exilada</span>}
         </>
       ) : (
         /* Verso: o brasão da casa. */
@@ -114,7 +120,7 @@ export const CardView: React.FC<CardViewProps> = ({
           <span className="court-card-emblem">
             <i />
           </span>
-          <span className="court-card-back-word">Coup</span>
+          <span className="court-card-back-word">Copas</span>
         </div>
       )}
     </div>

@@ -69,7 +69,7 @@ export function useGameEvents(gameState: GameState, playerId: string) {
 
     for (const player of gameState.players) {
       // `=== false` e não `!previous.get(...)`: carta que não existia antes
-      // (comprada na troca do Embaixador) retorna undefined e não vale evento.
+      // (comprada na sabedoria do Orangotango) retorna undefined e não vale evento.
       const justRevealed = player.cards.filter(c => c.revealed && previous.get(c.id) === false);
       if (justRevealed.length === 0) continue;
 
