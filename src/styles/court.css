@@ -1137,6 +1137,82 @@
   font-weight: 700;
 }
 
+/* --- Ficha do primata ----------------------------------------- */
+
+/* A janela cobre a mesa e o guia das cartas fica atrás dela: quem não
+   lembra o que o Gorila faz não tem como conferir sem fechar o decreto
+   — e fechar não é opção, a decisão é agora. Daí a carta citada vir
+   junto da pergunta, retrato e habilidade numa linha só. */
+.court-brief {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  margin-top: 0.9rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 3px;
+  text-align: left;
+  background: rgba(7, 10, 7, 0.5);
+  border: 1px solid rgba(200, 168, 107, 0.16);
+  border-left: 2px solid var(--tone-dim, rgba(200, 168, 107, 0.35));
+}
+
+.court-brief-art {
+  flex: 0 0 auto;
+  width: 2.6rem;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid rgba(201, 162, 39, 0.3);
+}
+
+.court-brief-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* O nome fica em ouro mesmo no decreto de brasa: é a identidade da
+   carta, não o tom da decisão. */
+.court-brief-name {
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--court-gold-hi);
+}
+
+.court-brief-desc {
+  margin-top: 0.1rem;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+/* Escolhível — os dois primatas que bloqueiam Furto. Mesmos estados
+   de .court-pick, porque aqui a ficha é a própria opção. */
+.court-brief.is-pick {
+  margin-top: 0;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.16s, background 0.16s;
+}
+
+.court-brief.is-pick:hover:not(:disabled) {
+  border-color: rgba(201, 162, 39, 0.4);
+  background: rgba(19, 28, 20, 0.7);
+}
+
+.court-brief.is-pick.is-on {
+  background: linear-gradient(90deg, rgba(120, 92, 20, 0.32), rgba(10, 14, 10, 0.5));
+  border-color: rgba(201, 162, 39, 0.55);
+  border-left-color: var(--court-gold);
+}
+
+.court-brief.is-pick:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .court-modal-acts {
   display: flex;
   flex-direction: column;

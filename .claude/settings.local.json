@@ -59,7 +59,19 @@
       "Bash(node \"C:/Users/GUILHE~1.COR/AppData/Local/Temp/claude/C--Users-guilherme-cordeiro-Projetos-Actcoup/424f1ec9-d5a1-4cd8-9684-ad5ca1ebdd9b/scratchpad/scan.mjs\")",
       "PowerShell(Get-NetTCPConnection *)",
       "Bash(echo \"exit=$?\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/preview-table.html)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/preview-table.html)",
+      "Bash(curl -s http://localhost:3001/)",
+      "Bash(curl -s -o /dev/null -w \"css:%{http_code} \" http://localhost:3001/assets/index-BG0P5Z_5.css)",
+      "Bash(curl -s -o /dev/null -w \"js:%{http_code}\\\\n\" http://localhost:3001/assets/index-CvrqdA9_.js)",
+      "PowerShell($p = \\(Get-NetTCPConnection -State Listen -LocalPort 3000 -ErrorAction SilentlyContinue\\).OwningProcess; if \\($p\\) { Stop-Process -Id $p -Force -Confirm:$false; \"vite \\(pid $p\\) encerrado\" } else { \"porta 3000 livre\" })",
+      "WebFetch(domain:www.tabuleirocriativo.com.br)",
+      "Bash(node raw.mjs \"C:/Users/guilherme.cordeiro/.claude/projects/C--Users-guilherme-cordeiro-Projetos-Actcoup/b4baeb27-d8ba-490a-815e-c97e1e0781ba/tool-results/webfetch-1786550095249-z0tb45.pdf\")",
+      "WebFetch(domain:www.ultraboardgames.com)",
+      "Bash(cp \"C:/Users/GUILHE~1.COR/AppData/Local/Temp/claude/C--Users-guilherme-cordeiro-Projetos-Actcoup/b4baeb27-d8ba-490a-815e-c97e1e0781ba/scratchpad/rules-test.mjs\" ./_rules-test.mjs)",
+      "Bash(sed -i \"s|from '.*gameLogic.js'|from './server/gameLogic.js'|\" ./_rules-test.mjs)",
+      "Bash(node ./_rules-test.mjs)",
+      "Bash(echo \"TSC DONE \\(exit $?\\)\")",
+      "Bash(rtk npx *)"
     ]
   },
   "enabledMcpjsonServers": [

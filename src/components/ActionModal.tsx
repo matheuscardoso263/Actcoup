@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GameState, Character, CHARACTER_INFO, ACTION_LABELS } from '../types/game';
+import { GameState, ActionType, Character, CHARACTER_INFO, ACTION_LABELS } from '../types/game';
 import { CardView } from './CardView';
 import { socketService } from '../services/socket';
 import { sound } from '../audio/sound';
@@ -39,6 +39,61 @@ const Decree: React.FC<{
     </div>
   </div>
 );
+
+/* A ficha do primata em jogo. O decreto cobre a mesa, e o guia das
+   cartas está atrás dele: quem não lembra o que o Gorila faz não tem
+   como conferir sem fechar a janela — e fechar não é opção, a decisão
+   é agora. Então a carta citada vem junto da pergunta.
+
+   Com `onClick` a mesma ficha vira opção escolhível: é o caso do
+   Furto, o único bloqueio com duas cartas possíveis. */
+const CharacterBrief: React.FC<{
+  char: Character;
+  label?: string;
+  selected?: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
+}> = ({ char, label, selected, disabled, onClick }) => {
+  const info = CHARACTER_INFO[char];
+
+  const body = (
+    <>
+      <img src={info.image} alt="" className="court-brief-art" />
+      <span className="court-brief-body">
+        {label && <span className="court-label is-tight">{label}</span>}
+        <span className="court-brief-name">{info.name}</span>
+        <span className="court-brief-desc">{info.description}</span>
+      </span>
+    </>
+  );
+
+  if (!onClick) {
+    return <div className="court-brief">{body}</div>;
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => {
+        sound.playClick();
+        onClick();
+      }}
+      className={`court-brief is-pick ${selected ? 'is-on' : ''}`}
+    >
+      {body}
+    </button>
+  );
+};
+
+/* Quem bloqueia o quê. É a mesma tabela do servidor (BLOCK_RULES em
+   gameLogic.js), que continua sendo quem valida — aqui serve só para
+   saber qual ficha mostrar a quem vai bloquear. */
+const BLOCK_CHARACTERS: Partial<Record<ActionType, Character[]>> = {
+  foreign_aid: ['duke'],
+  assassinate: ['countess'],
+  steal: ['captain', 'ambassador']
+};
 
 /* Espera não trava a leitura da mesa: véu fraco e cartela curta,
    porque a informação útil aqui é só quem ainda não respondeu. */
@@ -395,6 +450,10 @@ export const ActionModal: React.FC<ActionModalProps> = ({
             <strong>{actor?.name}</strong> declarou ser <em>{claimed}</em>.
           </p>
 
+          {pendingAction.claimedCharacter && (
+            <CharacterBrief char={pendingAction.claimedCharacter} label="A carta declarada" />
+          )}
+
           {/* O botão dizia "acredita que é mentira" sem nunca dizer o
               preço de errar — que é a única coisa que importa aqui. */}
           <div className="court-stake">
@@ -432,11 +491,21 @@ export const ActionModal: React.FC<ActionModalProps> = ({
       const canIBlock = pendingAction.action === 'foreign_aid' ? !isActor : isTarget;
 
       if (canIBlock) {
+        /* Uma carta só: ela é assumida pelo servidor, então aqui vira
+           ficha — o que falta ao jogador é lembrar o que ela faz, não
+           escolher. Duas: continua sendo escolha, e cada opção já vem
+           com a descrição do primata. */
+        const blockers = BLOCK_CHARACTERS[pendingAction.action] || [];
+
         return (
           <Decree tone="moss" icon={<Shield className="w-6 h-6" />} title="Quer bloquear?">
             <p className="court-modal-say">
               <strong>{actor?.name}</strong> está fazendo <em>{ACTION_LABELS[pendingAction.action]}</em>.
             </p>
+
+            {blockers.length === 1 && (
+              <CharacterBrief char={blockers[0]} label="Você alegaria ter" />
+            )}
 
             <div className="court-stake">
               Bloquear é <strong>alegar uma carta</strong>. Se alguém duvidar e você não
@@ -445,18 +514,17 @@ export const ActionModal: React.FC<ActionModalProps> = ({
 
             {alert}
 
-            {pendingAction.action === 'steal' && (
+            {blockers.length > 1 && (
               <div className="flex flex-col gap-2 mt-4">
                 <span className="court-label is-tight">Bloquear como</span>
-                {(['captain', 'ambassador'] as Character[]).map(char => (
-                  <button
+                {blockers.map(char => (
+                  <CharacterBrief
                     key={char}
+                    char={char}
+                    selected={blockCharChoice === char}
                     disabled={isSubmitting}
                     onClick={() => setBlockCharChoice(char)}
-                    className={`court-pick ${blockCharChoice === char ? 'is-on' : ''}`}
-                  >
-                    <span className="font-semibold text-sm">{CHARACTER_INFO[char].name}</span>
-                  </button>
+                  />
                 ))}
               </div>
             )}
@@ -497,6 +565,10 @@ export const ActionModal: React.FC<ActionModalProps> = ({
           <p className="court-modal-say">
             <strong>{blocker?.name}</strong> alegou ter <em>{blocked}</em> para bloquear.
           </p>
+
+          {pendingAction.blockedCharacter && (
+            <CharacterBrief char={pendingAction.blockedCharacter} label="A carta alegada" />
+          )}
 
           <div className="court-stake">
             Se duvidar e ele <strong>não tiver {blocked}</strong>, o bloqueio cai e ele perde
