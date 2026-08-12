@@ -16,7 +16,26 @@ import { useDealing, dealArrival, DEAL_STAGGER } from '../hooks/useDeal';
 import { useTurnAnnounce } from '../hooks/useTurnAnnounce';
 import { socketService } from '../services/socket';
 import { sound } from '../audio/sound';
-import { Shield, Crown, HelpCircle, History, Sparkles, AlertCircle, LogOut, Eye } from 'lucide-react';
+import { Crown, HelpCircle, History, AlertCircle, LogOut, Eye, Hourglass } from 'lucide-react';
+
+/* As ações do turno. `claim` é o personagem que a ação obriga a alegar —
+   é o que abre espaço para desafio, e por isso aparece no botão. Renda e
+   Ajuda Externa não alegam nada; o Golpe fica de fora porque não é
+   bloqueável nem desafiável e tem botão próprio. */
+const TABLE_ACTIONS: Array<{
+  id: ActionType;
+  name: string;
+  cost: string;
+  claim?: Character;
+  minCoins?: number;
+}> = [
+  { id: 'income', name: 'Renda', cost: '+1 moeda' },
+  { id: 'foreign_aid', name: 'Ajuda externa', cost: '+2 moedas' },
+  { id: 'tax', name: 'Taxa', cost: '+3 moedas', claim: 'duke' },
+  { id: 'assassinate', name: 'Assassinar', cost: 'custa 3 moedas', claim: 'assassin', minCoins: 3 },
+  { id: 'steal', name: 'Roubar', cost: 'até 2 moedas', claim: 'captain' },
+  { id: 'exchange', name: 'Trocar', cost: 'compra 2 do deck', claim: 'ambassador' }
+];
 
 interface GameTableProps {
   gameState: GameState;
@@ -129,36 +148,27 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
       : 'clamp(6rem, 13vh, 10rem)';
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-950 text-white flex flex-col relative overflow-hidden select-none">
-      {/* Background ambient elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black z-0" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-purple-950/20 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="court-table w-full text-slate-100 flex flex-col">
       {/* Top Header Bar */}
-      <header className="relative z-20 flex-shrink-0 flex justify-between items-center px-6 2xl:px-10 py-2.5 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
-        <div className="flex items-center gap-4">
-          <img src="/logosemfundo.png" alt="Logo do Coup" className="h-8 2xl:h-10 drop-shadow-md" />
-          <span className="text-xs 2xl:text-sm px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-300 font-mono">
-            Sala: {gameState.code}
-          </span>
+      <header className="court-bar">
+        <div className="flex items-center gap-3">
+          <img src="/logosemfundo.png" alt="ActCoup" className="h-7 2xl:h-9 opacity-85" />
+          <span className="court-bar-code">{gameState.code}</span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => {
               sound.playClick();
               setShowCheatSheet(true);
             }}
-            className="px-3 py-1.5 rounded-lg bg-purple-950/50 hover:bg-purple-900/60 border border-purple-500/40 text-purple-300 text-xs font-semibold flex items-center gap-1.5 transition-all"
+            className="court-btn is-stone is-compact"
           >
-            <HelpCircle className="w-4 h-4" />
-            Guia de Personagens
+            <HelpCircle className="w-3.5 h-3.5" />
+            As 5 cartas
           </button>
-          <button
-            onClick={onLeaveRoom}
-            className="px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/50 border border-red-500/30 text-red-300 text-xs font-semibold flex items-center gap-1.5 transition-all"
-          >
-            <LogOut className="w-4 h-4" />
+          <button onClick={onLeaveRoom} className="court-btn is-crimson is-compact">
+            <LogOut className="w-3.5 h-3.5" />
             Sair
           </button>
         </div>
@@ -179,31 +189,36 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                 ? getWaitingPlayerNames(gameState)
                 : null;
 
+              /* Um estado, um tom: carmim quando você saiu, ouro quando a
+                 decisão é sua, pedra no resto. Antes eram quatro cores e
+                 dois `animate-pulse` disputando atenção ao mesmo tempo. */
               return (
-                <div className={`py-2.5 px-4 rounded-xl border backdrop-blur-md transition-all shadow-lg ${
-                  isEliminated
-                    ? 'bg-red-950/60 border-red-500/60 text-red-300'
-                    : waitingFor
-                    ? 'bg-purple-950/60 border-purple-500/60 text-purple-300 animate-pulse'
-                    : isMyTurn
-                    ? 'bg-amber-500/20 border-amber-400 text-amber-300 animate-pulse'
-                    : 'bg-slate-900/90 border-slate-700 text-slate-300'
-                }`}>
-                  <span className="text-[11px] 2xl:text-xs uppercase tracking-widest block opacity-75 font-semibold">
-                    Status da Partida
-                  </span>
-                  <span className="text-sm xl:text-base font-bold flex items-center justify-center gap-2">
+                <div
+                  className={`court-status ${
+                    isEliminated ? 'is-out' : !waitingFor && isMyTurn ? 'is-mine' : ''
+                  }`}
+                >
+                  <span className="court-status-say">
                     {isEliminated ? (
                       <>
-                        <Eye className="w-4 h-4 text-red-400" />
-                        Você foi ELIMINADO! (Modo Espectador)
+                        <Eye className="w-4 h-4 shrink-0" />
+                        Eliminado — você assiste ao resto
                       </>
                     ) : waitingFor ? (
-                      `⏳ Aguardando a ação de: ${waitingFor}`
+                      <>
+                        <Hourglass className="w-4 h-4 shrink-0 opacity-70" />
+                        A mesa responde · falta {waitingFor}
+                      </>
                     ) : isMyTurn ? (
-                      '👉 Sua vez! Escolha uma ação.'
+                      <>
+                        <Crown className="w-4 h-4 shrink-0" />
+                        Sua vez
+                      </>
                     ) : (
-                      `Vez de ${activePlayer?.name}...`
+                      <>
+                        <Hourglass className="w-4 h-4 shrink-0 opacity-70" />
+                        Vez de {activePlayer?.name}
+                      </>
                     )}
                   </span>
                 </div>
@@ -212,8 +227,8 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
           </div>
 
           {error && (
-            <div className="mb-2 p-2.5 rounded-xl bg-red-950/90 border border-red-500 text-red-200 text-xs flex items-center gap-2 max-w-md shadow-lg animate-bounce flex-shrink-0">
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+            <div className="court-alert max-w-md flex-shrink-0">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-rose-300" />
               <span>{error}</span>
             </div>
           )}
@@ -232,20 +247,14 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
               return (
                 <div
                   key={player.id}
-                  className={`relative p-3 xl:p-4 rounded-2xl border backdrop-blur-md transition-all flex flex-col items-center justify-between shadow-xl ${
-                    isTurn
-                      ? 'turn-aura bg-amber-950/40 border-amber-400 ring-2 ring-amber-400/50 shadow-amber-500/20 scale-105'
-                      : playerEliminated
-                      ? 'bg-red-950/20 border-red-900/40 opacity-60'
-                      : 'bg-slate-900/70 border-slate-800'
+                  className={`court-seat-panel ${isTurn ? 'turn-aura is-turn' : ''} ${
+                    playerEliminated ? 'is-out' : ''
                   }`}
                 >
-                  <div className="flex items-center gap-1.5 mb-2 w-full justify-center">
-                    {player.isHost && <Crown className="w-3.5 h-3.5 text-amber-400" />}
-                    <span className={`text-xs xl:text-sm font-bold truncate max-w-[12ch] ${playerEliminated ? 'line-through text-red-400' : 'text-slate-200'}`}>
-                      {player.name}
-                    </span>
-                  </div>
+                  <span className="court-seat-name">
+                    {player.isHost && <Crown className="w-3 h-3 shrink-0 text-amber-400" />}
+                    <span className="truncate">{player.name}</span>
+                  </span>
 
                   {/* Destino das cartas na distribuição inicial. */}
                   <div
@@ -258,11 +267,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                     ))}
                   </div>
 
-                  <CoinCounter
-                    playerId={player.id}
-                    value={player.coins}
-                    className="mt-2 flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs xl:text-sm font-bold shadow-inner"
-                  />
+                  <CoinCounter playerId={player.id} value={player.coins} className="court-purse mt-1" />
                 </div>
               );
             })}
@@ -274,26 +279,26 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
             data-coin-anchor={TREASURY}
             className="py-1 text-center text-slate-600 flex flex-col items-center gap-1 pointer-events-none flex-shrink-0 opacity-70"
           >
-            <img src="/logosemfundo.png" alt="Logo do Coup" className="h-[clamp(1.75rem,5vh,4rem)] opacity-80 filter brightness-110 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]" />
-            <span className="font-serif tracking-widest text-[10px] uppercase text-amber-500/60 font-bold">Mesa de Jogo</span>
+            <img src="/logosemfundo.png" alt="ActCoup" className="h-[clamp(1.5rem,4.5vh,3.5rem)] opacity-70" />
+            <span className="court-label is-tight">Tesouraria</span>
           </div>
 
           {/* Player Hand & Controls Bottom */}
           {me && (
             <div
-              className={`w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl bg-slate-900/90 backdrop-blur-xl border rounded-3xl p-3 xl:p-5 shadow-2xl flex flex-col lg:flex-row justify-between items-center gap-4 xl:gap-6 flex-shrink-0 transition-colors ${
-                isMyTurn ? 'turn-aura border-amber-500/60' : 'border-slate-800'
+              className={`court-panel is-open w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl p-3 xl:p-5 flex flex-col lg:flex-row justify-between items-center gap-4 xl:gap-6 flex-shrink-0 ${
+                isMyTurn ? 'turn-aura' : ''
               }`}
             >
               <div className="flex items-center gap-3 xl:gap-5 min-w-0">
                 <div className="flex flex-col items-center gap-1.5 shrink-0">
-                  <span className="text-xs xl:text-sm uppercase tracking-widest font-extrabold text-amber-400 font-serif">Sua Mão</span>
+                  <span className="court-label is-tight">Sua mão</span>
                   <CoinCounter
                     playerId={me.id}
                     value={me.coins}
-                    suffix=" Moedas"
-                    iconClassName="w-4 h-4 text-amber-400"
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-sm xl:text-base font-extrabold shadow-inner"
+                    suffix=" moedas"
+                    iconClassName="w-3.5 h-3.5"
+                    className="court-purse is-big"
                   />
                 </div>
 
@@ -310,76 +315,51 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
 
               {/* Action Buttons Panel */}
               <div className="flex-1 min-w-0 w-full max-w-md xl:max-w-lg 2xl:max-w-xl">
-                <span className="text-xs xl:text-sm uppercase tracking-widest font-bold text-slate-400 mb-2 block text-center md:text-left">
-                  {isEliminated ? 'Você está Eliminado' : 'Ações Disponíveis'}
+                <span className="court-label is-tight mb-2 text-center md:text-left">
+                  {isEliminated ? 'Você está eliminado' : 'Ações'}
                 </span>
-                
+
+                {/* As seis ações não são seis cores: são dois grupos. Quem
+                    alega um personagem pode ser desafiado, e é essa a única
+                    informação que muda a decisão — então a alegação vai
+                    escrita no botão. */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  <button
-                    onClick={() => handleActionClick('income')}
-                    disabled={!isMyTurn || isEliminated || me.coins >= 10}
-                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
-                  >
-                    <span className="font-bold text-emerald-400">Renda</span>
-                    <span className="text-[10px] xl:text-xs text-slate-400">+1 Moeda (Livre)</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleActionClick('foreign_aid')}
-                    disabled={!isMyTurn || isEliminated || me.coins >= 10}
-                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
-                  >
-                    <span className="font-bold text-blue-400">Ajuda Externa</span>
-                    <span className="text-[10px] xl:text-xs text-slate-400">+2 Moedas</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleActionClick('tax')}
-                    disabled={!isMyTurn || isEliminated || me.coins >= 10}
-                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
-                  >
-                    <span className="font-bold text-amber-400">Taxa (Duque)</span>
-                    <span className="text-[10px] xl:text-xs text-slate-400">+3 Moedas</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleActionClick('assassinate')}
-                    disabled={!isMyTurn || isEliminated || me.coins < 3 || me.coins >= 10}
-                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
-                  >
-                    <span className="font-bold text-red-400">Assassinar</span>
-                    <span className="text-[10px] xl:text-xs text-slate-400">Custa 3 Moedas</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleActionClick('steal')}
-                    disabled={!isMyTurn || isEliminated || me.coins >= 10}
-                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
-                  >
-                    <span className="font-bold text-purple-400">Roubar</span>
-                    <span className="text-[10px] xl:text-xs text-slate-400">Até 2 Moedas</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleActionClick('exchange')}
-                    disabled={!isMyTurn || isEliminated || me.coins >= 10}
-                    className="p-2 xl:p-2.5 rounded-xl border bg-slate-800/80 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-white text-xs xl:text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-0.5"
-                  >
-                    <span className="font-bold text-cyan-400">Trocar</span>
-                    <span className="text-[10px] xl:text-xs text-slate-400">Comprar 2 do baralho</span>
-                  </button>
+                  {TABLE_ACTIONS.map(act => (
+                    <button
+                      key={act.id}
+                      onClick={() => handleActionClick(act.id)}
+                      disabled={
+                        !isMyTurn ||
+                        isEliminated ||
+                        me.coins >= 10 ||
+                        (act.minCoins !== undefined && me.coins < act.minCoins)
+                      }
+                      className={`court-act ${act.claim ? 'is-claim' : ''}`}
+                    >
+                      <span className="court-act-name">{act.name}</span>
+                      <span className="court-act-cost">{act.cost}</span>
+                      {act.claim && (
+                        <span className="court-act-claim">
+                          alega {CHARACTER_INFO[act.claim].name}
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </div>
 
                 <button
                   onClick={() => handleActionClick('coup')}
                   disabled={!isMyTurn || isEliminated || me.coins < 7}
-                  className={`w-full mt-2 py-2 xl:py-2.5 px-4 rounded-xl font-extrabold uppercase tracking-wider text-xs xl:text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${
-                    !isEliminated && me.coins >= 10
-                      ? 'bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white animate-bounce ring-4 ring-red-500/50'
-                      : 'bg-gradient-to-r from-red-700 to-rose-600 hover:from-red-600 hover:to-rose-500 text-white disabled:opacity-40'
+                  className={`court-act is-coup w-full mt-2 ${
+                    !isEliminated && me.coins >= 10 ? 'is-forced' : ''
                   }`}
                 >
-                  ⚔️ GOLPE DE ESTADO (Custa 7 Moedas) {!isEliminated && me.coins >= 10 && ' - OBRIGATÓRIO!'}
+                  <span className="court-act-name">Golpe de Estado</span>
+                  <span className="court-act-cost">
+                    {!isEliminated && me.coins >= 10
+                      ? 'custa 7 · obrigatório com 10 moedas'
+                      : 'custa 7 · ninguém bloqueia nem desafia'}
+                  </span>
                 </button>
               </div>
             </div>
@@ -387,29 +367,16 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
         </div>
 
         {/* Right Sidebar - Capped Height Action History Chat Feed */}
-        <div className="w-full lg:w-72 xl:w-80 2xl:w-96 h-40 lg:h-auto lg:self-stretch min-h-0 bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-3 xl:p-4 flex flex-col shrink-0 shadow-2xl overflow-hidden">
-          <div className="flex items-center gap-2 pb-3 mb-3 border-b border-slate-800 text-slate-300 font-bold text-sm xl:text-base shrink-0">
-            <History className="w-4 h-4 text-amber-400" />
-            <span>Histórico da Partida</span>
+        <div className="court-panel w-full lg:w-72 xl:w-80 2xl:w-96 h-40 lg:h-auto lg:self-stretch min-h-0 shrink-0">
+          <div className="court-panel-head">
+            <History className="w-3.5 h-3.5" />
+            <span className="court-label is-tight">O que aconteceu</span>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 text-xs xl:text-sm">
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 p-2.5 text-xs xl:text-sm">
             <div ref={logTopRef} />
             {gameState.logs.map(log => (
-              <div
-                key={log.id}
-                className={`p-2.5 rounded-lg border leading-snug transition-all ${
-                  log.type === 'challenge'
-                    ? 'bg-purple-950/40 border-purple-500/40 text-purple-200'
-                    : log.type === 'block'
-                    ? 'bg-blue-950/40 border-blue-500/40 text-blue-200'
-                    : log.type === 'elimination'
-                    ? 'bg-red-950/40 border-red-500/40 text-red-200 font-bold'
-                    : log.type === 'system'
-                    ? 'bg-slate-950/60 border-slate-800 text-slate-400 italic'
-                    : 'bg-slate-950/80 border-slate-800 text-slate-200'
-                }`}
-              >
+              <div key={log.id} className={`court-log is-${log.type}`}>
                 <span>{log.text}</span>
               </div>
             ))}
@@ -472,47 +439,51 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
 
       {/* Character Cheat Sheet Dialog */}
       {showCheatSheet && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-xl 2xl:max-w-2xl max-h-[90dvh] flex flex-col bg-slate-900 border border-purple-500/50 rounded-2xl p-6 shadow-2xl">
-            <h3 className="text-xl font-bold text-amber-400 mb-4 flex items-center gap-2 shrink-0">
-              <Shield className="w-5 h-5" />
-              Guia das 5 Cartas do Coup
-            </h3>
+        <div className="court-scrim">
+          <div className="court-modal is-gold is-wide">
+            <div className="court-modal-scroll text-left">
+              <span className="court-crest">
+                <span>As cinco cartas</span>
+              </span>
 
-            <div className="space-y-3 flex-1 min-h-0 overflow-y-auto pr-1">
-              {(Object.keys(CHARACTER_INFO) as Character[]).map(charKey => {
-                const info = CHARACTER_INFO[charKey];
-                return (
-                  <div key={charKey} className="flex gap-4 p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-                    <img src={info.image} alt={info.name} className="w-14 h-20 object-cover rounded-lg border border-amber-500/30" />
-                    <div className="flex-1 text-xs">
-                      <h4 className="font-extrabold text-amber-400 text-sm uppercase">{info.name}</h4>
-                      <p className="text-slate-300 mt-1">{info.description}</p>
-                      {info.action && (
-                        <span className="inline-block mt-1.5 mr-2 px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-300 font-semibold">
-                          Ação: {info.action}
-                        </span>
-                      )}
-                      {info.block && (
-                        <span className="inline-block mt-1.5 px-2 py-0.5 rounded bg-blue-950 border border-blue-500/40 text-blue-300 font-semibold">
-                          {info.block}
-                        </span>
-                      )}
+              <div className="space-y-2.5 mt-4">
+                {(Object.keys(CHARACTER_INFO) as Character[]).map(charKey => {
+                  const info = CHARACTER_INFO[charKey];
+                  return (
+                    <div
+                      key={charKey}
+                      className="flex gap-3.5 p-2.5 rounded-[3px] bg-[rgba(6,8,13,0.5)] border border-[rgba(201,180,140,0.14)]"
+                    >
+                      <img
+                        src={info.image}
+                        alt={info.name}
+                        className="w-14 h-20 object-cover rounded-[3px] border border-[rgba(224,169,46,0.3)] shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="court-act-name">{info.name}</h4>
+                        <p className="text-xs text-slate-400 mt-0.5 leading-snug">{info.description}</p>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {info.action && <span className="court-tag is-act">{info.action}</span>}
+                          {info.block && <span className="court-tag is-def">{info.block}</span>}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
 
-            <button
-              onClick={() => {
-                sound.playClick();
-                setShowCheatSheet(false);
-              }}
-              className="w-full mt-6 py-2.5 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm shrink-0"
-            >
-              Fechar Guia
-            </button>
+              <div className="court-modal-acts">
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    setShowCheatSheet(false);
+                  }}
+                  className="court-btn is-stone"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

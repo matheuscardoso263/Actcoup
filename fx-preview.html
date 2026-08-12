@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/styles/court.css">
     <link rel="stylesheet" href="/src/styles/cinematic.css">
     <link rel="stylesheet" href="/src/styles/game-fx.css">
     <link rel="stylesheet" href="/src/styles/victory.css">
@@ -114,11 +115,96 @@
         </div>`;
       }
 
-      const html =
-        scene === 'block' ? block()
-        : scene === 'victory' ? victory(true)
-        : scene === 'victory-other' ? victory(false)
-        : duel(scene);
+      /* --- Decretos (as janelas de decisão) --------------------- */
+
+      const skull = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.5rem;height:1.5rem"><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><path d="M8 20v2h8v-2"/><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M16 20a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20"/></svg>';
+      const alarm = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.5rem;height:1.5rem"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>';
+
+      function decree(tone, icon, title, say, stake, acts, wide) {
+        return `
+        <div class="court-scrim">
+          <div class="court-modal is-${tone}${wide ? ' is-wide' : ''}">
+            <div class="court-modal-scroll">
+              <span class="court-seal">${icon}</span>
+              <h3 class="court-modal-title">${title}</h3>
+              <p class="court-modal-say">${say}</p>
+              <div class="court-stake">${stake}</div>
+              <div class="court-modal-acts">${acts}</div>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      const challengeModal = () => decree(
+        'crimson', alarm, 'Acredita nele?',
+        '<strong>Guilherme</strong> declarou ser <em>Duque</em>.',
+        'Se duvidar e ele <strong>não tiver Duque</strong>, ele perde uma influência. Se tiver, quem perde é <strong>você</strong>.',
+        '<button class="court-btn is-crimson">Duvidar</button><button class="court-btn is-stone">Deixar passar</button>'
+      );
+
+      const blockModal = () => decree(
+        'slate', shield.replace('viewBox', 'style="width:1.5rem;height:1.5rem" viewBox'), 'Quer bloquear?',
+        '<strong>Matheus</strong> está fazendo <em>Roubar</em>.',
+        'Bloquear é <strong>alegar uma carta</strong>. Se alguém duvidar e você não tiver, perde uma influência.',
+        `<span class="court-label is-tight" style="margin-bottom:.2rem">Bloquear como</span>
+         <button class="court-pick is-on"><span style="font-weight:600;font-size:.875rem">Capitão</span></button>
+         <button class="court-pick"><span style="font-weight:600;font-size:.875rem">Embaixador</span></button>
+         <button class="court-btn is-gold" style="margin-top:.5rem">Bloquear</button>
+         <button class="court-btn is-stone">Permitir</button>`
+      );
+
+      const lossModal = () => decree(
+        'crimson', skull, 'Você perde uma influência',
+        'Seu blefe foi desmascarado por Beatriz.',
+        'A carta escolhida é <strong>revelada para todos</strong> e sai do jogo. A outra continua sua, e ninguém sabe qual é.',
+        '<button class="court-btn is-crimson">Revelar esta carta</button>'
+      );
+
+      const targetModal = () => `
+        <div class="court-scrim">
+          <div class="court-modal is-gold">
+            <div class="court-modal-scroll">
+              <span class="court-seal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:1.5rem;height:1.5rem"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg></span>
+              <h3 class="court-modal-title">Contra quem?</h3>
+              <p class="court-modal-say">Escolha quem sofre <em>Assassinar</em>.</p>
+              <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:1.25rem">
+                ${[['Bot Arthur', 4], ['Beatriz', 7], ['Matheus', 2]].map(([n, c], i) => `
+                  <button class="court-pick ${i === 1 ? 'is-on' : ''}">
+                    <span style="font-weight:600;font-size:.875rem">${n}</span>
+                    <span class="court-pick-coins">${c} moedas</span>
+                  </button>`).join('')}
+              </div>
+              <div class="court-modal-acts is-row">
+                <button class="court-btn is-stone">Voltar</button>
+                <button class="court-btn is-gold">Confirmar</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      const waitModal = () => `
+        <div class="court-scrim is-soft">
+          <div class="court-modal is-gold is-slim">
+            <div class="court-modal-scroll">
+              <span class="court-wait-dots"><i></i><i></i><i></i></span>
+              <p class="court-label is-tight" style="margin-top:.75rem">A mesa decide · falta</p>
+              <span class="court-wait-who">Beatriz, Matheus</span>
+            </div>
+          </div>
+        </div>`;
+
+      const scenes = {
+        block: block,
+        victory: () => victory(true),
+        'victory-other': () => victory(false),
+        challenge: challengeModal,
+        'block-modal': blockModal,
+        loss: lossModal,
+        target: targetModal,
+        wait: waitModal
+      };
+
+      const html = scenes[scene] ? scenes[scene]() : duel(scene);
       document.getElementById('fx').innerHTML = html;
 
       // Congela todas as animações no instante pedido, para poder fotografar

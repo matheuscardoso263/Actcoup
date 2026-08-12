@@ -1,0 +1,1500 @@
+/* ============================================================
+   A CORTE — linguagem visual das interfaces.
+
+   As cutscenes já falavam carmim/ouro/pedra (cinematic.css e
+   victory.css); as telas de interface ainda falavam roxo/ciano
+   de template. Este arquivo é o vocabulário comum: as cores
+   saem da arte das cartas, não da paleta padrão do Tailwind.
+
+   Referência é o próprio retrato do Duque: fundo ardósia fria,
+   pedra entalhada morna, ouro do medalhão e o carmim do brasão.
+   ============================================================ */
+
+:root {
+  /* Tinta — o breu do salão */
+  --court-ink: #080a10;
+  --court-ink-2: #0e111a;
+
+  /* Ardósia — o fundo dos retratos */
+  --court-slate: #39414f;
+  --court-slate-deep: #1b202b;
+
+  /* Pedra entalhada — os arcos atrás dos nobres */
+  --court-stone: #c9b48c;
+  --court-stone-dim: #8a7857;
+
+  /* Ouro — o medalhão e as moedas */
+  --court-gold: #e0a92e;
+  --court-gold-hi: #f7dd8a;
+  --court-gold-dim: #8a5f14;
+
+  /* Carmim — o brasão em estrela e a tarja do nome */
+  --court-crimson: #c8102e;
+  --court-crimson-hi: #e8324b;
+  --court-crimson-deep: #6f0a1a;
+}
+
+/* ============================================================
+   1. O SALÃO — fundo das telas
+   Sem "blobs" desfocados: a luz vem de cima, como numa sala com
+   candelabro, e a pedra escurece nos cantos.
+   ============================================================ */
+
+.court-screen {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -8%, rgba(224, 169, 46, 0.16) 0%, transparent 62%),
+    radial-gradient(ellipse 60% 50% at 12% 105%, rgba(111, 10, 26, 0.28) 0%, transparent 68%),
+    linear-gradient(178deg, #141926 0%, var(--court-ink-2) 46%, var(--court-ink) 100%);
+}
+
+/* Textura de pedra: duas tramas cruzadas em ângulos diferentes,
+   grandes o bastante para não virar padrão visível. Substitui o
+   "backdrop-blur" — a superfície é matéria, não vidro. */
+.court-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(
+      64deg,
+      rgba(201, 180, 140, 0.028) 0px,
+      rgba(201, 180, 140, 0.028) 1px,
+      transparent 1px,
+      transparent 7px
+    ),
+    repeating-linear-gradient(
+      -18deg,
+      rgba(8, 10, 16, 0.35) 0px,
+      rgba(8, 10, 16, 0.35) 2px,
+      transparent 2px,
+      transparent 11px
+    );
+}
+
+/* Vinheta: fecha as bordas para o olho cair no centro. */
+.court-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 78% 72% at 50% 42%, transparent 40%, rgba(3, 4, 8, 0.72) 100%);
+}
+
+.court-stage {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   2. O BRASÃO — a tarja carmim
+   Device tirado da própria carta: a faixa angular com hachuras
+   que segura o nome do personagem. É a assinatura gráfica do
+   jogo, então é ela que marca seção aqui também.
+   ============================================================ */
+
+.court-crest {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.34rem 1.6rem 0.34rem 0.85rem;
+  /* Ponta cortada à direita, como na tarja da carta. */
+  clip-path: polygon(0 0, 100% 0, calc(100% - 0.85rem) 100%, 0 100%);
+  background: linear-gradient(
+    177deg,
+    var(--court-crimson-hi) 0%,
+    var(--court-crimson) 52%,
+    var(--court-crimson-deep) 100%
+  );
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(0.55rem, 1.15vw, 0.68rem);
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #ffe9ec;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 6px 18px rgba(111, 10, 26, 0.45);
+}
+
+/* As hachuras diagonais, presas na metade esquerda da tarja. */
+.court-crest::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    -58deg,
+    rgba(255, 255, 255, 0.16) 0px,
+    rgba(255, 255, 255, 0.16) 1.5px,
+    transparent 1.5px,
+    transparent 6px
+  );
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, transparent 58%);
+  mask-image: linear-gradient(90deg, #000 0%, transparent 58%);
+}
+
+.court-crest > * {
+  position: relative;
+}
+
+/* ============================================================
+   3. PLACA — o painel de conteúdo
+   Borda de pedra e fundo de ardósia, com um fio de ouro no topo
+   pegando a luz do candelabro. Nada de vidro fosco.
+   ============================================================ */
+
+.court-plate {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(57, 65, 79, 0.42) 0%, rgba(27, 32, 43, 0.86) 38%, rgba(10, 12, 19, 0.94) 100%);
+  border: 1px solid rgba(201, 180, 140, 0.2);
+  border-radius: 4px;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.66),
+    inset 0 1px 0 rgba(247, 221, 138, 0.14);
+}
+
+/* Fio de luz correndo no topo da placa. */
+.court-plate::before {
+  content: '';
+  position: absolute;
+  /* Recuado dos cantos para o fio não vazar pelo raio da borda. */
+  inset: 0 auto auto 8px;
+  width: calc(100% - 16px);
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(224, 169, 46, 0.75) 22%,
+    rgba(247, 221, 138, 0.95) 50%,
+    rgba(224, 169, 46, 0.75) 78%,
+    transparent 100%
+  );
+}
+
+/* Cantoneiras: dois cantos marcados em ouro, como ferragem de
+   moldura. Só nos opostos — marcar os quatro vira moldura de
+   certificado. */
+.court-plate-corner {
+  position: absolute;
+  width: 0.85rem;
+  height: 0.85rem;
+  pointer-events: none;
+  border: 1px solid rgba(224, 169, 46, 0.55);
+}
+
+.court-plate-corner.is-tl {
+  top: 0.45rem;
+  left: 0.45rem;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.court-plate-corner.is-br {
+  right: 0.45rem;
+  bottom: 0.45rem;
+  border-top: 0;
+  border-left: 0;
+}
+
+/* ============================================================
+   4. TIPOGRAFIA
+   ============================================================ */
+
+/* Rótulo miúdo — o mesmo tratamento das legendas da carta. */
+.court-label {
+  display: block;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(0.56rem, 1.1vw, 0.68rem);
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(201, 180, 140, 0.62);
+}
+
+/* Estas folhas não entram em @layer, e no cascade CSS o que está
+   fora de camada ganha das camadas — inclusive de `utilities` do
+   Tailwind. Então variante de display vira classe daqui, senão um
+   `flex` na marcação perderia em silêncio para o `block` acima. */
+.court-label.is-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  letter-spacing: 0.18em;
+}
+
+.court-label.is-tight {
+  letter-spacing: 0.18em;
+}
+
+/* Título de tela. Outfit 900 com tracking negativo: a arte da
+   carta usa uma sans pesada, então o display acompanha em vez
+   de ir buscar um serifado que brigaria com o retrato. */
+.court-title {
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  color: var(--court-gold-hi);
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.75));
+}
+
+/* O gradiente só entra onde background-clip funciona; a cor
+   sólida acima é o que garante que o título nunca suma. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .court-title {
+    background: linear-gradient(176deg, #fffdf6 0%, var(--court-gold-hi) 36%, var(--court-gold) 62%, #7c4d0c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* O código da sala. Mesmo ouro do título, mas monoespaçado e aberto:
+   é um dado para ditar em voz alta, não um cabeçalho. Classe própria
+   em vez de `court-title` + utilitários, pelo mesmo motivo de camada
+   explicado acima. */
+.court-code {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: clamp(1.9rem, 6.5vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  color: var(--court-gold-hi);
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.75));
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .court-code {
+    background: linear-gradient(176deg, #fffdf6 0%, var(--court-gold-hi) 40%, var(--court-gold) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Linha — rótulo — linha. Um componente só, para não precisar
+   inverter régua com scaleX na marcação. */
+.court-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.court-divider::before,
+.court-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 180, 140, 0.32));
+}
+
+.court-divider::after {
+  background: linear-gradient(90deg, rgba(201, 180, 140, 0.32), transparent);
+}
+
+.court-lede {
+  font-size: clamp(0.9rem, 1.5vw, 1.08rem);
+  line-height: 1.55;
+  color: rgba(226, 232, 240, 0.62);
+}
+
+.court-lede strong {
+  font-weight: 700;
+  color: var(--court-stone);
+}
+
+/* Régua de pedra com losango central. */
+.court-rule {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 180, 140, 0.42), transparent);
+}
+
+.court-rule::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--court-gold);
+  box-shadow: 0 0 10px rgba(224, 169, 46, 0.7);
+}
+
+/* Variante alinhada à esquerda: o losango vai para a ponta. */
+.court-rule.is-start {
+  background: linear-gradient(90deg, rgba(201, 180, 140, 0.5), transparent 72%);
+}
+
+.court-rule.is-start::after {
+  left: 0;
+}
+
+/* ============================================================
+   5. CAMPOS
+   ============================================================ */
+
+.court-field {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #f4ede0;
+  background: rgba(6, 8, 13, 0.72);
+  border: 1px solid rgba(201, 180, 140, 0.22);
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+}
+
+.court-field::placeholder {
+  color: rgba(201, 180, 140, 0.3);
+}
+
+.court-field:focus {
+  background: rgba(10, 13, 20, 0.86);
+  border-color: rgba(224, 169, 46, 0.75);
+  box-shadow: 0 0 0 3px rgba(224, 169, 46, 0.12), inset 0 0 22px rgba(224, 169, 46, 0.06);
+}
+
+/* O código da sala é dado para ler em voz alta — monoespaçado e
+   espaçado, para não confundir letra com número. */
+.court-field.is-code {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.42em;
+  text-align: center;
+  text-indent: 0.42em;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   6. BOTÕES
+   Sem "hover: sobe 2px e brilha" — o clique é de selo, não de
+   card flutuante: escurece, o ouro acende e a peça afunda.
+   ============================================================ */
+
+.court-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 3px;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(0.72rem, 1.4vw, 0.84rem);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.18s, border-color 0.18s, box-shadow 0.18s, color 0.18s, transform 0.08s;
+}
+
+.court-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Botão de apoio — copiar código, sair. Variante daqui em vez de
+   utilitário com `!`, que nesta versão do Tailwind é sufixo e
+   passaria batido. */
+.court-btn.is-compact {
+  padding: 0.45rem 0.7rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  gap: 0.35rem;
+}
+
+.court-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+  filter: grayscale(0.45);
+}
+
+/* Primário — o ouro batido do medalhão. */
+.court-btn.is-gold {
+  color: #2a1c05;
+  background: linear-gradient(178deg, var(--court-gold-hi) 0%, var(--court-gold) 46%, #b07d18 100%);
+  border-color: rgba(247, 221, 138, 0.85);
+  box-shadow: 0 10px 26px rgba(138, 95, 20, 0.4), inset 0 1px 0 rgba(255, 253, 246, 0.7);
+  text-shadow: 0 1px 0 rgba(255, 250, 235, 0.35);
+}
+
+.court-btn.is-gold:hover:not(:disabled) {
+  background: linear-gradient(178deg, #fffdf6 0%, var(--court-gold-hi) 46%, var(--court-gold) 100%);
+  box-shadow: 0 12px 34px rgba(224, 169, 46, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* Secundário — pedra. Para o que não é a ação principal. */
+.court-btn.is-stone {
+  color: rgba(201, 180, 140, 0.9);
+  background: linear-gradient(180deg, rgba(57, 65, 79, 0.55), rgba(16, 20, 28, 0.85));
+  border-color: rgba(201, 180, 140, 0.28);
+}
+
+.court-btn.is-stone:hover:not(:disabled) {
+  color: var(--court-gold-hi);
+  border-color: rgba(224, 169, 46, 0.6);
+  background: linear-gradient(180deg, rgba(70, 79, 96, 0.6), rgba(20, 25, 35, 0.9));
+}
+
+/* Carmim — golpe, saída, o que tem consequência. */
+.court-btn.is-crimson {
+  color: #ffe4e6;
+  background: linear-gradient(178deg, var(--court-crimson) 0%, var(--court-crimson-deep) 100%);
+  border-color: rgba(232, 50, 75, 0.5);
+}
+
+.court-btn.is-crimson:hover:not(:disabled) {
+  color: #fff;
+  border-color: rgba(232, 50, 75, 0.9);
+  box-shadow: 0 10px 28px rgba(111, 10, 26, 0.55);
+}
+
+/* ============================================================
+   7. A MÃO — o herói da tela de entrada
+   Cinco retratos abertos em leque. É o que o jogo tem de mais
+   característico: a mão que ninguém mais vê.
+
+   Três camadas aninhadas, mesmo truque das moedas em voo: a
+   pose do leque é estática por fora, a entrada anima no meio e
+   o hover mexe só na de dentro. Empilhar tudo num transform só
+   faria a animação de entrada travar o hover para sempre.
+   ============================================================ */
+
+.court-fan {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  /* A sobreposição vem da margem negativa de cada carta, e não de
+     `gap` — gap não aceita valor negativo. */
+  padding-top: 2.5rem;
+}
+
+.court-fan-card {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  margin-inline: clamp(-1.6rem, -2.2vw, -0.9rem);
+  /* Pose final do leque — estática, vem das custom properties. */
+  transform: rotate(var(--rot)) translateY(var(--lift));
+  transform-origin: bottom center;
+}
+
+.court-fan-drop {
+  display: block;
+  animation: courtFanIn 0.72s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms) both;
+}
+
+@keyframes courtFanIn {
+  from {
+    opacity: 0;
+    transform: translateY(34px) rotate(6deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+.court-fan-face {
+  display: block;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 180, 140, 0.25);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s, border-color 0.3s;
+}
+
+/* Sem isto o retrato que sobe continua sendo pintado por baixo dos
+   vizinhos da direita, que vêm depois na marcação. */
+.court-fan-card:hover {
+  z-index: 3;
+}
+
+.court-fan-card:hover .court-fan-face {
+  transform: translateY(-1.1rem);
+  border-color: rgba(224, 169, 46, 0.7);
+  box-shadow: 0 26px 56px rgba(0, 0, 0, 0.78), 0 0 34px rgba(224, 169, 46, 0.25);
+}
+
+/* A altura manda, mas a largura também precisa opinar: cinco retratos
+   lado a lado num celular estouram a linha se só o vh decidir. O
+   min() deixa o eixo mais apertado ganhar. */
+.court-fan-face img {
+  display: block;
+  height: clamp(6rem, min(23vh, 17vw), 14rem);
+  width: auto;
+}
+
+/* O nome só aparece quando o retrato sobe: o leque parado é
+   imagem, não legenda. */
+.court-fan-name {
+  position: absolute;
+  left: 50%;
+  bottom: -1.4rem;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--court-gold-hi);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.court-fan-card:hover .court-fan-name {
+  opacity: 1;
+}
+
+/* ============================================================
+   8. ASSENTOS — a lista de jogadores da sala de espera
+   ============================================================ */
+
+.court-seat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(27, 32, 43, 0.75), rgba(10, 12, 19, 0.5));
+  border: 1px solid rgba(201, 180, 140, 0.14);
+  border-left: 2px solid rgba(201, 180, 140, 0.28);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+/* O seu assento é o único com o carmim na borda. */
+.court-seat.is-me {
+  background: linear-gradient(90deg, rgba(111, 10, 26, 0.34), rgba(10, 12, 19, 0.5));
+  border-color: rgba(200, 16, 46, 0.34);
+  border-left-color: var(--court-crimson);
+}
+
+.court-seat.is-empty {
+  background: rgba(6, 8, 13, 0.35);
+  border-style: dashed;
+  border-left-style: dashed;
+  border-color: rgba(201, 180, 140, 0.12);
+}
+
+/* Sinete com a inicial — o lugar do lacre na cadeira. */
+.court-sigil {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--court-gold-hi);
+  background: radial-gradient(circle at 34% 28%, rgba(57, 65, 79, 0.9), rgba(8, 10, 16, 0.95));
+  border: 1px solid rgba(224, 169, 46, 0.4);
+  box-shadow: inset 0 1px 0 rgba(247, 221, 138, 0.2);
+}
+
+.court-seat.is-me .court-sigil {
+  color: #ffe4e6;
+  border-color: rgba(232, 50, 75, 0.6);
+  background: radial-gradient(circle at 34% 28%, rgba(160, 20, 44, 0.85), rgba(30, 4, 10, 0.95));
+}
+
+/* Selo de papel — anfitrião, IA, ausente. */
+.court-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 2px;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.court-tag.is-host {
+  color: var(--court-gold-hi);
+  background: rgba(138, 95, 20, 0.22);
+  border-color: rgba(224, 169, 46, 0.42);
+}
+
+.court-tag.is-bot {
+  color: rgba(201, 180, 140, 0.75);
+  background: rgba(57, 65, 79, 0.45);
+  border-color: rgba(201, 180, 140, 0.24);
+}
+
+/* Guia das cartas: o que a carta faz e o que ela impede. */
+.court-tag.is-act {
+  color: var(--court-gold-hi);
+  background: rgba(138, 95, 20, 0.2);
+  border-color: rgba(224, 169, 46, 0.38);
+}
+
+.court-tag.is-def {
+  color: rgba(201, 180, 140, 0.8);
+  background: rgba(57, 65, 79, 0.45);
+  border-color: rgba(201, 180, 140, 0.26);
+}
+
+.court-tag.is-away {
+  color: rgba(232, 120, 140, 0.9);
+  background: rgba(111, 10, 26, 0.28);
+  border-color: rgba(200, 16, 46, 0.4);
+}
+
+/* ============================================================
+   9. AVISOS
+   ============================================================ */
+
+.court-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  color: #ffd9de;
+  background: linear-gradient(90deg, rgba(111, 10, 26, 0.55), rgba(40, 6, 14, 0.4));
+  border: 1px solid rgba(200, 16, 46, 0.45);
+  border-left: 3px solid var(--court-crimson);
+  animation: courtAlertIn 0.24s ease-out both;
+}
+
+@keyframes courtAlertIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   10. ENTRADA DA TELA
+   Um movimento só, escalonado. O aviso do skill vale aqui: em
+   tela de interface, animação sobrando é o que faz parecer
+   gerada por IA — então é uma subida discreta e acabou.
+   ============================================================ */
+
+.court-rise {
+  animation: courtRise 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms) both;
+}
+
+@keyframes courtRise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   11. Acessibilidade
+   Estas animações terminam visíveis, então colapsar a duração
+   já entrega o estado final correto — diferente das cutscenes,
+   que terminam transparentes e precisam de tratamento próprio.
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .court-rise,
+  .court-fan-drop,
+  .court-alert {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+
+  .court-fan-face,
+  .court-fan-name,
+  .court-btn,
+  .court-field {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   12. DECRETOS — as janelas de decisão
+
+   Antes cada estado escolhia uma cor do Tailwind: âmbar, vermelho,
+   ciano, azul, roxo, rosa, índigo. Sete matizes para três coisas.
+   A corte só distingue três: o ouro é a sua vez de decidir, o
+   carmim é o que tem consequência, a ardósia é defesa.
+   ============================================================ */
+
+.court-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(3, 4, 8, 0.82);
+  animation: courtScrimIn 0.2s ease-out both;
+}
+
+@keyframes courtScrimIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Espera não é decisão: o véu abre pouco, para a mesa continuar
+   legível atrás enquanto os outros pensam. */
+.court-scrim.is-soft {
+  background: rgba(3, 4, 8, 0.42);
+}
+
+.court-modal {
+  position: relative;
+  width: 100%;
+  max-width: 32rem;
+  max-height: 90dvh;
+  /* A moldura não rola: quem rola é o miolo. Sem esta separação o
+     fio de luz do topo (::before) sobe junto com o conteúdo e some
+     assim que a janela precisa de rolagem. */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 4px;
+  text-align: center;
+  background:
+    linear-gradient(180deg, rgba(57, 65, 79, 0.4) 0%, rgba(24, 29, 39, 0.94) 40%, rgba(8, 10, 16, 0.97) 100%);
+  border: 1px solid rgba(201, 180, 140, 0.22);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  animation: courtModalIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes courtModalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.court-modal.is-wide {
+  max-width: 46rem;
+}
+
+.court-modal.is-slim {
+  max-width: 26rem;
+}
+
+.court-modal-scroll {
+  overflow-y: auto;
+  padding: clamp(1.25rem, 3vh, 1.75rem);
+}
+
+.court-modal.is-slim .court-modal-scroll {
+  padding: clamp(1rem, 2.4vh, 1.4rem);
+}
+
+/* O fio de luz no topo é quem carrega o tom da janela. */
+.court-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 8px;
+  width: calc(100% - 16px);
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--tone, var(--court-gold)) 50%, transparent);
+}
+
+.court-modal.is-gold {
+  --tone: var(--court-gold-hi);
+  --tone-dim: rgba(224, 169, 46, 0.42);
+}
+
+.court-modal.is-crimson {
+  --tone: var(--court-crimson-hi);
+  --tone-dim: rgba(200, 16, 46, 0.45);
+  border-color: rgba(200, 16, 46, 0.34);
+}
+
+.court-modal.is-slate {
+  --tone: var(--court-stone);
+  --tone-dim: rgba(201, 180, 140, 0.4);
+}
+
+/* --- Cabeça do decreto --------------------------------------- */
+
+/* Sinete: o ícone dentro de um anel, sem o "círculo colorido com
+   ícone quicando" — o anel é fino e a peça fica parada. */
+.court-seal {
+  display: inline-grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  color: var(--tone);
+  background: radial-gradient(circle at 36% 30%, rgba(57, 65, 79, 0.7), rgba(6, 8, 13, 0.9));
+  border: 1px solid var(--tone-dim);
+  box-shadow: 0 0 24px -6px var(--tone-dim), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.court-modal-title {
+  margin-top: 0.85rem;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(1.15rem, 3vw, 1.5rem);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--tone);
+}
+
+/* A frase do que foi declarado — o dado que a decisão exige. */
+.court-modal-say {
+  margin-top: 0.5rem;
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
+  line-height: 1.5;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.court-modal-say strong {
+  font-weight: 800;
+  color: #f4ede0;
+}
+
+.court-modal-say em {
+  font-style: normal;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tone);
+}
+
+/* O que está em jogo. Faltava: o botão dizia "acredita que é
+   mentira" sem nunca dizer o preço de errar. */
+.court-stake {
+  margin-top: 0.9rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 3px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: left;
+  color: rgba(201, 180, 140, 0.78);
+  background: rgba(6, 8, 13, 0.5);
+  border-left: 2px solid var(--tone-dim);
+}
+
+.court-stake strong {
+  color: var(--tone);
+  font-weight: 700;
+}
+
+.court-modal-acts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.15rem;
+}
+
+.court-modal-acts.is-row {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+/* --- Escolha de alvo / opção --------------------------------- */
+
+.court-pick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 3px;
+  text-align: left;
+  cursor: pointer;
+  /* <button> não herda fonte do documento; sem isto a linha sai na
+     fonte padrão do sistema no meio de tudo em Inter. */
+  font-family: inherit;
+  font-size: inherit;
+  color: rgba(226, 232, 240, 0.82);
+  background: rgba(6, 8, 13, 0.55);
+  border: 1px solid rgba(201, 180, 140, 0.16);
+  border-left: 2px solid rgba(201, 180, 140, 0.22);
+  transition: border-color 0.16s, background 0.16s, color 0.16s;
+}
+
+.court-pick:hover:not(:disabled) {
+  border-color: rgba(224, 169, 46, 0.4);
+  background: rgba(20, 25, 35, 0.7);
+}
+
+.court-pick.is-on {
+  color: #fffdf6;
+  background: linear-gradient(90deg, rgba(138, 95, 20, 0.32), rgba(10, 12, 19, 0.5));
+  border-color: rgba(224, 169, 46, 0.55);
+  border-left-color: var(--court-gold);
+}
+
+.court-pick:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.court-pick-coins {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--court-gold);
+  white-space: nowrap;
+}
+
+/* --- Espera --------------------------------------------------- */
+
+/* Três pontos acendendo em sequência. Substitui o spinner: ali a
+   roda gira sem dizer nada, e o que importa é quem falta responder. */
+.court-wait-dots {
+  display: inline-flex;
+  gap: 0.32rem;
+}
+
+.court-wait-dots i {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--tone, var(--court-gold));
+  opacity: 0.25;
+  animation: courtWaitDot 1.35s ease-in-out infinite;
+}
+
+.court-wait-dots i:nth-child(2) { animation-delay: 0.18s; }
+.court-wait-dots i:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes courtWaitDot {
+  0%, 70%, 100% { opacity: 0.25; transform: translateY(0); }
+  35%           { opacity: 1;    transform: translateY(-3px); }
+}
+
+.court-wait-who {
+  display: block;
+  margin-top: 0.5rem;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f4ede0;
+}
+
+/* --- Acessibilidade ------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .court-scrim,
+  .court-modal {
+    animation-duration: 0.01ms !important;
+  }
+
+  .court-wait-dots i {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* ============================================================
+   13. A MESA
+
+   O tabuleiro herda o mesmo salão das outras telas. As ações
+   deixam de ter uma cor cada (eram seis matizes para seis
+   botões) e passam a se agrupar pelo que o jogo cobra delas:
+   alegar um personagem é o que pode ser desafiado, e é isso
+   que precisa estar visível antes do clique.
+   ============================================================ */
+
+.court-table {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+  user-select: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 42%, rgba(57, 65, 79, 0.34) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(224, 169, 46, 0.09) 0%, transparent 60%),
+    linear-gradient(178deg, #10141e 0%, var(--court-ink-2) 50%, var(--court-ink) 100%);
+}
+
+/* Feltro: trama fina, só para a superfície não ser um degradê liso. */
+.court-table::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(52deg, rgba(201, 180, 140, 0.022) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(-38deg, rgba(0, 0, 0, 0.3) 0 2px, transparent 2px 9px);
+}
+
+/* --- Barra superior ------------------------------------------ */
+
+.court-bar {
+  position: relative;
+  z-index: 20;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem clamp(0.75rem, 2vw, 2.5rem);
+  background: linear-gradient(180deg, rgba(24, 29, 39, 0.95), rgba(10, 12, 19, 0.9));
+  border-bottom: 1px solid rgba(201, 180, 140, 0.16);
+}
+
+.court-bar-code {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  padding: 0.28rem 0.6rem;
+  border-radius: 2px;
+  color: var(--court-gold-hi);
+  background: rgba(6, 8, 13, 0.7);
+  border: 1px solid rgba(224, 169, 46, 0.28);
+}
+
+/* --- Faixa de status ----------------------------------------- */
+
+.court-status {
+  position: relative;
+  padding: 0.45rem 1rem;
+  border-radius: 3px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(27, 32, 43, 0.9), rgba(10, 12, 19, 0.85));
+  border: 1px solid rgba(201, 180, 140, 0.18);
+  border-left: 3px solid var(--tone, rgba(201, 180, 140, 0.4));
+}
+
+.court-status.is-mine {
+  --tone: var(--court-gold);
+  background: linear-gradient(90deg, rgba(138, 95, 20, 0.28), rgba(10, 12, 19, 0.85));
+  border-color: rgba(224, 169, 46, 0.4);
+}
+
+.court-status.is-out {
+  --tone: var(--court-crimson);
+  background: linear-gradient(90deg, rgba(111, 10, 26, 0.34), rgba(10, 12, 19, 0.85));
+}
+
+.court-status-say {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(0.82rem, 1.6vw, 1rem);
+  font-weight: 700;
+  color: #f4ede0;
+}
+
+.court-status.is-mine .court-status-say {
+  color: var(--court-gold-hi);
+}
+
+.court-status.is-out .court-status-say {
+  color: #ffb3bd;
+}
+
+/* --- Painel de oponente -------------------------------------- */
+
+.court-seat-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(0.5rem, 1.4vh, 0.9rem);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(41, 48, 60, 0.6), rgba(10, 12, 19, 0.8));
+  border: 1px solid rgba(201, 180, 140, 0.16);
+  transition: border-color 0.25s, box-shadow 0.25s, opacity 0.25s;
+}
+
+/* Quem está jogando ganha a borda de ouro e uma luz por baixo. Sem
+   `scale`: aumentar o painel empurra os vizinhos e a linha inteira
+   dança a cada troca de vez. */
+.court-seat-panel.is-turn {
+  border-color: rgba(224, 169, 46, 0.75);
+  box-shadow: 0 0 0 1px rgba(224, 169, 46, 0.25), 0 10px 34px -8px rgba(224, 169, 46, 0.4);
+}
+
+.court-seat-panel.is-out {
+  opacity: 0.5;
+  border-color: rgba(111, 10, 26, 0.4);
+}
+
+.court-seat-name {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 14ch;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(0.7rem, 1.3vw, 0.85rem);
+  font-weight: 700;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.court-seat-panel.is-out .court-seat-name {
+  color: rgba(232, 120, 140, 0.8);
+  text-decoration: line-through;
+  text-decoration-color: rgba(200, 16, 46, 0.7);
+}
+
+/* --- Bolsa de moedas ----------------------------------------- */
+
+.court-purse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.18rem 0.65rem;
+  border-radius: 999px;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: clamp(0.68rem, 1.2vw, 0.8rem);
+  font-weight: 700;
+  color: var(--court-gold-hi);
+  background: radial-gradient(ellipse at 30% 25%, rgba(138, 95, 20, 0.5), rgba(6, 8, 13, 0.8));
+  border: 1px solid rgba(224, 169, 46, 0.35);
+}
+
+.court-purse.is-big {
+  padding: 0.3rem 0.85rem;
+  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
+}
+
+/* --- Ações ---------------------------------------------------- */
+
+.court-act {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 3px;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  background: linear-gradient(180deg, rgba(41, 48, 60, 0.5), rgba(10, 12, 19, 0.7));
+  border: 1px solid rgba(201, 180, 140, 0.16);
+  border-left: 2px solid rgba(201, 180, 140, 0.28);
+  transition: border-color 0.16s, background 0.16s, transform 0.08s;
+}
+
+.court-act:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(57, 65, 79, 0.6), rgba(16, 20, 28, 0.8));
+  border-color: rgba(224, 169, 46, 0.45);
+}
+
+.court-act:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.court-act:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
+.court-act-name {
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(0.72rem, 1.3vw, 0.86rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #f4ede0;
+}
+
+.court-act-cost {
+  font-size: clamp(0.58rem, 1vw, 0.68rem);
+  color: rgba(201, 180, 140, 0.6);
+}
+
+/* Ação que alega um personagem: é a que pode ser desafiada, então a
+   alegação fica escrita no botão, em ouro, antes do clique. */
+.court-act.is-claim {
+  border-left-color: var(--court-gold);
+}
+
+.court-act-claim {
+  margin-top: 0.15rem;
+  font-size: clamp(0.52rem, 0.95vw, 0.62rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(224, 169, 46, 0.85);
+}
+
+/* Golpe: ninguém bloqueia, ninguém desafia. */
+.court-act.is-coup {
+  align-items: center;
+  text-align: center;
+  border-left: 1px solid rgba(200, 16, 46, 0.5);
+  border-color: rgba(200, 16, 46, 0.5);
+  background: linear-gradient(180deg, rgba(111, 10, 26, 0.55), rgba(30, 6, 12, 0.8));
+}
+
+.court-act.is-coup:hover:not(:disabled) {
+  border-color: rgba(232, 50, 75, 0.9);
+  background: linear-gradient(180deg, rgba(140, 14, 34, 0.7), rgba(40, 8, 16, 0.85));
+}
+
+.court-act.is-coup .court-act-name {
+  color: #ffd9de;
+}
+
+/* Com 10+ moedas o golpe é obrigatório: em vez de fazer o botão
+   quicar, a borda pulsa devagar e o rótulo diz a regra. */
+.court-act.is-forced {
+  animation: courtForced 1.9s ease-in-out infinite;
+}
+
+@keyframes courtForced {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0); }
+  50%      { box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.28); }
+}
+
+/* --- Histórico ------------------------------------------------ */
+
+.court-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(27, 32, 43, 0.85), rgba(8, 10, 16, 0.9));
+  border: 1px solid rgba(201, 180, 140, 0.16);
+}
+
+/* O anel de vez (.turn-aura::after) mora em inset: -3px, ou seja, fora
+   da caixa. Num painel com overflow: hidden ele seria recortado e a
+   borda dourada simplesmente não apareceria. */
+.court-panel.is-open {
+  overflow: visible;
+}
+
+.court-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid rgba(201, 180, 140, 0.14);
+  color: rgba(201, 180, 140, 0.75);
+}
+
+.court-log {
+  padding: 0.45rem 0.6rem;
+  border-radius: 2px;
+  line-height: 1.45;
+  color: rgba(226, 232, 240, 0.78);
+  background: rgba(6, 8, 13, 0.5);
+  border-left: 2px solid rgba(201, 180, 140, 0.22);
+}
+
+.court-log.is-challenge {
+  color: #ffd9de;
+  background: rgba(111, 10, 26, 0.24);
+  border-left-color: var(--court-crimson);
+}
+
+.court-log.is-block {
+  color: rgba(226, 232, 240, 0.9);
+  background: rgba(57, 65, 79, 0.35);
+  border-left-color: var(--court-stone);
+}
+
+.court-log.is-elimination {
+  font-weight: 700;
+  color: #ffb3bd;
+  background: rgba(111, 10, 26, 0.4);
+  border-left-color: var(--court-crimson-hi);
+}
+
+.court-log.is-system {
+  font-style: italic;
+  color: rgba(201, 180, 140, 0.5);
+  background: transparent;
+  border-left-color: rgba(201, 180, 140, 0.16);
+}
+
+/* --- Acessibilidade ------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .court-act.is-forced {
+    animation: none;
+    box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.35);
+  }
+}
+
+/* ============================================================
+   14. AS CARTAS
+
+   A arte já é uma carta inteira: o retrato traz o nome na tarja
+   carmim, as duas habilidades e o texto de ambientação. A moldura
+   antiga desenhava por cima um segundo nome e uma segunda
+   descrição em caixas pretas translúcidas — informação repetida
+   tapando a pintura. Aqui a arte fica inteira e a moldura só
+   segura o estado: oculta, escolhida, deposta.
+   ============================================================ */
+
+.court-card {
+  position: relative;
+  flex-shrink: 0;
+  aspect-ratio: 2 / 3;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(201, 180, 140, 0.3);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.6);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s, border-color 0.22s;
+}
+
+.court-card-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.court-card.is-pick {
+  cursor: pointer;
+}
+
+.court-card.is-pick:hover {
+  transform: translateY(-5px);
+  border-color: rgba(224, 169, 46, 0.7);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7), 0 0 26px rgba(224, 169, 46, 0.28);
+}
+
+/* Escolhida: o ouro fecha em volta em vez do `ring` de 4px, que
+   engordava a carta e empurrava as vizinhas. */
+.court-card.is-on {
+  transform: translateY(-7px);
+  border-color: var(--court-gold-hi);
+  box-shadow: 0 0 0 2px rgba(224, 169, 46, 0.7), 0 20px 44px rgba(0, 0, 0, 0.72), 0 0 34px rgba(224, 169, 46, 0.35);
+}
+
+/* --- Deposta --------------------------------------------------- */
+
+/* A carta revelada some de cena sem sumir da mesa: perde a cor,
+   escurece e recebe o carimbo. Antes o estado virava um painel
+   vermelho inclinado cobrindo o retrato inteiro. */
+.court-card.is-down {
+  border-color: rgba(200, 16, 46, 0.55);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+.court-card.is-down .court-card-art {
+  filter: grayscale(0.85) brightness(0.45) contrast(1.05);
+}
+
+.court-card-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-11deg);
+  padding: 0.25em 0.9em;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: 9cqw;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #ff9aa8;
+  border: 2px solid rgba(232, 50, 75, 0.8);
+  border-radius: 2px;
+  background: rgba(50, 6, 14, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* --- Verso ----------------------------------------------------- */
+
+/* Brasão da casa: estrela carmim num anel de ouro sobre ardósia.
+   Era um degradê roxo-índigo com um ícone de olho cortado, que não
+   existe em lugar nenhum da arte do jogo. */
+.court-card-back {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5cqw;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(57, 65, 79, 0.9) 0%, rgba(16, 20, 28, 0.96) 62%),
+    linear-gradient(160deg, #232936, #0b0e15);
+}
+
+/* Trama de losangos, como o verso impresso de um baralho. */
+.court-card-back::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(201, 180, 140, 0.09) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(-45deg, rgba(201, 180, 140, 0.09) 0 1px, transparent 1px 7px);
+}
+
+/* Moldura interna de ouro, recuada da borda. */
+.court-card-back::after {
+  content: '';
+  position: absolute;
+  inset: 4cqw;
+  border: 1px solid rgba(224, 169, 46, 0.28);
+  border-radius: 3px;
+}
+
+.court-card-emblem {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34cqw;
+  height: 34cqw;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, rgba(111, 10, 26, 0.7), rgba(8, 10, 16, 0.9));
+  border: 1.5px solid rgba(224, 169, 46, 0.55);
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.7), 0 0 18px -4px rgba(224, 169, 46, 0.4);
+}
+
+/* A estrela de cinco pontas do brasão, direto em clip-path. */
+.court-card-emblem i {
+  width: 17cqw;
+  height: 17cqw;
+  background: linear-gradient(180deg, var(--court-crimson-hi), var(--court-crimson-deep));
+  clip-path: polygon(
+    50% 0%, 61% 35%, 98% 35%, 68% 57%,
+    79% 91%, 50% 70%, 21% 91%, 32% 57%,
+    2% 35%, 39% 35%
+  );
+}
+
+.court-card-back-word {
+  position: relative;
+  max-width: 84%;
+  text-align: center;
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: 9cqw;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  color: rgba(224, 169, 46, 0.72);
+}
+
+/* Fallback de arte quebrada: aqui entra o nome do personagem, que pode
+   ser bem mais longo que "Coup" e não cabe no mesmo corpo. */
+.court-card-back-word.is-name {
+  font-size: 7cqw;
+  letter-spacing: 0.08em;
+  text-indent: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .court-card {
+    transition-duration: 0.01ms !important;
+  }
+}

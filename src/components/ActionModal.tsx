@@ -3,7 +3,7 @@ import { GameState, Character, CHARACTER_INFO, ACTION_LABELS } from '../types/ga
 import { CardView } from './CardView';
 import { socketService } from '../services/socket';
 import { sound } from '../audio/sound';
-import { ShieldAlert, Sword, Shield, Shuffle, Skull, CheckCircle2, Loader2 } from 'lucide-react';
+import { ShieldAlert, Sword, Shield, Shuffle, Skull, CheckCircle2, Loader2, Crosshair } from 'lucide-react';
 
 interface ActionModalProps {
   gameState: GameState;
@@ -11,6 +11,52 @@ interface ActionModalProps {
   targetActionReq: 'assassinate' | 'steal' | 'coup' | null;
   onCloseTargetReq: () => void;
 }
+
+/* Os três tons da corte. Antes cada janela escolhia uma cor do
+   Tailwind — âmbar, vermelho, ciano, azul, roxo, rosa —, o que dava
+   sete matizes para três significados. Aqui: ouro é a sua vez de
+   decidir, carmim é o que custa influência, ardósia é defesa. */
+type Tone = 'gold' | 'crimson' | 'slate';
+
+/* ============================================================
+   Duas formas cobrem as oito janelas: uma decide, a outra espera.
+   ============================================================ */
+
+const Decree: React.FC<{
+  tone: Tone;
+  icon: React.ReactNode;
+  title: string;
+  wide?: boolean;
+  children: React.ReactNode;
+}> = ({ tone, icon, title, wide, children }) => (
+  <div className="court-scrim">
+    <div className={`court-modal is-${tone}${wide ? ' is-wide' : ''}`}>
+      <div className="court-modal-scroll">
+        <span className="court-seal">{icon}</span>
+        <h3 className="court-modal-title">{title}</h3>
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
+/* Espera não trava a leitura da mesa: véu fraco e cartela curta,
+   porque a informação útil aqui é só quem ainda não respondeu. */
+const Waiting: React.FC<{ tone: Tone; label: string; who: string }> = ({ tone, label, who }) => (
+  <div className="court-scrim is-soft">
+    <div className={`court-modal is-${tone} is-slim`}>
+      <div className="court-modal-scroll">
+        <span className="court-wait-dots">
+          <i />
+          <i />
+          <i />
+        </span>
+        <p className="court-label is-tight mt-3">{label}</p>
+        <span className="court-wait-who">{who}</span>
+      </div>
+    </div>
+  </div>
+);
 
 export function getWaitingPlayerNames(gameState: GameState): string {
   const pending = gameState.pendingAction;
@@ -88,6 +134,13 @@ export const ActionModal: React.FC<ActionModalProps> = ({
   const pendingLoss = gameState.pendingLoss;
   const pendingExchange = gameState.pendingExchange;
 
+  const alert = error && (
+    <div className="court-alert mt-4 text-left">
+      <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0 text-rose-300" />
+      <span>{error}</span>
+    </div>
+  );
+
   // 1. Target Picker Modal
   if (targetActionReq) {
     const aliveTargets = gameState.players.filter(
@@ -110,65 +163,51 @@ export const ActionModal: React.FC<ActionModalProps> = ({
     };
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-        <div className="w-full max-w-lg 2xl:max-w-xl max-h-[90dvh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl">
-          <h3 className="text-xl font-bold text-amber-400 mb-2 flex items-center gap-2">
-            <Sword className="w-5 h-5" />
-            Selecione o Alvo
-          </h3>
-          <p className="text-xs text-slate-400 mb-4">
-            Escolha um jogador para ser afetado pela ação: <span className="uppercase font-bold text-white">{ACTION_LABELS[targetActionReq]}</span>
-          </p>
+      <Decree tone="gold" icon={<Crosshair className="w-6 h-6" />} title="Contra quem?">
+        <p className="court-modal-say">
+          Escolha quem sofre <em>{ACTION_LABELS[targetActionReq]}</em>.
+        </p>
 
-          {error && (
-            <div className="mb-4 p-2.5 rounded-lg bg-red-950/80 border border-red-500/50 text-red-200 text-xs">
-              {error}
-            </div>
-          )}
+        {alert}
 
-          <div className="grid grid-cols-1 gap-2 mb-6 max-h-60 overflow-y-auto pr-1">
-            {aliveTargets.map(target => (
-              <button
-                key={target.id}
-                disabled={isSubmitting}
-                onClick={() => {
-                  sound.playClick();
-                  setSelectedTargetId(target.id);
-                }}
-                className={`flex items-center justify-between p-3 rounded-xl border text-left transition-all ${
-                  selectedTargetId === target.id
-                    ? 'bg-amber-500/20 border-amber-400 text-amber-300 ring-2 ring-amber-400/50'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700'
-                }`}
-              >
-                <div className="font-semibold text-sm">{target.name}</div>
-                <div className="text-xs text-amber-400 font-bold">{target.coins} moedas</div>
-              </button>
-            ))}
-          </div>
-
-          <div className="flex justify-end gap-3">
+        <div className="flex flex-col gap-2 mt-5 max-h-60 overflow-y-auto pr-1">
+          {aliveTargets.map(target => (
             <button
+              key={target.id}
+              disabled={isSubmitting}
               onClick={() => {
                 sound.playClick();
-                onCloseTargetReq();
+                setSelectedTargetId(target.id);
               }}
-              disabled={isSubmitting}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition-all disabled:opacity-50"
+              className={`court-pick ${selectedTargetId === target.id ? 'is-on' : ''}`}
             >
-              Cancelar
+              <span className="font-semibold text-sm truncate">{target.name}</span>
+              <span className="court-pick-coins">{target.coins} moedas</span>
             </button>
-            <button
-              onClick={handleConfirmTarget}
-              disabled={!selectedTargetId || isSubmitting}
-              className="px-6 py-2 rounded-xl font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm shadow-lg disabled:opacity-50 transition-all flex items-center gap-2"
-            >
-              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-              Confirmar Alvo
-            </button>
-          </div>
+          ))}
         </div>
-      </div>
+
+        <div className="court-modal-acts is-row">
+          <button
+            onClick={() => {
+              sound.playClick();
+              onCloseTargetReq();
+            }}
+            disabled={isSubmitting}
+            className="court-btn is-stone"
+          >
+            Voltar
+          </button>
+          <button
+            onClick={handleConfirmTarget}
+            disabled={!selectedTargetId || isSubmitting}
+            className="court-btn is-gold"
+          >
+            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+            Confirmar
+          </button>
+        </div>
+      </Decree>
     );
   }
 
@@ -193,60 +232,45 @@ export const ActionModal: React.FC<ActionModalProps> = ({
       };
 
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-lg 2xl:max-w-xl max-h-[90dvh] overflow-y-auto bg-slate-900 border border-red-500/60 rounded-2xl p-6 shadow-2xl text-center">
-            <div className="inline-flex p-3 rounded-full bg-red-950/60 border border-red-500/40 text-red-400 mb-3 animate-bounce">
-              <Skull className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-extrabold text-red-400 mb-2">Perda de Influência!</h3>
-            <p className="text-sm text-slate-300 mb-6">{pendingLoss.reason}</p>
+        <Decree tone="crimson" icon={<Skull className="w-6 h-6" />} title="Você perde uma influência">
+          <p className="court-modal-say">{pendingLoss.reason}</p>
 
-            {error && (
-              <div className="mb-4 p-2.5 rounded-lg bg-red-950/80 border border-red-500/50 text-red-200 text-xs">
-                {error}
-              </div>
-            )}
+          <div className="court-stake">
+            A carta escolhida é <strong>revelada para todos</strong> e sai do jogo. A outra
+            continua sua, e ninguém sabe qual é.
+          </div>
 
-            <div className="flex justify-center gap-4 mb-6">
-              {unrevealedCards.map(card => (
-                <CardView
-                  key={card.id}
-                  card={card}
-                  selectable={!isSubmitting}
-                  selected={selectedLossCardId === card.id}
-                  onClick={() => !isSubmitting && setSelectedLossCardId(card.id)}
-                  size="md"
-                />
-              ))}
-            </div>
+          {alert}
 
+          <div className="flex justify-center gap-4 mt-5 mb-1">
+            {unrevealedCards.map(card => (
+              <CardView
+                key={card.id}
+                card={card}
+                selectable={!isSubmitting}
+                selected={selectedLossCardId === card.id}
+                onClick={() => !isSubmitting && setSelectedLossCardId(card.id)}
+                size="md"
+              />
+            ))}
+          </div>
+
+          <div className="court-modal-acts">
             <button
               onClick={handleConfirmLoss}
               disabled={!selectedLossCardId || isSubmitting}
-              className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              className="court-btn is-crimson"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-              Revelar Carta Selecionada
+              Revelar esta carta
             </button>
           </div>
-        </div>
+        </Decree>
       );
     } else {
       // Pending loss for OTHER player: Show waiting message
       const targetName = getWaitingPlayerNames(gameState);
-      return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-lg bg-slate-900/90 border border-red-500/40 rounded-2xl p-6 shadow-2xl text-center">
-            <div className="inline-flex p-3 rounded-full bg-red-950/60 border border-red-500/40 text-red-400 mb-3 animate-spin">
-              <Loader2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-red-400 mb-2">Aguardando Revelação de Carta</h3>
-            <p className="text-xs text-slate-300">
-              Aguardando a ação de: <span className="font-bold text-white">{targetName}</span> escolher a carta a ser revelada...
-            </p>
-          </div>
-        </div>
-      );
+      return <Waiting tone="crimson" label="Escolhendo a carta que perde" who={targetName} />;
     }
   }
 
@@ -282,62 +306,48 @@ export const ActionModal: React.FC<ActionModalProps> = ({
       };
 
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-2xl xl:max-w-4xl max-h-[90dvh] overflow-y-auto bg-slate-900 border border-cyan-500/60 rounded-2xl p-6 shadow-2xl text-center">
-            <div className="inline-flex p-3 rounded-full bg-cyan-950/60 border border-cyan-500/40 text-cyan-400 mb-3">
-              <Shuffle className="w-8 h-8" />
-            </div>
-            <h3 className="text-2xl font-extrabold text-cyan-400 mb-2">Troca do Embaixador</h3>
-            <p className="text-sm text-slate-300 mb-6">
-              Escolha <span className="font-bold text-cyan-300">{pendingExchange.keepCount}</span> carta(s) para MANTER. As outras serão devolvidas ao baralho.
-            </p>
+        <Decree tone="gold" icon={<Shuffle className="w-6 h-6" />} title="Troca do Embaixador" wide>
+          <p className="court-modal-say">
+            Fique com <em>{pendingExchange.keepCount}</em>{' '}
+            {pendingExchange.keepCount === 1 ? 'carta' : 'cartas'}. O resto volta para o baralho.
+          </p>
 
-            {error && (
-              <div className="mb-4 p-2.5 rounded-lg bg-red-950/80 border border-red-500/50 text-red-200 text-xs">
-                {error}
-              </div>
-            )}
+          <div className="court-stake">
+            Ninguém viu o que você comprou — trocar ou manter as mesmas cartas é decisão
+            invisível para a mesa.
+          </div>
 
-            <div className="flex flex-wrap justify-center gap-4 mb-6">
-              {allAvailable.map(card => (
-                <CardView
-                  key={card.id}
-                  card={card}
-                  selectable={!isSubmitting}
-                  selected={selectedExchangeCardIds.includes(card.id)}
-                  onClick={() => toggleExchangeCard(card.id)}
-                  size="md"
-                />
-              ))}
-            </div>
+          {alert}
 
+          <div className="flex flex-wrap justify-center gap-4 mt-5 mb-1">
+            {allAvailable.map(card => (
+              <CardView
+                key={card.id}
+                card={card}
+                selectable={!isSubmitting}
+                selected={selectedExchangeCardIds.includes(card.id)}
+                onClick={() => toggleExchangeCard(card.id)}
+                size="md"
+              />
+            ))}
+          </div>
+
+          <div className="court-modal-acts">
             <button
               onClick={handleConfirmExchange}
               disabled={selectedExchangeCardIds.length !== pendingExchange.keepCount || isSubmitting}
-              className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              className="court-btn is-gold"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-              Confirmar Troca ({selectedExchangeCardIds.length}/{pendingExchange.keepCount})
+              Confirmar ({selectedExchangeCardIds.length}/{pendingExchange.keepCount})
             </button>
           </div>
-        </div>
+        </Decree>
       );
     } else {
       // Pending exchange for OTHER player: Show waiting message
       const targetName = getWaitingPlayerNames(gameState);
-      return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-lg bg-slate-900/90 border border-cyan-500/40 rounded-2xl p-6 shadow-2xl text-center">
-            <div className="inline-flex p-3 rounded-full bg-cyan-950/60 border border-cyan-500/40 text-cyan-400 mb-3 animate-spin">
-              <Loader2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-cyan-400 mb-2">Aguardando Troca de Cartas</h3>
-            <p className="text-xs text-slate-300">
-              Aguardando a ação de: <span className="font-bold text-white">{targetName}</span> concluir a troca...
-            </p>
-          </div>
-        </div>
-      );
+      return <Waiting tone="gold" label="Trocando cartas com o baralho" who={targetName} />;
     }
   }
 
@@ -352,19 +362,11 @@ export const ActionModal: React.FC<ActionModalProps> = ({
     if (myResponse || (isActor && pendingAction.stage === 'ACTION_CHALLENGE') || (isActor && pendingAction.stage === 'ACTION_BLOCK' && pendingAction.action === 'foreign_aid')) {
       const waitingNames = getWaitingPlayerNames(gameState);
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-lg bg-slate-900/90 border border-slate-700 rounded-2xl p-6 shadow-2xl text-center">
-            <div className="inline-flex p-3 rounded-full bg-slate-800 border border-slate-700 text-amber-400 mb-3 animate-spin">
-              <Loader2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-amber-400 mb-2">
-              {myResponse ? 'Sua resposta foi registrada!' : 'Ação Declarada'}
-            </h3>
-            <p className="text-xs text-slate-300">
-              Aguardando a ação de: <span className="font-bold text-white">{waitingNames}</span>...
-            </p>
-          </div>
-        </div>
+        <Waiting
+          tone="gold"
+          label={myResponse ? 'Resposta registrada · falta' : 'A mesa decide · falta'}
+          who={waitingNames}
+        />
       );
     }
 
@@ -383,48 +385,45 @@ export const ActionModal: React.FC<ActionModalProps> = ({
 
     // Stage 1: ACTION_CHALLENGE
     if (pendingAction.stage === 'ACTION_CHALLENGE' && !isActor) {
+      const claimed = pendingAction.claimedCharacter
+        ? CHARACTER_INFO[pendingAction.claimedCharacter].name
+        : '';
+
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-lg bg-slate-900 border border-amber-500/60 rounded-2xl p-6 shadow-2xl text-center">
-            <div className="inline-flex p-3 rounded-full bg-amber-950/60 border border-amber-500/40 text-amber-400 mb-3 animate-pulse">
-              <ShieldAlert className="w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-extrabold text-amber-400 mb-1">Ação em Análise!</h3>
-            <p className="text-sm text-slate-200 mb-4">
-              <span className="font-bold text-white">{actor?.name}</span> declarou ser{' '}
-              <span className="font-bold text-amber-400 uppercase">
-                {pendingAction.claimedCharacter ? CHARACTER_INFO[pendingAction.claimedCharacter].name : ''}
-              </span>{' '}
-              para realizar a ação.
-            </p>
+        <Decree tone="crimson" icon={<ShieldAlert className="w-6 h-6" />} title="Acredita nele?">
+          <p className="court-modal-say">
+            <strong>{actor?.name}</strong> declarou ser <em>{claimed}</em>.
+          </p>
 
-            {error && (
-              <div className="mb-4 p-2.5 rounded-lg bg-red-950/80 border border-red-500/50 text-red-200 text-xs">
-                {error}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3">
-              <button
-                disabled={isSubmitting}
-                onClick={() => handleResponse('challenge')}
-                className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white shadow-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-              >
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sword className="w-5 h-5" />}
-                DESAFIAR (Acredita que é mentira!)
-              </button>
-
-              <button
-                disabled={isSubmitting}
-                onClick={() => handleResponse('pass')}
-                className="w-full py-3 rounded-xl font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center gap-2 transition-all text-sm disabled:opacity-50"
-              >
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                Passar / Aceitar
-              </button>
-            </div>
+          {/* O botão dizia "acredita que é mentira" sem nunca dizer o
+              preço de errar — que é a única coisa que importa aqui. */}
+          <div className="court-stake">
+            Se duvidar e ele <strong>não tiver {claimed}</strong>, ele perde uma influência.
+            Se tiver, quem perde é <strong>você</strong>.
           </div>
-        </div>
+
+          {alert}
+
+          <div className="court-modal-acts">
+            <button
+              disabled={isSubmitting}
+              onClick={() => handleResponse('challenge')}
+              className="court-btn is-crimson"
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sword className="w-4 h-4" />}
+              Duvidar
+            </button>
+
+            <button
+              disabled={isSubmitting}
+              onClick={() => handleResponse('pass')}
+              className="court-btn is-stone"
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              Deixar passar
+            </button>
+          </div>
+        </Decree>
       );
     }
 
@@ -434,71 +433,54 @@ export const ActionModal: React.FC<ActionModalProps> = ({
 
       if (canIBlock) {
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-            <div className="w-full max-w-lg bg-slate-900 border border-blue-500/60 rounded-2xl p-6 shadow-2xl text-center">
-              <div className="inline-flex p-3 rounded-full bg-blue-950/60 border border-blue-500/40 text-blue-400 mb-3">
-                <Shield className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-extrabold text-blue-400 mb-1">Deseja Bloquear?</h3>
-              <p className="text-sm text-slate-200 mb-4">
-                <span className="font-bold text-white">{actor?.name}</span> está realizando{' '}
-                <span className="font-bold text-blue-300 uppercase">{ACTION_LABELS[pendingAction.action]}</span>.
-              </p>
+          <Decree tone="slate" icon={<Shield className="w-6 h-6" />} title="Quer bloquear?">
+            <p className="court-modal-say">
+              <strong>{actor?.name}</strong> está fazendo <em>{ACTION_LABELS[pendingAction.action]}</em>.
+            </p>
 
-              {error && (
-                <div className="mb-4 p-2.5 rounded-lg bg-red-950/80 border border-red-500/50 text-red-200 text-xs">
-                  {error}
-                </div>
-              )}
-
-              {pendingAction.action === 'steal' && (
-                <div className="mb-4 flex justify-center gap-3">
-                  <button
-                    disabled={isSubmitting}
-                    onClick={() => setBlockCharChoice('captain')}
-                    className={`px-4 py-2 rounded-lg border text-xs font-bold ${
-                      blockCharChoice === 'captain'
-                        ? 'bg-blue-600 text-white border-blue-400'
-                        : 'bg-slate-800 text-slate-400 border-slate-700'
-                    }`}
-                  >
-                    Bloquear como Capitão
-                  </button>
-                  <button
-                    disabled={isSubmitting}
-                    onClick={() => setBlockCharChoice('ambassador')}
-                    className={`px-4 py-2 rounded-lg border text-xs font-bold ${
-                      blockCharChoice === 'ambassador'
-                        ? 'bg-blue-600 text-white border-blue-400'
-                        : 'bg-slate-800 text-slate-400 border-slate-700'
-                    }`}
-                  >
-                    Bloquear como Embaixador
-                  </button>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-3">
-                <button
-                  disabled={isSubmitting}
-                  onClick={() => handleResponse('block')}
-                  className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                >
-                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
-                  Declarar Bloqueio
-                </button>
-
-                <button
-                  disabled={isSubmitting}
-                  onClick={() => handleResponse('pass')}
-                  className="w-full py-3 rounded-xl font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center gap-2 transition-all text-sm disabled:opacity-50"
-                >
-                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                  Permitir Ação
-                </button>
-              </div>
+            <div className="court-stake">
+              Bloquear é <strong>alegar uma carta</strong>. Se alguém duvidar e você não
+              tiver, perde uma influência.
             </div>
-          </div>
+
+            {alert}
+
+            {pendingAction.action === 'steal' && (
+              <div className="flex flex-col gap-2 mt-4">
+                <span className="court-label is-tight">Bloquear como</span>
+                {(['captain', 'ambassador'] as Character[]).map(char => (
+                  <button
+                    key={char}
+                    disabled={isSubmitting}
+                    onClick={() => setBlockCharChoice(char)}
+                    className={`court-pick ${blockCharChoice === char ? 'is-on' : ''}`}
+                  >
+                    <span className="font-semibold text-sm">{CHARACTER_INFO[char].name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="court-modal-acts">
+              <button
+                disabled={isSubmitting}
+                onClick={() => handleResponse('block')}
+                className="court-btn is-gold"
+              >
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
+                Bloquear
+              </button>
+
+              <button
+                disabled={isSubmitting}
+                onClick={() => handleResponse('pass')}
+                className="court-btn is-stone"
+              >
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                Permitir
+              </button>
+            </div>
+          </Decree>
         );
       }
     }
@@ -506,48 +488,43 @@ export const ActionModal: React.FC<ActionModalProps> = ({
     // Stage 3: BLOCK_CHALLENGE
     if (pendingAction.stage === 'BLOCK_CHALLENGE' && playerId !== pendingAction.blockerId) {
       const blocker = gameState.players.find(p => p.id === pendingAction.blockerId);
+      const blocked = pendingAction.blockedCharacter
+        ? CHARACTER_INFO[pendingAction.blockedCharacter].name
+        : '';
+
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-lg bg-slate-900 border border-purple-500/60 rounded-2xl p-6 shadow-2xl text-center">
-            <div className="inline-flex p-3 rounded-full bg-purple-950/60 border border-purple-500/40 text-purple-400 mb-3 animate-pulse">
-              <ShieldAlert className="w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-extrabold text-purple-400 mb-1">Bloqueio em Análise!</h3>
-            <p className="text-sm text-slate-200 mb-4">
-              <span className="font-bold text-white">{blocker?.name}</span> declarou possuir{' '}
-              <span className="font-bold text-purple-300 uppercase">
-                {pendingAction.blockedCharacter ? CHARACTER_INFO[pendingAction.blockedCharacter].name : ''}
-              </span>{' '}
-              para BLOQUEAR a ação.
-            </p>
+        <Decree tone="crimson" icon={<ShieldAlert className="w-6 h-6" />} title="Acredita no bloqueio?">
+          <p className="court-modal-say">
+            <strong>{blocker?.name}</strong> alegou ter <em>{blocked}</em> para bloquear.
+          </p>
 
-            {error && (
-              <div className="mb-4 p-2.5 rounded-lg bg-red-950/80 border border-red-500/50 text-red-200 text-xs">
-                {error}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3">
-              <button
-                disabled={isSubmitting}
-                onClick={() => handleResponse('challenge')}
-                className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-              >
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sword className="w-5 h-5" />}
-                DESAFIAR BLOQUEIO!
-              </button>
-
-              <button
-                disabled={isSubmitting}
-                onClick={() => handleResponse('pass')}
-                className="w-full py-3 rounded-xl font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center gap-2 transition-all text-sm disabled:opacity-50"
-              >
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
-                Aceitar Bloqueio
-              </button>
-            </div>
+          <div className="court-stake">
+            Se duvidar e ele <strong>não tiver {blocked}</strong>, o bloqueio cai e ele perde
+            uma influência. Se tiver, quem perde é <strong>você</strong>.
           </div>
-        </div>
+
+          {alert}
+
+          <div className="court-modal-acts">
+            <button
+              disabled={isSubmitting}
+              onClick={() => handleResponse('challenge')}
+              className="court-btn is-crimson"
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sword className="w-4 h-4" />}
+              Duvidar do bloqueio
+            </button>
+
+            <button
+              disabled={isSubmitting}
+              onClick={() => handleResponse('pass')}
+              className="court-btn is-stone"
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              Aceitar bloqueio
+            </button>
+          </div>
+        </Decree>
       );
     }
   }
