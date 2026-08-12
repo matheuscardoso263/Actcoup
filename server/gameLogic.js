@@ -13,6 +13,31 @@ const CHARACTER_NAMES = {
 
 const characterName = character => CHARACTER_NAMES[character] || character;
 
+/** Custo cobrado no instante em que a ação é declarada.
+ *
+ *  O manual separa dois desfechos que parecem iguais na mesa: ação
+ *  DESMASCARADA numa contestação devolve o custo ("a moeda paga como o custo
+ *  da ação é devolvida para o jogador"), ação BLOQUEADA não devolve nada
+ *  ("todas as moedas gastas para pagar a ação não serão devolvidas").
+ *  Só o primeiro caso passa por refundActionCost.
+ *
+ *  Golpe está aqui por completude: ele não pode ser contestado nem bloqueado,
+ *  então nunca chega a um reembolso. */
+const ACTION_COST = {
+  coup: 7,
+  assassinate: 3
+};
+
+/** Ações Contrárias do manual: quem pode bloquear o quê, e com qual carta.
+ *  Ação fora deste mapa não é bloqueável de forma alguma — Colheita, Coleta
+ *  (Duque) e Sabedoria (Embaixador) não têm bloqueio, e o Golpe é sempre
+ *  bem sucedido. */
+const BLOCK_RULES = {
+  foreign_aid: { characters: ['duke'], onlyTarget: false },
+  assassinate: { characters: ['countess'], onlyTarget: true },
+  steal: { characters: ['captain', 'ambassador'], onlyTarget: true }
+};
+
 export class GameEngine {
   constructor() {
     this.rooms = new Map();
@@ -265,8 +290,14 @@ export class GameEngine {
 
     this.shuffle(deck);
 
+    // "Ao jogar Coup com dois jogadores, cada jogador recebe apenas uma moeda
+    // no início do jogo." O manual em inglês restringe a redução ao jogador
+    // que abre a partida; a tradução usada como referência aqui aplica a
+    // ambos. Trocar de regra é mudar esta linha.
+    const startingCoins = room.players.length === 2 ? 1 : 2;
+
     room.players.forEach(player => {
-      player.coins = 2;
+      player.coins = startingCoins;
       player.cards = [
         { id: uuidv4(), character: deck.pop(), revealed: false },
         { id: uuidv4(), character: deck.pop(), revealed: false }
@@ -452,7 +483,9 @@ export class GameEngine {
 
       case 'steal':
         if (!target) throw new Error('Selecione um alvo para Furto.');
-        if (target.coins === 0) throw new Error(`${target.name} não possui bananas para serem furtadas!`);
+        // Alvo sem bananas continua sendo alvo legal: o manual só limita o
+        // quanto se leva ("se ele só tiver uma moeda, pegue apenas uma"), e
+        // declarar Macaco-prego sem lucro é um blefe válido para a rodada.
         this.addLog(room, `🪝 ${player.name} declarou ser MACACO-PREGO e tentou furtar ${target.name}.`);
         room.pendingAction = {
           id: uuidv4(),
@@ -505,11 +538,17 @@ export class GameEngine {
         this.addLog(room, `⚡ ${player.name} DESAFIOU a alegação de ${characterName(pending.claimedCharacter).toUpperCase()} de ${room.players.find(p => p.id === pending.actorId).name}!`, 'challenge');
         this.resolveChallenge(room, pending.actorId, playerId, pending.claimedCharacter, () => {
           this.executeAction(room, pending);
+        }, () => {
+          // Blefe desmascarado na própria ação: ela não acontece e o custo volta.
+          this.refundActionCost(room, pending);
+          this.advanceTurn(room);
         });
         return room;
       } else if (responseType === 'block') {
-        this.addLog(room, `${player.name} declarou bloqueio.`, 'block');
-        this.initiateBlock(room, pending, playerId, blockCharacter);
+        // O alvo pode declarar o bloqueio já na janela de contestação, sem
+        // esperar a etapa seguinte — mas a legalidade é a mesma dos dois lados.
+        const char = this.validateBlock(pending, playerId, blockCharacter);
+        this.initiateBlock(room, pending, playerId, char);
         return room;
       } else if (responseType === 'pass') {
         pending.responses[playerId] = 'pass';
@@ -526,9 +565,9 @@ export class GameEngine {
       }
     } else if (pending.stage === 'ACTION_BLOCK') {
       if (pending.action === 'foreign_aid') {
-        if (playerId === pending.actorId) throw new Error('O autor da ação não pode bloquear.');
         if (responseType === 'block') {
-          this.initiateBlock(room, pending, playerId, 'duke');
+          const char = this.validateBlock(pending, playerId, blockCharacter);
+          this.initiateBlock(room, pending, playerId, char);
           return room;
         } else if (responseType === 'pass') {
           pending.responses[playerId] = 'pass';
@@ -539,10 +578,7 @@ export class GameEngine {
       } else if (pending.action === 'assassinate' || pending.action === 'steal') {
         if (playerId !== pending.targetId) throw new Error('Apenas o alvo pode bloquear esta ação.');
         if (responseType === 'block') {
-          const char = pending.action === 'assassinate' ? 'countess' : blockCharacter;
-          if (pending.action === 'steal' && char !== 'captain' && char !== 'ambassador') {
-            throw new Error('Carta de bloqueio inválida para Furto.');
-          }
+          const char = this.validateBlock(pending, playerId, blockCharacter);
           this.initiateBlock(room, pending, playerId, char);
           return room;
         } else if (responseType === 'pass') {
@@ -592,6 +628,46 @@ export class GameEngine {
       return eligible.every(p => pending.responses[p.id] === 'pass');
     }
     return false;
+  }
+
+  /** Porteiro único de todo bloqueio: a ação aceita bloqueio, quem declarou
+   *  tem direito de bloquear, e a carta alegada realmente bloqueia aquilo.
+   *  Devolve o personagem que vai para o registro do bloqueio.
+   *
+   *  O cliente já só oferece as opções legais, mas quem decide é o servidor —
+   *  sem isto, uma mensagem forjada bloqueia Coleta com qualquer carta, ou
+   *  bloqueia uma Caçada dirigida a outro jogador. */
+  validateBlock(pending, blockerId, requestedCharacter) {
+    const rule = BLOCK_RULES[pending.action];
+    if (!rule) throw new Error('Esta ação não pode ser bloqueada.');
+    if (blockerId === pending.actorId) throw new Error('O autor da ação não pode bloqueá-la.');
+    if (rule.onlyTarget && blockerId !== pending.targetId) {
+      throw new Error('Apenas o alvo desta ação pode bloqueá-la.');
+    }
+
+    // Quando existe uma única carta capaz de bloquear, ela é assumida: não há
+    // escolha a fazer, e o cliente não precisa acertar o campo para bloquear.
+    const character = rule.characters.length === 1 ? rule.characters[0] : requestedCharacter;
+    if (!rule.characters.includes(character)) {
+      throw new Error(`${characterName(character) || 'Esta carta'} não bloqueia esta ação.`);
+    }
+    return character;
+  }
+
+  /** Contestação vencida contra o autor devolve o custo já pago — o manual
+   *  trata a ação desmascarada como algo que nunca chegou a acontecer.
+   *  Bloqueio não passa por aqui: ali a moeda continua gasta. */
+  refundActionCost(room, pending) {
+    const cost = ACTION_COST[pending.action];
+    if (!cost) return;
+
+    const actor = room.players.find(p => p.id === pending.actorId);
+    // Quem perdeu a última influência devolve tudo ao estoque no mesmo lance;
+    // reembolsar aqui só recriaria bananas no bolso de um eliminado.
+    if (!actor || actor.cards.every(c => c.revealed)) return;
+
+    actor.coins += cost;
+    this.addLog(room, `💰 ${actor.name} recuperou ${cost} bananas: a ação foi desmascarada e não aconteceu.`);
   }
 
   initiateBlock(room, pending, blockerId, character) {
@@ -674,15 +750,10 @@ export class GameEngine {
         playerId: claimerId,
         reason: `Seu blefe (${characterName(claimedCharacter).toUpperCase()}) foi desmascarado por ${challenger.name}! Escolha uma carta para revelar.`,
         callbackAction: () => {
-          if (scope === 'action') {
-            // Se o blefe foi na própria ação (ex: declarou Gorila/Taxa sem ter a carta), a ação é cancelada.
-            this.advanceTurn(room);
-          } else if (onFailure) {
-            // Se foi um blefe em bloqueio, o bloqueio falha e a ação original é executada.
-            onFailure();
-          } else {
-            this.advanceTurn(room);
-          }
+          // Blefe na ação: ela é cancelada (e quem chamou devolve o custo).
+          // Blefe no bloqueio: o bloqueio cai e a ação original acontece.
+          if (onFailure) onFailure();
+          else this.advanceTurn(room);
         }
       };
     }
@@ -773,6 +844,13 @@ export class GameEngine {
 
     if (player.cards.every(c => c.revealed)) {
       this.addLog(room, `☠️ ${player.name} perdeu todas as influências e foi ELIMINADO!`, 'elimination');
+      // "Ele deixa suas cartas viradas para cima e devolve todas as suas
+      // moedas ao Tesouro Central." Sem isto o eliminado fica exibindo um
+      // saldo que não é mais dele nem de ninguém.
+      if (player.coins > 0) {
+        this.addLog(room, `🍌 ${player.coins} bananas de ${player.name} voltaram para o estoque.`);
+        player.coins = 0;
+      }
     }
 
     const callback = room.pendingLoss.callbackAction;

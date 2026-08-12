@@ -34,6 +34,8 @@ Lobby -> Distribuição -> Turnos -> Eliminações -> Vitória
 
 Cada jogador recebe 2 cartas e 2 moedas.
 
+Exceção de 2 jogadores: cada um começa com **1 moeda**.
+
 ## Ações Livres
 ### Renda
 +1 moeda. Não pode ser bloqueada.
@@ -60,7 +62,9 @@ Paga 3 moedas para tentar eliminar uma influência.
 Pode ser bloqueado apenas pela Condessa.
 
 ### Capitão
-Rouba até 2 moedas.
+Rouba 2 moedas do alvo.
+Se o alvo só tiver 1 moeda, rouba 1.
+Alvo sem moedas continua sendo alvo legal (a declaração vale como blefe).
 
 Pode ser bloqueado por:
 - Capitão
@@ -102,12 +106,26 @@ Caso realmente possua a carta:
 Caso não possua:
 - perde influência
 - ação cancelada
+- **custo já pago é devolvido** (Caçada blefada devolve as 3 moedas)
 
 ## Bloqueios
 
 Bloqueios também podem ser blefados.
 
 Também podem ser desafiados.
+
+Ação bloqueada com êxito **não** devolve o custo pago — diferença essencial
+em relação à ação desmascarada por desafio.
+
+Só estes bloqueios existem; qualquer outro é recusado pelo servidor:
+
+| Ação | Quem pode bloquear | Com qual carta |
+|---|---|---|
+| Ajuda Externa | qualquer jogador (menos o autor) | Duque |
+| Assassinato | apenas o alvo | Condessa |
+| Roubo | apenas o alvo | Capitão ou Embaixador |
+
+Renda, Taxa (Duque), Troca (Embaixador) e Golpe não podem ser bloqueados.
 
 ## Influências
 
@@ -118,7 +136,7 @@ Ao perder influência:
 - permanece aberta até fim
 
 Duas cartas reveladas:
-Jogador eliminado.
+Jogador eliminado, e **todas as suas moedas voltam ao estoque**.
 
 ## Ordem do turno
 
