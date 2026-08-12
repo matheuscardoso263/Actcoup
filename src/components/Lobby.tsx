@@ -104,20 +104,20 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
 
   if (!gameState) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white relative overflow-hidden">
+      <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-gradient-to-br from-emerald-950 via-green-950 to-slate-950 text-white relative overflow-hidden">
         {/* Glow ambient background elements */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl" />
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl" />
 
-        <div className="relative z-10 w-full max-w-md xl:max-w-lg bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 xl:p-10 shadow-2xl">
+        <div className="relative z-10 w-full max-w-md xl:max-w-lg bg-emerald-950/80 backdrop-blur-xl border border-emerald-700/50 rounded-2xl p-8 xl:p-10 shadow-2xl">
           <div className="text-center mb-6">
             <img
-              src="/logosemfundo.png"
-              alt="Logo do Coup"
+              src="/logo.png"
+              alt="Logo República dos Primatas"
               className="w-48 mx-auto mb-2 drop-shadow-[0_0_25px_rgba(245,158,11,0.4)] hover:scale-105 transition-transform"
             />
             <p className="text-xs text-slate-400">
-              Jogo de blefe, manipulação e estratégia
+              Blefe, bananas e primatas na disputa pelo poder
             </p>
           </div>
 
@@ -135,7 +135,7 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
               </label>
               <input
                 type="text"
-                placeholder="Ex: Duque Matheus"
+                placeholder="Ex: Gorila Alfa"
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-slate-950/80 border border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-white placeholder-slate-500 outline-none transition-all"
@@ -182,11 +182,11 @@ export const Lobby: React.FC<LobbyProps> = ({ gameState, playerId, onLeaveRoom, 
   }
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white relative">
-      <div className="w-full max-w-xl xl:max-w-2xl max-h-[92dvh] overflow-y-auto bg-slate-900/90 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-6 sm:p-8 shadow-2xl">
+    <div className="min-h-[100dvh] flex items-center justify-center p-4 bg-gradient-to-br from-emerald-950 via-green-950 to-slate-950 text-white relative">
+      <div className="w-full max-w-xl xl:max-w-2xl max-h-[92dvh] overflow-y-auto bg-emerald-950/85 backdrop-blur-xl border border-emerald-700/50 rounded-2xl p-6 sm:p-8 shadow-2xl">
         <div className="flex justify-between items-center pb-6 border-b border-slate-800">
           <div>
-            <img src="/logosemfundo.png" alt="Logo do Coup" className="h-10 mb-2 drop-shadow-md" />
+            <img src="/logo.png" alt="Logo República dos Primatas" className="h-10 mb-2 drop-shadow-md" />
             <span className="text-xs uppercase tracking-widest text-slate-400 font-semibold">Sala de Espera</span>
             <div className="flex items-center gap-3 mt-1">
               <h2 className="text-3xl font-extrabold tracking-wider font-mono text-amber-400">

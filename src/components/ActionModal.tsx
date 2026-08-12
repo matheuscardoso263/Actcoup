@@ -142,7 +142,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
                 }`}
               >
                 <div className="font-semibold text-sm">{target.name}</div>
-                <div className="text-xs text-amber-400 font-bold">{target.coins} moedas</div>
+                <div className="text-xs text-amber-400 font-bold">{target.coins} bananas</div>
               </button>
             ))}
           </div>
@@ -287,7 +287,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
             <div className="inline-flex p-3 rounded-full bg-cyan-950/60 border border-cyan-500/40 text-cyan-400 mb-3">
               <Shuffle className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-extrabold text-cyan-400 mb-2">Troca do Embaixador</h3>
+            <h3 className="text-2xl font-extrabold text-cyan-400 mb-2">Sabedoria do Orangotango</h3>
             <p className="text-sm text-slate-300 mb-6">
               Escolha <span className="font-bold text-cyan-300">{pendingExchange.keepCount}</span> carta(s) para MANTER. As outras serão devolvidas ao baralho.
             </p>
@@ -462,7 +462,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
                         : 'bg-slate-800 text-slate-400 border-slate-700'
                     }`}
                   >
-                    Bloquear como Capitão
+                    Bloquear como Macaco-prego
                   </button>
                   <button
                     disabled={isSubmitting}
@@ -473,7 +473,7 @@ export const ActionModal: React.FC<ActionModalProps> = ({
                         : 'bg-slate-800 text-slate-400 border-slate-700'
                     }`}
                   >
-                    Bloquear como Embaixador
+                    Bloquear como Orangotango
                   </button>
                 </div>
               )}

@@ -115,7 +115,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 
       <div className="vic-body">
         <span className="vic-eyebrow">
-          {isWinner ? 'O trono é seu' : 'A corte tem um novo soberano'}
+          {isWinner ? 'A liderança é sua' : 'A colônia tem um novo líder'}
         </span>
 
         <h2 className="vic-name">{winner?.name ?? 'Ninguém'}</h2>
@@ -125,19 +125,19 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         <p className="vic-claim">
           {isWinner ? (
             <>
-              Você foi o <strong>último nobre de pé</strong>. A cidade-estado é sua.
+              Você foi o <strong>último primata de pé</strong>. A república é sua.
             </>
           ) : (
             <>
-              Último nobre de pé depois de <strong>{fallen.length}</strong>{' '}
-              {fallen.length === 1 ? 'deposição' : 'deposições'}.
+              Último primata de pé depois de <strong>{fallen.length}</strong>{' '}
+              {fallen.length === 1 ? 'exílio' : 'exílios'}.
             </>
           )}
         </p>
 
         {fallen.length > 0 && (
           <div className="vic-fallen">
-            <span className="vic-fallen-label">A corte deposta</span>
+            <span className="vic-fallen-label">Os exilados</span>
             <div className="vic-fallen-list">
               {fallen.map(player => (
                 <span key={player.id} className="vic-fallen-name">
@@ -154,7 +154,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         </button>
       </div>
 
-      <img src="/logosemfundo.png" alt="Coup" className="vic-mark" />
+      <img src="/logo.png" alt="Copas" className="vic-mark" />
     </div>
   );
 };

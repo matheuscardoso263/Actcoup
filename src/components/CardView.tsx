@@ -87,9 +87,9 @@ export const CardView: React.FC<CardViewProps> = ({
     >
       {/* Front Face (Revealed or Self Hidden) */}
       {!isHidden && info ? (
-        <div className="w-full h-full relative flex flex-col justify-between p-[4cqw] bg-gradient-to-b from-slate-900 via-slate-800 to-black text-white">
+        <div className="w-full h-full relative flex flex-col justify-end p-[3.5cqw] text-white">
           {/* Card Image */}
-          <div className="absolute inset-0 z-0 opacity-85 hover:opacity-100 transition-opacity">
+          <div className="absolute inset-0 z-0 opacity-90 hover:opacity-100 transition-opacity">
             <img
               src={info.image}
               alt={info.name}
@@ -98,19 +98,7 @@ export const CardView: React.FC<CardViewProps> = ({
                 (e.target as HTMLElement).style.display = 'none';
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/70" />
-          </div>
-
-          {/* Header Badge */}
-          <div className="relative z-10 flex justify-between items-center gap-[2cqw] bg-black/75 backdrop-blur-md px-[4cqw] py-[2.5cqw] rounded-lg border border-amber-500/30 shadow-md">
-            <span className="font-extrabold tracking-wider text-amber-300 uppercase text-[8.5cqw] leading-none font-serif truncate">
-              {info.name}
-            </span>
-            {display.revealed ? (
-              <Skull className="w-[11cqw] h-[11cqw] shrink-0 text-red-500 animate-pulse" />
-            ) : (
-              <Shield className="w-[11cqw] h-[11cqw] shrink-0 text-cyan-400" />
-            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-slate-950/40 to-transparent" />
           </div>
 
           {/* Revealed Banner */}
@@ -121,10 +109,10 @@ export const CardView: React.FC<CardViewProps> = ({
             </div>
           )}
 
-          {/* Footer Info - Complete Uncut Description */}
+          {/* Footer Info - Stylized Skill Box at Bottom */}
           {!display.revealed && (
-            <div className="relative z-10 bg-black/85 backdrop-blur-md p-[3.5cqw] rounded-lg border border-amber-500/30 text-slate-100 font-sans shadow-lg">
-              <p className="font-medium text-slate-200 text-[7.5cqw] leading-snug">
+            <div className="relative z-10 bg-slate-950/85 backdrop-blur-md px-[3.5cqw] py-[3cqw] rounded-xl border border-amber-500/40 text-slate-100 shadow-2xl">
+              <p className="font-sans font-semibold text-slate-100 text-[6.2cqw] leading-[1.3] drop-shadow-sm">
                 {info.description}
               </p>
             </div>
@@ -137,7 +125,7 @@ export const CardView: React.FC<CardViewProps> = ({
             <EyeOff className="w-[15cqw] h-[15cqw] text-amber-400" />
           </div>
           <span className="font-serif tracking-widest text-[11cqw] leading-none uppercase text-amber-300 font-extrabold">
-            COUP
+            COPAS
           </span>
           <span className="text-[6.5cqw] leading-none text-purple-300/80 font-medium mt-[3cqw]">Oculta</span>
         </div>
