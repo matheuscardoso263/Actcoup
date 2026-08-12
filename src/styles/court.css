@@ -1290,9 +1290,18 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.5rem clamp(0.75rem, 2vw, 2.5rem);
+  padding: clamp(0.28rem, 0.9dvh, 0.55rem) clamp(0.75rem, 2vw, 2.5rem);
   background: linear-gradient(180deg, rgba(20, 29, 22, 0.95), rgba(10, 14, 10, 0.9));
   border-bottom: 1px solid rgba(200, 168, 107, 0.16);
+}
+
+/* A barra é altura tirada da mesa: em notebook baixo ela encolhe junto,
+   em vez de custar os mesmos 40px de logo que custa num monitor. */
+.court-bar-logo {
+  display: block;
+  height: clamp(1.5rem, 4.2dvh, 2.5rem);
+  width: auto;
+  opacity: 0.95;
 }
 
 .court-bar-code {
@@ -1311,7 +1320,7 @@
 
 .court-status {
   position: relative;
-  padding: 0.45rem 1rem;
+  padding: clamp(0.28rem, 0.9dvh, 0.45rem) 1rem;
   border-radius: 3px;
   text-align: center;
   background: linear-gradient(180deg, rgba(22, 32, 24, 0.9), rgba(10, 14, 10, 0.85));
@@ -1357,7 +1366,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: clamp(0.5rem, 1.4vh, 0.9rem);
+  min-width: 0;
+  padding: clamp(0.3rem, 1dvh, 0.75rem);
   border-radius: 4px;
   background: linear-gradient(180deg, rgba(34, 48, 36, 0.6), rgba(10, 14, 10, 0.8));
   border: 1px solid rgba(200, 168, 107, 0.16);
@@ -1422,7 +1432,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.1rem;
-  padding: 0.45rem 0.6rem;
+  padding: clamp(0.25rem, 0.85dvh, 0.45rem) 0.55rem;
   border-radius: 3px;
   text-align: left;
   cursor: pointer;
@@ -1527,7 +1537,7 @@
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
-  padding: 0.6rem 0.85rem;
+  padding: clamp(0.35rem, 1dvh, 0.6rem) 0.85rem;
   border-bottom: 1px solid rgba(200, 168, 107, 0.14);
   color: rgba(200, 168, 107, 0.75);
 }
@@ -1565,6 +1575,214 @@
   color: rgba(200, 168, 107, 0.5);
   background: transparent;
   border-left-color: rgba(200, 168, 107, 0.16);
+}
+
+/* ------------------------------------------------------------
+   13b. O ARRANJO DA MESA — uma tela, sem rolagem
+
+   O que fazia a mesa rolar não era um bloco grande: era a mão
+   empilhada sobre as ações. O painel da mão também é .court-panel,
+   e esta folha está fora de @layer — no cascade, o que está fora
+   de camada ganha das camadas, inclusive de `utilities`. Ou seja:
+   o `flex-direction: column` de .court-panel vencia o `lg:flex-row`
+   do Tailwind em silêncio, em qualquer largura. Daí a mão medir
+   ~500px de altura onde devia medir ~230px.
+
+   Regra desta seção, a mesma da tela de entrada: tudo que ocupa
+   altura é fluido em dvh, quem declara direção de flex declara por
+   conta própria, e o que sobra de altura vai para a linha dos
+   oponentes — o único bloco que pode crescer sem estragar nada.
+   ------------------------------------------------------------ */
+
+.court-arena {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.3rem, 1.1dvh, 0.9rem);
+  /* min-height: 0 é o que autoriza o encolhimento; sem ele o flex usa o
+     conteúdo como piso e a mesa vaza por baixo do 100dvh da .court-table. */
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 120rem;
+  margin-inline: auto;
+  padding: clamp(0.28rem, 1dvh, 0.9rem) clamp(0.5rem, 1.6vw, 1.5rem);
+  overflow: hidden;
+}
+
+@media (min-width: 64rem) {
+  .court-arena {
+    flex-direction: row;
+    align-items: stretch;
+    gap: clamp(0.55rem, 1.2vw, 1.25rem);
+  }
+}
+
+.court-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.22rem, 0.85dvh, 0.65rem);
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Celular em retrato é o único caso em que a mesa não cabe de fato:
+   com 5 oponentes empilhados sobre a mão, nenhuma escala resolve. Ali
+   o miolo rola — melhor que cortar a mão do jogador pela metade. */
+@media (max-width: 47.99rem) {
+  .court-board {
+    overflow-y: auto;
+  }
+}
+
+.court-board-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 40rem;
+}
+
+.court-board-head .court-alert {
+  align-self: center;
+  max-width: 28rem;
+}
+
+/* --- A linha dos oponentes ----------------------------------- */
+
+/* Recebe a altura que sobrou (flex: 1) e centra o que tiver dentro.
+   Com 1 oponente sobra tela e as cartas chegam no teto do clamp; com
+   5 é a largura que aperta, e é o min(…, vw) do --card-h-sm quem
+   decide. `align-content: center` mantém o arranjo centrado quando a
+   linha quebra em duas. */
+.court-rivals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  align-content: center;
+  gap: clamp(0.3rem, 0.9vw, 1rem);
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.court-seat-hand {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.22rem, 0.6vw, 0.7rem);
+  margin-block: clamp(0.18rem, 0.7dvh, 0.5rem);
+  min-height: 0;
+}
+
+/* --- O estoque ------------------------------------------------ */
+
+.court-treasury {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.court-treasury img {
+  display: block;
+  height: clamp(1.1rem, 3.8dvh, 2.75rem);
+  width: auto;
+  opacity: 0.8;
+}
+
+/* --- A mão e as ações ---------------------------------------- */
+
+/* Lado a lado assim que houver largura para os dois. Empilhados, só
+   este painel come 500px — mais que a metade de um notebook. */
+.court-hand {
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(0.4rem, 1.2dvh, 1.1rem);
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 76rem;
+  padding: clamp(0.4rem, 1.2dvh, 0.9rem) clamp(0.55rem, 1.4vw, 1.15rem);
+  /* A carta da mão é a maior da mesa, mas ainda é uma fatia do que
+     sobrou: 26dvh no notebook, teto de 14rem no monitor grande. */
+  --card-h-md: clamp(4.5rem, min(26dvh, 15vw), 14rem);
+}
+
+@media (min-width: 48rem) {
+  .court-hand {
+    flex-direction: row;
+  }
+}
+
+.court-hand-mine {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.45rem, 1.2vw, 1.25rem);
+  min-width: 0;
+}
+
+.court-hand-cards {
+  display: flex;
+  gap: clamp(0.28rem, 0.8vw, 0.9rem);
+}
+
+.court-hand-acts {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  max-width: 34rem;
+}
+
+/* Três colunas por duas linhas: é o arranjo mais baixo que cabe as
+   seis ações. Só em tela muito estreita vira duas colunas. */
+.court-acts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.22rem, 0.7dvh, 0.5rem);
+}
+
+@media (max-width: 26rem) {
+  .court-acts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- O histórico --------------------------------------------- */
+
+/* Faixa curta embaixo enquanto a mesa está empilhada; coluna cheia
+   quando há largura. Nunca cresce: quem rola é a lista lá dentro. */
+.court-feed {
+  flex: 0 0 clamp(4rem, 13dvh, 8rem);
+  min-height: 0;
+  width: 100%;
+}
+
+@media (min-width: 64rem) {
+  .court-feed {
+    flex: 0 0 clamp(14rem, 21vw, 22rem);
+    align-self: stretch;
+    width: auto;
+  }
+}
+
+.court-feed-log {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  font-size: clamp(0.68rem, 1vw, 0.82rem);
 }
 
 /* --- Acessibilidade ------------------------------------------- */

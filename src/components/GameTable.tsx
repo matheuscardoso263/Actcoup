@@ -139,21 +139,24 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
 
   const opponents = gameState.players.filter(p => p.id !== playerId);
 
-  /* Quanto menos oponentes, maior a carta: com 1 ou 2 sobra tela de sobra,
-     com 5 tudo precisa caber numa linha só sem estourar a altura. */
+  /* Quanto menos oponentes, maior a carta: com 1 ou 2 sobra tela, com 5
+     tudo precisa caber numa linha só sem estourar a altura nem a largura.
+     Daí o min(dvh, vw): a linha inteira mede 5 × (2 cartas + moldura), e
+     numa tela larga e baixa quem aperta é a altura, numa estreita e alta
+     é a largura. O eixo mais apertado é que decide. */
   const opponentCardHeight =
     opponents.length <= 2
-      ? 'clamp(7rem, 22vh, 17rem)'
+      ? 'clamp(4.5rem, min(24dvh, 20vw), 13rem)'
       : opponents.length <= 4
-      ? 'clamp(6.5rem, 17vh, 13rem)'
-      : 'clamp(6rem, 13vh, 10rem)';
+      ? 'clamp(4rem, min(20dvh, 13vw), 11rem)'
+      : 'clamp(3.5rem, min(16dvh, 8.5vw), 9rem)';
 
   return (
     <div className="court-table w-full text-slate-100 flex flex-col">
       {/* Top Header Bar */}
       <header className="court-bar">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="República dos Primatas" className="h-8 2xl:h-10 opacity-95" />
+          <img src="/logo.png" alt="República dos Primatas" className="court-bar-logo" />
           <span className="court-bar-code">{gameState.code}</span>
         </div>
 
@@ -176,15 +179,16 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
       </header>
 
       {/* Main Container */}
-      {/* min-h-0 é obrigatório: sem ele o filho com overflow-y-auto não encolhe
-          e o conteúdo vaza para fora da tela em vez de rolar internamente.
-          A altura vem só do flex-1 — nada de calc(100vh - header) chutado. */}
-      <div className="relative z-10 flex-1 min-h-0 w-full max-w-[120rem] mx-auto flex flex-col lg:flex-row p-3 xl:p-5 gap-3 xl:gap-5 overflow-hidden">
+      {/* A mesa inteira cabe na janela e nada aqui rola: as medidas vivem em
+          .court-arena / .court-board (court.css §13b), onde a altura que
+          sobra vai para a linha dos oponentes. Utilitário de flex-direction
+          do Tailwind não serve nestes painéis — .court-panel está fora de
+          @layer e venceria o `lg:flex-row` sem avisar. */}
+      <div className="court-arena">
         {/* Left/Center Game Board Area */}
-        <div className="flex-1 min-h-0 min-w-0 flex flex-col justify-between items-center gap-2 overflow-y-auto pr-1">
-          
+        <div className="court-board">
           {/* Status Banner */}
-          <div className="w-full max-w-xl xl:max-w-2xl mx-auto text-center flex-shrink-0">
+          <div className="court-board-head">
             {(() => {
               const waitingFor = (gameState.pendingAction || gameState.pendingLoss || gameState.pendingExchange)
                 ? getWaitingPlayerNames(gameState)
@@ -225,20 +229,21 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                 </div>
               );
             })()}
-          </div>
 
-          {error && (
-            <div className="court-alert max-w-md flex-shrink-0">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+            {error && (
+              <div className="court-alert">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+          </div>
 
           {/* Opponents — flex-wrap em vez de grid fixo de 5 colunas: com 1, 2 ou 3
               oponentes o grid deixava todo mundo encostado à esquerda. Aqui os
-              cards têm largura de conteúdo e ficam sempre centralizados. */}
+              cards têm largura de conteúdo e ficam sempre centralizados. É esta
+              a linha que recebe a altura sobrando da tela. */}
           <div
-            className="w-full flex flex-wrap justify-center items-stretch gap-3 xl:gap-5 flex-shrink-0"
+            className="court-rivals"
             style={{ '--card-h-sm': opponentCardHeight } as React.CSSProperties}
           >
             {opponents.map(player => {
@@ -261,7 +266,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                   <div
                     data-hand-anchor={player.id}
                     style={dealStyle(gameState.players.indexOf(player))}
-                    className={`flex justify-center gap-2 xl:gap-3 my-2 ${dealing ? 'deal-hand' : ''}`}
+                    className={`court-seat-hand ${dealing ? 'deal-hand' : ''}`}
                   >
                     {player.cards.map(card => (
                       <CardView key={card.id} card={card} size="sm" />
@@ -276,22 +281,15 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
 
           {/* Center Table Divider — também é o estoque: é daqui que as
               bananas saem e para cá que os pagamentos voltam. */}
-          <div
-            data-coin-anchor={TREASURY}
-            className="py-1 text-center text-slate-600 flex flex-col items-center gap-1 pointer-events-none flex-shrink-0 opacity-70"
-          >
-            <img src="/logo.png" alt="República dos Primatas" className="h-[clamp(1.75rem,5vh,4rem)] opacity-80" />
+          <div data-coin-anchor={TREASURY} className="court-treasury">
+            <img src="/logo.png" alt="República dos Primatas" />
             <span className="court-label is-tight">Estoque de bananas</span>
           </div>
 
           {/* Player Hand & Controls Bottom */}
           {me && (
-            <div
-              className={`court-panel is-open w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl p-3 xl:p-5 flex flex-col lg:flex-row justify-between items-center gap-4 xl:gap-6 flex-shrink-0 ${
-                isMyTurn ? 'turn-aura' : ''
-              }`}
-            >
-              <div className="flex items-center gap-3 xl:gap-5 min-w-0">
+            <div className={`court-panel is-open court-hand ${isMyTurn ? 'turn-aura' : ''}`}>
+              <div className="court-hand-mine">
                 <div className="flex flex-col items-center gap-1.5 shrink-0">
                   <span className="court-label is-tight">Sua mão</span>
                   <CoinCounter
@@ -306,7 +304,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                 <div
                   data-hand-anchor={me.id}
                   style={dealStyle(gameState.players.indexOf(me))}
-                  className={`flex gap-2 xl:gap-4 ${dealing ? 'deal-hand' : ''}`}
+                  className={`court-hand-cards ${dealing ? 'deal-hand' : ''}`}
                 >
                   {me.cards.map(card => (
                     <CardView key={card.id} card={card} size="md" />
@@ -315,8 +313,8 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
               </div>
 
               {/* Action Buttons Panel */}
-              <div className="flex-1 min-w-0 w-full max-w-md xl:max-w-lg 2xl:max-w-xl">
-                <span className="court-label is-tight mb-2 text-center md:text-left">
+              <div className="court-hand-acts">
+                <span className="court-label is-tight mb-1.5 text-center md:text-left">
                   {isEliminated ? 'Você está eliminado' : 'Ações'}
                 </span>
 
@@ -324,7 +322,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                     alega um personagem pode ser desafiado, e é essa a única
                     informação que muda a decisão — então a alegação vai
                     escrita no botão. */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="court-acts">
                   {TABLE_ACTIONS.map(act => (
                     <button
                       key={act.id}
@@ -351,7 +349,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                 <button
                   onClick={() => handleActionClick('coup')}
                   disabled={!isMyTurn || isEliminated || me.coins < 7}
-                  className={`court-act is-coup w-full mt-2 ${
+                  className={`court-act is-coup w-full mt-1.5 ${
                     !isEliminated && me.coins >= 10 ? 'is-forced' : ''
                   }`}
                 >
@@ -368,13 +366,13 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
         </div>
 
         {/* Right Sidebar - Capped Height Action History Chat Feed */}
-        <div className="court-panel w-full lg:w-72 xl:w-80 2xl:w-96 h-40 lg:h-auto lg:self-stretch min-h-0 shrink-0">
+        <div className="court-panel court-feed">
           <div className="court-panel-head">
             <History className="w-3.5 h-3.5" />
             <span className="court-label is-tight">O que aconteceu</span>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 p-2.5 text-xs xl:text-sm">
+          <div className="court-feed-log">
             <div ref={logTopRef} />
             {gameState.logs.map(log => (
               <div key={log.id} className={`court-log is-${log.type}`}>
