@@ -17,12 +17,20 @@
        A altura manda: a mesa precisa caber na tela sem rolagem, de notebook
        1366x768 até monitor 1440p. clamp(piso, fluido, teto) evita tanto o
        card gigante no monitor grande quanto o card ilegível no notebook.
+
+       `dvh` e não `vh`: no celular a barra do navegador entra e sai, e é a
+       altura pequena que precisa mandar. O `min(…, Xvw)` existe porque a
+       carta tem largura (2:3): numa janela larga e baixa quem limita é a
+       altura, numa estreita e alta é a largura — o eixo mais apertado ganha.
+
        O --card-h-sm aqui é só o fallback: GameTable sobrescreve por número
        de oponentes, porque 5 oponentes na mesma linha não cabem no mesmo
-       tamanho que 1 oponente. */
-    --card-h-sm: clamp(6.5rem, 17vh, 13rem);
-    --card-h-md: clamp(10rem, 30vh, 24rem);
-    --card-h-lg: clamp(11rem, 32vh, 26rem);
+       tamanho que 1 oponente. O --card-h-md é o das janelas de decisão; a
+       mão na mesa tem o dela em .court-hand, que conhece o orçamento de
+       altura da tela de jogo. */
+    --card-h-sm: clamp(4.5rem, min(20dvh, 13vw), 11rem);
+    --card-h-md: clamp(7rem, 24dvh, 16rem);
+    --card-h-lg: clamp(8rem, 27dvh, 18rem);
   }
 
   body {

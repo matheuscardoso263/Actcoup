@@ -55,7 +55,11 @@
       "Bash(node -e ' *)",
       "Bash(node hover.mjs)",
       "Bash(node table.mjs)",
-      "Bash(node shot.mjs http://localhost:3001 dist)"
+      "Bash(node shot.mjs http://localhost:3001 dist)",
+      "Bash(node \"C:/Users/GUILHE~1.COR/AppData/Local/Temp/claude/C--Users-guilherme-cordeiro-Projetos-Actcoup/424f1ec9-d5a1-4cd8-9684-ad5ca1ebdd9b/scratchpad/scan.mjs\")",
+      "PowerShell(Get-NetTCPConnection *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/preview-table.html)"
     ]
   },
   "enabledMcpjsonServers": [
