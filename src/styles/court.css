@@ -1571,32 +1571,109 @@
   border: 1px solid rgba(201, 162, 39, 0.35);
 }
 
+/* O próprio saldo é o recurso que decide o turno — merece peso de placar,
+   não de etiqueta. O dos oponentes continua discreto. */
 .court-purse.is-big {
-  padding: 0.3rem 0.85rem;
-  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
+  padding: 0.36rem 0.95rem;
+  font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+  border-color: rgba(201, 162, 39, 0.6);
+  background:
+    radial-gradient(ellipse at 30% 18%, rgba(240, 217, 138, 0.3), transparent 62%),
+    linear-gradient(180deg, rgba(120, 92, 20, 0.62), rgba(7, 10, 7, 0.9));
+  box-shadow: inset 0 1px 0 rgba(240, 217, 138, 0.3), 0 6px 16px -6px rgba(0, 0, 0, 0.85);
 }
 
 /* --- Ações ---------------------------------------------------- */
 
 .court-act {
+  --accent: 201 162 39;
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.1rem;
   padding: clamp(0.25rem, 0.85dvh, 0.45rem) 0.55rem;
-  border-radius: 3px;
+  border-radius: 4px;
   text-align: left;
   cursor: pointer;
   font-family: inherit;
   background: linear-gradient(180deg, rgba(34, 48, 36, 0.5), rgba(10, 14, 10, 0.7));
   border: 1px solid rgba(200, 168, 107, 0.16);
   border-left: 2px solid rgba(200, 168, 107, 0.28);
-  transition: border-color 0.16s, background 0.16s, transform 0.08s;
+  transition: border-color 0.16s, background 0.16s, transform 0.08s, box-shadow 0.16s;
 }
 
 .court-act:hover:not(:disabled) {
   background: linear-gradient(180deg, rgba(45, 64, 48, 0.6), rgba(15, 22, 16, 0.8));
   border-color: rgba(201, 162, 39, 0.45);
+}
+
+/* O retrato de quem a ação alega, recortado em medalhão e afundado no
+   canto. É o que amarra o botão à carta sem gastar altura: o painel de
+   ações já está no orçamento apertado da tela e não cabia mais uma linha.
+   A máscara radial evita a borda dura de um `border-radius` sobre foto. */
+.court-act-crest {
+  position: absolute;
+  top: 50%;
+  right: -0.45rem;
+  translate: 0 -50%;
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 50%;
+  pointer-events: none;
+  background-image: var(--crest);
+  background-size: 215%;
+  background-position: 50% 20%;
+  opacity: 0.15;
+  filter: saturate(0.75) contrast(1.05);
+  transition: opacity 0.18s, scale 0.18s;
+  -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 74%);
+  mask-image: radial-gradient(circle, #000 50%, transparent 74%);
+}
+
+.court-act:hover:not(:disabled) .court-act-crest {
+  opacity: 0.4;
+  scale: 1.08;
+}
+
+/* A carta sob o ponteiro é justamente a que esta ação alega. O botão
+   assume a cor da casa dela — o par fica óbvio de um lado ao outro do
+   painel, que é a distância que o jogador teria de cruzar de cabeça. */
+.court-act.is-lit:not(:disabled) {
+  border-color: rgb(var(--accent) / 0.8);
+  background: linear-gradient(180deg, rgb(var(--accent) / 0.24), rgba(10, 14, 10, 0.78));
+  box-shadow: 0 0 0 1px rgb(var(--accent) / 0.3), 0 0 24px -8px rgb(var(--accent) / 0.7);
+}
+
+.court-act.is-lit:not(:disabled) .court-act-crest {
+  opacity: 0.45;
+}
+
+/* Verdade ou blefe, no canto, só enquanto o ponteiro está no botão.
+   Não muda regra nenhuma: as seis ações continuam clicáveis com ou sem
+   a carta na mão. Diz apenas o que você já sabe, na hora em que importa. */
+.court-act-tell {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.1rem 0.4rem;
+  border-bottom-left-radius: 5px;
+  font-size: clamp(0.48rem, 0.9vw, 0.58rem);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.court-act-tell.is-truth {
+  color: #14200f;
+  background: linear-gradient(180deg, var(--court-gold-hi), var(--court-gold));
+}
+
+.court-act-tell.is-bluff {
+  color: #ffdccb;
+  background: linear-gradient(180deg, var(--court-ember-hi), var(--court-ember-deep));
 }
 
 .court-act:active:not(:disabled) {
@@ -1608,15 +1685,21 @@
   cursor: not-allowed;
 }
 
+/* `position: relative` nos três: o medalhão é absoluto, e elemento
+   posicionado pinta por cima de estático — sem isto o retrato cobria o
+   nome da ação. */
 .court-act-name {
+  position: relative;
   font-family: 'Outfit', ui-serif, Georgia, serif;
   font-size: clamp(0.72rem, 1.3vw, 0.86rem);
   font-weight: 800;
   letter-spacing: 0.02em;
   color: #f2ecdc;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
 }
 
 .court-act-cost {
+  position: relative;
   font-size: clamp(0.58rem, 1vw, 0.68rem);
   color: rgba(200, 168, 107, 0.6);
 }
@@ -1624,21 +1707,29 @@
 /* Ação que alega um personagem: é a que pode ser desafiada, então a
    alegação fica escrita no botão, em ouro, antes do clique. */
 .court-act.is-claim {
-  border-left-color: var(--court-gold);
+  border-left-color: rgb(var(--accent));
 }
 
 .court-act-claim {
+  position: relative;
   margin-top: 0.15rem;
   font-size: clamp(0.52rem, 0.95vw, 0.62rem);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(201, 162, 39, 0.85);
+  color: rgb(var(--accent) / 0.95);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
-/* Golpe: ninguém bloqueia, ninguém desafia. */
+/* Golpe: ninguém bloqueia, ninguém desafia. Nome e custo na mesma linha —
+   é a única ação que ocupa a largura toda, e empilhados os dois gastavam
+   uma linha de altura que sai da carta. */
 .court-act.is-coup {
-  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.15rem 0.55rem;
   text-align: center;
   border-left: 1px solid rgba(162, 58, 26, 0.5);
   border-color: rgba(162, 58, 26, 0.5);
@@ -1864,79 +1955,183 @@
 
 /* --- A mão e as ações ---------------------------------------- */
 
-/* Lado a lado assim que houver largura para os dois. Empilhados, só
-   este painel come 500px — mais que a metade de um notebook. */
+/* Empilhado, sempre: as cartas por cima, sozinhas, e as ações numa faixa
+   embaixo. Lado a lado a mão disputava largura com seis botões e sobrava
+   `13vw` para a carta — a peça mais importante da tela era a menor. Aqui
+   ela leva a linha inteira e as ações herdam a largura toda do painel,
+   que é o que permite as seis numa fileira só. */
+/* `0 1 auto` e não `flex-shrink: 0`: este painel é o que cede quando a
+   janela encurta. A linha dos oponentes não cede (não tem `min-height: 0`,
+   ver .court-rivals), status e estoque também não — então o excedente cai
+   todo aqui, e daqui desce até a altura da carta.
+
+   É isso que tira o número mágico da conta. A carta era `30dvh` fixos
+   enquanto tudo abaixo dela — rótulo, seis botões, Exílio — mede em `rem`;
+   a cada mexida nos botões o `dvh` da carta tinha que ser recalibrado na
+   mão, e quando não era, a mesa passava do fim da tela e aparecia rolagem.
+   Agora o `--card-h-md` é só o tamanho pretendido: o que a carta ganha de
+   verdade é o que sobrou, e sobra sempre a mesma coisa porque quem
+   subtrai é o layout. */
 .court-hand {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* Rede de segurança: se a mão e as ações não couberem lado a lado
-     (janela larga o bastante para a barra lateral, estreita demais para
-     as duas colunas), elas empilham. Sem isto os retratos passavam por
-     cima dos botões — a carta não encolhe, o `aspect-ratio` manda. */
-  flex-wrap: wrap;
-  gap: clamp(0.4rem, 1.2dvh, 1.1rem) clamp(0.5rem, 1.2vw, 1.25rem);
-  flex-shrink: 0;
-  width: 100%;
-  max-width: 76rem;
-  padding: clamp(0.4rem, 1.2dvh, 0.9rem) clamp(0.55rem, 1.4vw, 1.15rem);
-  /* A carta da mão é a maior da mesa, mas ainda é uma fatia do que
-     sobrou: 26dvh no notebook, teto de 16rem no monitor grande. */
-  --card-h-md: clamp(4.5rem, min(26dvh, 13vw), 16rem);
-}
-
-@media (min-width: 48rem) {
-  .court-hand {
-    flex-direction: row;
-  }
-}
-
-/* Empilhado o painel tem a largura toda, então a carta não precisa mais
-   ceder para a coluna das ações — o `13vw` daria 51px num celular. */
-@media (max-width: 47.99rem) {
-  .court-hand {
-    --card-h-md: clamp(4.5rem, 18dvh, 10rem);
-  }
-}
-
-.court-hand-mine {
-  display: flex;
-  align-items: center;
-  gap: clamp(0.45rem, 1.2vw, 1.25rem);
+  gap: clamp(0.3rem, 0.9dvh, 0.75rem);
   flex: 0 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 80rem;
+  padding: clamp(0.35rem, 1dvh, 0.8rem) clamp(0.55rem, 1.4vw, 1.15rem) clamp(0.45rem, 1.1dvh, 0.9rem);
+  /* Tamanho pretendido da carta, não o final. O termo em vw é a trava de
+     largura: duas cartas 2:3 lado a lado é o que aperta em tela estreita. */
+  --card-h-md: clamp(4.5rem, min(26dvh, 24vw), 16rem);
+}
+
+/* O palco é quem encolhe dentro do painel — a faixa de ações não cede um
+   pixel, senão os botões é que ficariam ilegíveis. `align-items: stretch`
+   faz as cartas herdarem a altura resultante em vez de a imporem.
+
+   Flex, e não grid de três colunas: em grid a altura da carta viria de
+   porcentagem contra a área da grade, e é justamente a altura que precisa
+   descer por encolhimento aqui. As colunas laterais de peso igual dão o
+   mesmo centro óptico — o saldo à esquerda, as cartas exatamente no meio
+   do painel, e não à direita do saldo. */
+.court-hand-stage {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(0.5rem, 1.5vw, 1.5rem);
+  width: 100%;
+  flex: 0 1 auto;
+  height: var(--card-h-md);
+  /* Piso: abaixo disto a carta vira miniatura e rolar passa a ser melhor
+     que encolher — é a mesma escolha do `overflow-y: auto` do .court-board. */
+  min-height: min(4.5rem, 14dvh);
+}
+
+.court-hand-purse,
+.court-hand-side {
+  flex: 1 1 0;
   min-width: 0;
 }
 
-.court-hand-cards {
+.court-hand-purse {
   display: flex;
-  gap: clamp(0.28rem, 0.8vw, 0.9rem);
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.3rem;
 }
 
-/* Empilhado, a coluna das ações ocupa a linha inteira. Lado a lado, quem
-   manda é o `flex-basis` em rem — com `width: 100%` ela reservava a linha
-   toda e empurrava os retratos para fora do painel. */
+/* Sem largura para as três colunas, o saldo sobe para cima das cartas e a
+   coluna de contrapeso deixa de fazer sentido. Empilhado, a carta não
+   divide mais a linha com nada e a trava de largura pode afrouxar. */
+@media (max-width: 34rem) {
+  .court-hand {
+    --card-h-md: clamp(4.5rem, min(24dvh, 42vw), 12rem);
+  }
+
+  .court-hand-stage {
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+    gap: 0.4rem;
+  }
+
+  .court-hand-purse {
+    flex: 0 0 auto;
+    align-items: center;
+  }
+
+  .court-hand-side {
+    display: none;
+  }
+}
+
+/* O leque. As cartas giram em torno de um pivô abaixo delas, como numa
+   mão segurada — daí o `transform-origin` fora da caixa. Fica de fora da
+   virada: `.card-flip` gira em Y e, pivotando 28% abaixo da base, a carta
+   sairia rodopiando pela mesa em vez de virar no lugar.
+
+   Sem `overflow` nem `padding` aqui de propósito: quem levanta no hover
+   passa por cima da borda do painel (que é `.court-panel.is-open`, sem
+   recorte), e é justamente esse transbordo que dá o gesto de tirar a
+   carta da mão. Reservar o espaço custaria altura que a tela não tem. */
+.court-hand-cards {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(0.28rem, 0.8vw, 0.9rem);
+  flex: 0 0 auto;
+  height: 100%;
+}
+
+/* A altura vem do palco, não do `--card-h-md` que o CardView aplica em
+   utilitário do Tailwind — é assim que o encolhimento chega até a carta.
+   A largura sai sozinha do `aspect-ratio: 2 / 3`. */
+.court-hand-cards .court-card {
+  height: 100%;
+  width: auto;
+}
+
+.court-hand-cards .court-card:not(.card-flip) {
+  transform-origin: 50% 128%;
+}
+
+@media (max-width: 34rem) {
+  .court-hand-cards {
+    height: var(--card-h-md);
+  }
+}
+
+/* Não cede altura: quando a janela aperta, quem encolhe é a carta. Um
+   botão espremido fica ilegível; uma carta menor continua uma carta. */
 .court-hand-acts {
   width: 100%;
   min-width: 0;
-  max-width: 34rem;
+  flex-shrink: 0;
 }
 
-@media (min-width: 48rem) {
-  .court-hand-acts {
-    flex: 1 1 18rem;
-    width: auto;
-  }
+/* Título da faixa entre dois fios: separa as cartas das ações sem gastar
+   a altura de uma borda mais um respiro. Nome próprio, e não `.court-rule`:
+   aquela é a régua de pedra do Lobby, uma linha vazia de 1px de altura —
+   reusar o nome apagaria o losango dela. */
+.court-acts-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: clamp(0.2rem, 0.7dvh, 0.45rem);
+  font-family: 'Outfit', ui-serif, Georgia, serif;
+  font-size: clamp(0.55rem, 0.95vw, 0.66rem);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(200, 168, 107, 0.55);
 }
 
-/* Três colunas por duas linhas: é o arranjo mais baixo que cabe as
-   seis ações. Só em tela muito estreita vira duas colunas. */
+.court-acts-head::before,
+.court-acts-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 168, 107, 0.26), transparent);
+}
+
+/* Com a largura do painel inteiro, as seis ações cabem numa fileira só —
+   uma barra, como a de qualquer jogo de cartas, em vez de um bloco de
+   texto de duas linhas. Vai encolhendo para três e duas colunas conforme
+   a janela aperta. */
 .court-acts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(0.22rem, 0.7dvh, 0.5rem);
 }
 
-@media (max-width: 26rem) {
+@media (min-width: 62rem) {
+  .court-acts {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 30rem) {
   .court-acts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1993,15 +2188,33 @@
    segura o estado: oculta, escolhida, deposta.
    ============================================================ */
 
+/* Uma transform só, montada de custom properties, porque quatro coisas
+   diferentes querem mexer na carta ao mesmo tempo: o leque a gira, o
+   ponteiro a inclina, o hover a levanta e a escolha a destaca. Se cada
+   estado escrevesse a sua própria `transform`, o último da folha apagava
+   os outros — era o leque sumindo no hover.
+
+   A `.card-flip` (game-fx.css) continua sobrepondo tudo: animação vence
+   propriedade declarada, e durante a virada a física não interessa. */
 .court-card {
+  --accent: 201 162 39;
   position: relative;
   flex-shrink: 0;
   aspect-ratio: 2 / 3;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
+  z-index: var(--fan-z, auto);
   border: 1px solid rgba(200, 168, 107, 0.3);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.6);
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s, border-color 0.22s;
+  transform:
+    perspective(760px)
+    translate3d(0, calc(var(--card-lift, 0px) + var(--fan-y, 0%)), 0)
+    rotate(var(--fan-rot, 0deg))
+    rotateX(var(--card-rx, 0deg))
+    rotateY(var(--card-ry, 0deg))
+    scale(var(--card-scale, 1));
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s, border-color 0.25s,
+    opacity 0.22s, filter 0.22s;
 }
 
 .court-card-art {
@@ -2015,18 +2228,163 @@
   cursor: pointer;
 }
 
-.court-card.is-pick:hover {
-  transform: translateY(-5px);
-  border-color: rgba(201, 162, 39, 0.7);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7), 0 0 26px rgba(201, 162, 39, 0.28);
+/* --- Física: o relevo que segue o ponteiro ---------------------- */
+
+/* Com o ponteiro em cima a carta precisa responder no mesmo quadro —
+   os 0.42s de volta ao repouso ficam para quando ele sai, e é aí que
+   viram mola. Só a transform encurta; sombra e borda seguem no ritmo
+   original para o realce não piscar. */
+.court-card.has-tilt {
+  will-change: transform;
 }
+
+.court-card.has-tilt:hover {
+  --card-lift: -18px;
+  --card-scale: 1.12;
+  --fan-rot: 0deg;
+  --fan-z: 40;
+  /* Uma duração por propriedade da lista do bloco base, na mesma ordem:
+     só a transform encurta. Com menos valores a lista cicla e o recuo das
+     vizinhas herdaria os 0.09s da transform. */
+  transition-duration: 0.09s, 0.25s, 0.25s, 0.22s, 0.22s;
+  border-color: rgb(var(--accent) / 0.85);
+  box-shadow:
+    0 32px 58px -14px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgb(var(--accent) / 0.5),
+    0 0 46px -6px rgb(var(--accent) / 0.6);
+}
+
+/* As vizinhas recuam. Sem isto o destaque tinha que sair inteiro do
+   levante e do brilho da carta em foco; metade dele vem de graça quando o
+   resto da mão baixa o tom. `:has()` porque quem muda é o irmão, não o
+   elemento sob o ponteiro. */
+.court-hand-cards:has(.court-card.has-tilt:hover) .court-card:not(:hover),
+.court-hand-cards:has(.court-card.is-vouched) .court-card:not(.is-vouched) {
+  opacity: 0.55;
+  filter: saturate(0.75) brightness(0.82);
+}
+
+/* Verniz. A mancha clara nasce onde o ponteiro está (--foil-x/y, escritas
+   pelo CardView); por baixo dela passa a franja holográfica, recortada
+   pela mesma coordenada — é o que dá a impressão de que a luz varre a
+   superfície em vez de a carta acender por dentro. */
+.court-card-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity 0.28s;
+  background: radial-gradient(
+    circle 45% at var(--foil-x, 50%) var(--foil-y, 50%),
+    rgba(255, 250, 232, 0.3),
+    rgba(255, 250, 232, 0.07) 42%,
+    transparent 68%
+  );
+}
+
+.court-card-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  background: repeating-linear-gradient(
+    112deg,
+    rgba(255, 214, 120, 0.22) 0 7%,
+    rgba(120, 226, 190, 0.18) 7% 14%,
+    rgba(186, 150, 255, 0.2) 14% 21%,
+    transparent 21% 36%
+  );
+  -webkit-mask-image: radial-gradient(circle 52% at var(--foil-x, 50%) var(--foil-y, 50%), #000 0%, transparent 74%);
+  mask-image: radial-gradient(circle 52% at var(--foil-x, 50%) var(--foil-y, 50%), #000 0%, transparent 74%);
+}
+
+.court-card.has-tilt:hover .court-card-sheen,
+.court-card.is-vouched .court-card-sheen {
+  opacity: 1;
+}
+
+/* --- Medalhão do papel e selo de defesa ------------------------- */
+
+.court-card-gem {
+  position: absolute;
+  top: 4.5cqw;
+  left: 4.5cqw;
+  display: grid;
+  place-items: center;
+  width: 19cqw;
+  height: 19cqw;
+  border-radius: 50%;
+  color: #171104;
+  background: radial-gradient(circle at 34% 26%, #fbeeba, rgb(var(--accent)) 60%, #2c2107);
+  border: 1px solid rgba(255, 238, 190, 0.6);
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.75), inset 0 -2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.court-card-gem svg {
+  width: 56%;
+  height: 56%;
+  stroke-width: 2.6;
+}
+
+.court-card-ward {
+  position: absolute;
+  top: 5.5cqw;
+  right: 4.5cqw;
+  display: grid;
+  place-items: center;
+  width: 14cqw;
+  height: 14cqw;
+  border-radius: 50%;
+  color: rgba(240, 233, 212, 0.9);
+  background: rgba(6, 10, 7, 0.78);
+  border: 1px solid rgba(200, 168, 107, 0.45);
+}
+
+.court-card-ward svg {
+  width: 55%;
+  height: 55%;
+  stroke-width: 2.4;
+}
+
+/* --- Escolhida e respaldada ------------------------------------- */
 
 /* Escolhida: o ouro fecha em volta em vez do `ring` de 4px, que
    engordava a carta e empurrava as vizinhas. */
 .court-card.is-on {
-  transform: translateY(-7px);
+  --card-lift: -9px;
+  --fan-rot: 0deg;
+  --fan-z: 30;
   border-color: var(--court-gold-hi);
   box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.7), 0 20px 44px rgba(0, 0, 0, 0.72), 0 0 34px rgba(201, 162, 39, 0.35);
+}
+
+/* A ação sob o ponteiro alega este personagem, e ele está aqui. A carta
+   se apresenta: sai do leque, levanta e pulsa na cor da casa. Confirma
+   ao jogador que a alegação é verdadeira antes do clique — sem tirar
+   dele a opção de clicar mesmo sem carta nenhuma. */
+.court-card.is-vouched {
+  --card-lift: -10px;
+  --card-scale: 1.03;
+  --fan-rot: 0deg;
+  --fan-z: 30;
+  border-color: rgb(var(--accent) / 0.9);
+  animation: cardVouch 1.15s ease-in-out infinite;
+}
+
+@keyframes cardVouch {
+  0%, 100% {
+    box-shadow:
+      0 20px 40px -12px rgba(0, 0, 0, 0.8),
+      0 0 0 1px rgb(var(--accent) / 0.45),
+      0 0 18px -4px rgb(var(--accent) / 0.4);
+  }
+  50% {
+    box-shadow:
+      0 20px 40px -12px rgba(0, 0, 0, 0.8),
+      0 0 0 2px rgb(var(--accent) / 0.9),
+      0 0 42px -2px rgb(var(--accent) / 0.75);
+  }
 }
 
 /* --- Deposta --------------------------------------------------- */
@@ -2034,9 +2392,19 @@
 /* A carta revelada some de cena sem sumir da mesa: perde a cor,
    escurece e recebe o carimbo. Antes o estado virava um painel
    vermelho inclinado cobrindo o retrato inteiro. */
-.court-card.is-down {
+/* Fora de jogo, fora da física: a carta deposta não levanta nem reflete.
+   Levantar uma carta que ninguém pode mais usar era prometer interação
+   que não existe. */
+.court-card.is-down,
+.court-card.is-down.has-tilt:hover {
+  --card-lift: 0px;
+  --card-scale: 1;
   border-color: rgba(162, 58, 26, 0.55);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+.court-card.is-down .court-card-sheen {
+  display: none;
 }
 
 .court-card.is-down .court-card-art {
@@ -2068,16 +2436,71 @@
 .court-card-skill {
   position: absolute;
   inset: auto 0 0 0;
-  padding: 4cqw 4cqw 4.5cqw;
-  background: linear-gradient(to top, rgba(6, 9, 6, 0.95) 42%, rgba(6, 9, 6, 0.78) 70%, transparent 100%);
+  padding: 4.5cqw 4cqw;
+  background: linear-gradient(to top, rgba(3, 5, 4, 0.97) 52%, rgba(3, 5, 4, 0.86) 78%, transparent 100%);
+  transition: background 0.2s, padding 0.2s;
 }
 
+/* Fio na cor da casa separando o texto da pintura — a caixa de regra das
+   cartas de qualquer jogo do gênero. Fica no ::before porque o elemento
+   já usa o fundo para o esmaecido. */
+.court-card-skill::before {
+  content: '';
+  position: absolute;
+  inset: 0 12% auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--accent) / 0.55), transparent);
+  transition: inset 0.2s, background 0.2s;
+}
+
+/* O piso em rem é o que faltava. Só `cqw`, o texto encolhia junto com a
+   carta: numa mesa apertada a regra do Macaco-prego chegava a 7px e virava
+   textura. O `max()` mantém a escala fluida enquanto ela é generosa e
+   segura o fundo quando não é. */
 .court-card-skill p {
-  font-size: 6.4cqw;
-  line-height: 1.3;
+  font-size: max(0.7rem, 6.9cqw);
+  line-height: 1.28;
   font-weight: 600;
-  color: rgba(242, 236, 220, 0.94);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  color: rgba(246, 241, 228, 0.96);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+  transition: font-size 0.2s;
+}
+
+/* Modo de leitura. A carta sob o ponteiro é a única que precisa ser lida —
+   então é só nela que o texto cresce e a placa fecha de vez, em vez de
+   deixar as duas permanentemente mais escuras do que a pintura merece. */
+.court-card.has-tilt:hover .court-card-skill,
+.court-card.is-vouched .court-card-skill {
+  padding: 5cqw 4.5cqw 5.5cqw;
+  background: linear-gradient(to top, rgba(2, 4, 3, 0.99) 62%, rgba(2, 4, 3, 0.94) 84%, rgba(2, 4, 3, 0.35) 100%);
+}
+
+.court-card.has-tilt:hover .court-card-skill::before,
+.court-card.is-vouched .court-card-skill::before {
+  inset: 0 4% auto;
+  background: linear-gradient(90deg, transparent, rgb(var(--accent) / 0.95), transparent);
+}
+
+.court-card.has-tilt:hover .court-card-skill p,
+.court-card.is-vouched .court-card-skill p {
+  font-size: max(0.82rem, 8.1cqw);
+}
+
+/* Carta estreita demais para caber a regra: a frase sairia em seis linhas
+   de 7px cobrindo metade do retrato. O medalhão e o nome gravado na arte
+   já dizem quem ela é; quem precisa da regra passa o mouse — aí a placa
+   volta, e a carta está 12% maior e à frente das outras. */
+@container (max-width: 6.5rem) {
+  .court-card-skill {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s;
+  }
+
+  .court-card.has-tilt:hover .court-card-skill,
+  .court-card.is-vouched .court-card-skill {
+    opacity: 1;
+  }
 }
 
 /* --- Verso ----------------------------------------------------- */
@@ -2166,8 +2589,25 @@
   overflow-wrap: anywhere;
 }
 
+/* A física da carta é enfeite: sem ela o vínculo carta↔ação continua
+   legível pela cor da borda e pelo verniz parado. O que some é o
+   movimento — inclinação, levante e pulso —, nunca a informação. */
 @media (prefers-reduced-motion: reduce) {
   .court-card {
     transition-duration: 0.01ms !important;
+  }
+
+  .court-card.has-tilt:hover,
+  .court-card.is-vouched,
+  .court-card.is-on {
+    --card-lift: 0px;
+    --card-scale: 1;
+    --card-rx: 0deg !important;
+    --card-ry: 0deg !important;
+  }
+
+  .court-card.is-vouched {
+    animation: none;
+    box-shadow: 0 0 0 2px rgb(var(--accent) / 0.9), 0 12px 30px -10px rgba(0, 0, 0, 0.8);
   }
 }
