@@ -428,7 +428,7 @@ export class GameEngine {
         break;
 
       case 'foreign_aid':
-        this.addLog(room, `🤝 ${player.name} pediu Coleta Geral (+2 bananas).`);
+        this.addLog(room, `🌴 ${player.name} anunciou Colheita Farta (+2 bananas).`);
         room.pendingAction = {
           id: uuidv4(),
           actorId: playerId,
@@ -769,7 +769,7 @@ export class GameEngine {
     switch (pending.action) {
       case 'foreign_aid':
         actor.coins += 2;
-        this.addLog(room, `💰 ${actor.name} recebeu 2 bananas de Coleta Geral.`);
+        this.addLog(room, `💰 ${actor.name} recebeu 2 bananas da Colheita Farta.`);
         this.advanceTurn(room);
         break;
 

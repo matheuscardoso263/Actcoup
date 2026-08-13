@@ -115,7 +115,7 @@ export interface GameState {
  *  Os identificadores do protocolo continuam em inglês — só a exibição traduz. */
 export const ACTION_LABELS: Record<ActionType, string> = {
   income: 'Colheita',
-  foreign_aid: 'Coleta Geral',
+  foreign_aid: 'Colheita Farta',
   coup: 'Exílio',
   tax: 'Coleta',
   assassinate: 'Caçada',
@@ -133,9 +133,9 @@ export const CHARACTER_INFO: Record<
 > = {
   duke: {
     name: 'Gorila',
-    description: 'Recolhe 3 bananas do estoque. Bloqueia Coleta Geral.',
+    description: 'Recolhe 3 bananas do estoque. Bloqueia Colheita Farta.',
     action: 'Coleta (+3 bananas)',
-    block: 'Bloqueia Coleta Geral',
+    block: 'Bloqueia Colheita Farta',
     image: '/cards/gorila.png',
     accent: '226 176 48'
   },

@@ -21,7 +21,7 @@ import { Crown, HelpCircle, History, AlertCircle, LogOut, Eye, Hourglass } from 
 
 /* As ações do turno. `claim` é o primata que a ação obriga a alegar — é o
    que abre espaço para desafio, e por isso aparece no botão. Colheita e
-   Coleta Geral não alegam nada; o Exílio fica de fora porque não é
+   Colheita Farta não alegam nada; o Exílio fica de fora porque não é
    bloqueável nem desafiável e tem botão próprio.
    Os nomes saem de ACTION_LABELS para a lore ficar num lugar só. */
 const TABLE_ACTIONS: Array<{
