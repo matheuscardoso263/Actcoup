@@ -159,6 +159,30 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
       .map(c => c.character as Character)
   );
 
+  /* Se a habilidade de cada primata está liberada agora. Espelha exatamente
+     o que handleActionClick cobra antes de mandar a ação ao servidor — se
+     as duas listas divergirem, a carta acende e o clique dá erro, que é
+     pior do que não acender.
+
+     `tableIdle` porque durante uma pendência a vez existe mas a fase de
+     ação não está aberta: quem responde é a mesa. */
+  const tableIdle =
+    !gameState.pendingAction && !gameState.pendingLoss && !gameState.pendingExchange;
+  const canAct = !!me && isMyTurn && !isEliminated && tableIdle && me.coins < 10;
+  const liveRivals = gameState.players.filter(
+    p => p.id !== playerId && p.cards.some(c => !c.revealed)
+  );
+
+  const ABILITY_READY: Record<Character, boolean> = {
+    duke: canAct,
+    assassin: canAct && !!me && me.coins >= 3 && liveRivals.length > 0,
+    captain: canAct && liveRivals.some(p => p.coins > 0),
+    ambassador: canAct,
+    /* Babuíno não tem ação: a habilidade dele só abre na vez do adversário,
+       e essa decisão acontece dentro do decreto de bloqueio, não aqui. */
+    countess: false
+  };
+
   /* A carta é 2:3, então a largura de cada painel sai da altura dele: a
      linha inteira mede N × (2 cartas + moldura). Duas restrições, e vence
      a mais apertada — numa tela larga e baixa é a altura, numa estreita e
@@ -356,6 +380,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState, playerId, dealK
                       fanIndex={i}
                       fanCount={me.cards.length}
                       vouched={claimFocus !== null && card.character === claimFocus}
+                      ready={card.character !== 'hidden' && ABILITY_READY[card.character as Character]}
                       onHoverCharacter={setHandFocus}
                     />
                   ))}

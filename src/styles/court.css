@@ -2486,6 +2486,56 @@
   font-size: max(0.82rem, 8.1cqw);
 }
 
+/* --- Habilidade liberada ---------------------------------------- */
+
+/* As condições para usar a habilidade estão satisfeitas agora: bananas
+   suficientes, alvo disponível, sua vez. O realce vai na placa da regra
+   e no medalhão — nos dois lugares que dizem o que a carta faz —, e não
+   na moldura, que já é do hover e da alegação em foco.
+
+   Dizer isto na carta é o que faltava para ela ser a peça da decisão:
+   antes, saber que a Caçada estava fora do alcance com 2 bananas exigia
+   ler o botão apagado do outro lado do painel. */
+.court-card.is-ready .court-card-skill {
+  background:
+    linear-gradient(to top, rgba(3, 5, 4, 0.97) 46%, rgba(3, 5, 4, 0.88) 74%, transparent 100%),
+    linear-gradient(to top, rgb(var(--accent) / 0.26), transparent 72%);
+}
+
+.court-card.is-ready .court-card-skill::before {
+  inset: 0 5% auto;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgb(var(--accent)), transparent);
+  animation: skillReady 1.9s ease-in-out infinite;
+}
+
+.court-card.is-ready .court-card-skill p {
+  color: #fffdf6;
+}
+
+@keyframes skillReady {
+  0%, 100% { box-shadow: 0 0 8px rgb(var(--accent) / 0.5); }
+  50%      { box-shadow: 0 0 16px rgb(var(--accent) / 0.95), 0 0 30px rgb(var(--accent) / 0.45); }
+}
+
+/* O anel do medalhão. Sobrevive à consulta em carta estreita, onde a
+   placa da regra some por container query — ali ele é o único sinal de
+   que a habilidade está ao alcance. */
+.court-card.is-ready .court-card-gem {
+  animation: gemReady 1.9s ease-in-out infinite;
+}
+
+@keyframes gemReady {
+  0% {
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.75), inset 0 -2px 6px rgba(0, 0, 0, 0.35),
+      0 0 0 0 rgb(var(--accent) / 0.6);
+  }
+  70%, 100% {
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.75), inset 0 -2px 6px rgba(0, 0, 0, 0.35),
+      0 0 0 5cqw rgb(var(--accent) / 0);
+  }
+}
+
 /* Carta estreita demais para caber a regra: a frase sairia em seis linhas
    de 7px cobrindo metade do retrato. O medalhão e o nome gravado na arte
    já dizem quem ela é; quem precisa da regra passa o mouse — aí a placa
@@ -2609,5 +2659,18 @@
   .court-card.is-vouched {
     animation: none;
     box-shadow: 0 0 0 2px rgb(var(--accent) / 0.9), 0 12px 30px -10px rgba(0, 0, 0, 0.8);
+  }
+
+  /* A habilidade liberada continua dita — o que sai é o pulso, não o
+     recado. Fio e anel ficam parados no ponto alto da animação. */
+  .court-card.is-ready .court-card-skill::before {
+    animation: none;
+    box-shadow: 0 0 16px rgb(var(--accent) / 0.95);
+  }
+
+  .court-card.is-ready .court-card-gem {
+    animation: none;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.75), inset 0 -2px 6px rgba(0, 0, 0, 0.35),
+      0 0 0 2px rgb(var(--accent) / 0.6);
   }
 }

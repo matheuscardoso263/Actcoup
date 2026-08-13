@@ -35,6 +35,8 @@ interface CardViewProps {
   fanCount?: number;
   /** A ação sob o ponteiro alega justamente este personagem. */
   vouched?: boolean;
+  /** As condições para usar a habilidade estão satisfeitas neste turno. */
+  ready?: boolean;
   /** Só a mão do próprio jogador escuta — é o que acende as ações. */
   onHoverCharacter?: (character: Character | null) => void;
 }
@@ -48,6 +50,7 @@ export const CardView: React.FC<CardViewProps> = ({
   fanIndex,
   fanCount,
   vouched = false,
+  ready = false,
   onHoverCharacter
 }) => {
   /* Durante a virada o conteúdo fica atrasado: até a metade da animação a
@@ -148,6 +151,7 @@ export const CardView: React.FC<CardViewProps> = ({
     selectable ? 'is-pick' : '',
     selected ? 'is-on' : '',
     vouched && !display.revealed ? 'is-vouched' : '',
+    ready && !display.revealed ? 'is-ready' : '',
     display.revealed ? 'is-down' : ''
   ]
     .filter(Boolean)
