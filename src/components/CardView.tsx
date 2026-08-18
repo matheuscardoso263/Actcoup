@@ -1,22 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CHARACTER_INFO, Character } from '../types/game';
 import { sound } from '../audio/sound';
-import { Coins, Skull, Grab, Shuffle, ShieldCheck, Shield } from 'lucide-react';
 
 /** Precisa bater com a duração de .card-flip em game-fx.css. */
 const FLIP_MS = 640;
-
-/* O glifo do canto superior esquerdo — o lugar onde Hearthstone põe o
-   custo e Snap põe a energia. Aqui não há custo a pagar pela carta: o
-   que decide o turno é qual ação ela autoriza, então é isso que o
-   medalhão mostra. Quem só defende (Babuíno) leva o escudo. */
-const ROLE_GLYPH: Record<Character, React.ComponentType<{ className?: string }>> = {
-  duke: Coins,
-  assassin: Skull,
-  captain: Grab,
-  ambassador: Shuffle,
-  countess: ShieldCheck
-};
 
 /** Inclinação máxima no acompanhamento do ponteiro, em graus. */
 const TILT_DEG = 9;
@@ -171,8 +158,6 @@ export const CardView: React.FC<CardViewProps> = ({
   }
   if (info) fan['--accent'] = info.accent;
 
-  const Glyph = info ? ROLE_GLYPH[display.character as Character] : null;
-
   return (
     <div
       ref={root}
@@ -206,20 +191,6 @@ export const CardView: React.FC<CardViewProps> = ({
 
           {!display.revealed && (
             <>
-              {/* Medalhão do papel + selo de defesa. Dois símbolos bastam
-                  para ler a carta de relance; a frase inteira fica no pé
-                  para quem ainda está aprendendo os cinco. */}
-              {Glyph && (
-                <span className="court-card-gem">
-                  <Glyph />
-                </span>
-              )}
-              {info.action && info.block && (
-                <span className="court-card-ward" title={info.block}>
-                  <Shield />
-                </span>
-              )}
-
               <div className="court-card-skill">
                 <p>{info.description}</p>
               </div>

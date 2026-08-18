@@ -537,7 +537,24 @@ export class GameEngine {
       if (responseType === 'challenge') {
         this.addLog(room, `⚡ ${player.name} DESAFIOU a alegação de ${characterName(pending.claimedCharacter).toUpperCase()} de ${room.players.find(p => p.id === pending.actorId).name}!`, 'challenge');
         this.resolveChallenge(room, pending.actorId, playerId, pending.claimedCharacter, () => {
-          this.executeAction(room, pending);
+          // Após o desafiante revelar a carta perdida:
+          // Se a ação for bloqueável (foreign_aid, steal, assassinate) e o alvo ainda estiver vivo, abre a janela de bloqueio
+          if (pending.action === 'foreign_aid') {
+            pending.stage = 'ACTION_BLOCK';
+            pending.responses = {};
+            this.addLog(room, `Desafio superado! Alguém deseja bloquear com ${characterName('duke').toUpperCase()}?`, 'system');
+          } else if ((pending.action === 'assassinate' || pending.action === 'steal') && pending.targetId) {
+            const target = room.players.find(p => p.id === pending.targetId);
+            if (target && target.cards.some(c => !c.revealed)) {
+              pending.stage = 'ACTION_BLOCK';
+              pending.responses = {};
+              this.addLog(room, `Desafio superado! ${target.name} deseja bloquear?`, 'system');
+            } else {
+              this.executeAction(room, pending);
+            }
+          } else {
+            this.executeAction(room, pending);
+          }
         }, () => {
           // Blefe desmascarado na própria ação: ela não acontece e o custo volta.
           this.refundActionCost(room, pending);
@@ -814,10 +831,14 @@ export class GameEngine {
       case 'steal': {
         const target = room.players.find(p => p.id === pending.targetId);
         if (target) {
-          const stolenAmount = Math.min(2, target.coins);
-          target.coins -= stolenAmount;
-          actor.coins += stolenAmount;
-          this.addLog(room, `🪝 ${actor.name} furtou ${stolenAmount} banana(s) de ${target.name}.`);
+          const stolenAmount = Math.min(2, Math.max(0, target.coins));
+          if (stolenAmount > 0) {
+            target.coins -= stolenAmount;
+            actor.coins += stolenAmount;
+            this.addLog(room, `🪝 ${actor.name} furtou ${stolenAmount} banana(s) de ${target.name}.`);
+          } else {
+            this.addLog(room, `🪝 ${actor.name} furtou ${target.name}, mas o alvo não possuía bananas.`);
+          }
         }
         this.advanceTurn(room);
         break;
@@ -842,21 +863,13 @@ export class GameEngine {
     card.revealed = true;
     this.addLog(room, `💀 ${player.name} revelou a carta ${characterName(card.character).toUpperCase()}!`, 'elimination');
 
-    if (player.cards.every(c => c.revealed)) {
+    const isEliminated = player.cards.every(c => c.revealed);
+    if (isEliminated) {
       this.addLog(room, `☠️ ${player.name} perdeu todas as influências e foi ELIMINADO!`, 'elimination');
-      // "Ele deixa suas cartas viradas para cima e devolve todas as suas
-      // moedas ao Tesouro Central." Sem isto o eliminado fica exibindo um
-      // saldo que não é mais dele nem de ninguém.
-      if (player.coins > 0) {
-        this.addLog(room, `🍌 ${player.coins} bananas de ${player.name} voltaram para o estoque.`);
-        player.coins = 0;
-      }
     }
 
     const callback = room.pendingLoss.callbackAction;
     room.pendingLoss = null;
-
-    if (this.checkWinCondition(room)) return room;
 
     if (callback) {
       callback();
@@ -865,6 +878,14 @@ export class GameEngine {
     } else {
       this.advanceTurn(room);
     }
+
+    // Se o jogador foi eliminado, qualquer saldo restante que sobrou após a resolução da ação volta ao estoque
+    if (isEliminated && player.coins > 0) {
+      this.addLog(room, `🍌 ${player.coins} bananas de ${player.name} voltaram para o estoque.`);
+      player.coins = 0;
+    }
+
+    if (this.checkWinCondition(room)) return room;
 
     return room;
   }
